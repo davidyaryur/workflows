@@ -1,0 +1,51 @@
+name: Daily Trello Backup
+
+on:
+  schedule:
+    # Cron sintaxis: minuto hora día mes día-semana
+    # 3:00 PM Venezuela (GMT-4) equivale a 19:00 UTC
+    - cron: '0 19 * * *'
+  workflow_dispatch: # Permite ejecución manual para pruebas
+
+jobs:
+  download-and-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Permiso necesario para guardar el archivo en el repo
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Crear carpeta de backups (si no existe)
+        run: mkdir -p data_trello
+
+      - name: Descargar JSON con fecha
+        run: |
+          # Obtenemos la fecha actual
+          DATE=$(date +'%Y-%m-%d')
+          
+          # Definimos el nombre del archivo con la fecha
+          FILENAME="data_trello/trello_dump_${DATE}.json"
+          
+          # Descargamos el JSON desde tu enlace
+          curl -L "https://trello.com/b/3llFrI1o.json" -o "$FILENAME"
+          
+          echo "Archivo descargado exitosamente: $FILENAME"
+
+      - name: Guardar cambios en Git
+        run: |
+          # Configuración del bot
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          # Añadir cambios
+          git add data_trello/
+          
+          # Verificar si hay cambios antes de hacer commit
+          if git diff --staged --quiet; then
+            echo "No hay cambios nuevos en el JSON para guardar."
+          else
+            git commit -m "Backup diario: $(date +'%Y-%m-%d')"
+            git push
+          fi
