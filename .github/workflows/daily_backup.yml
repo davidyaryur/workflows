@@ -19,14 +19,16 @@ jobs:
       - name: Crear carpeta de backups (si no existe)
         run: mkdir -p data_trello
 
-      - name: Descargar JSON MAXIMIZADO (Hora Venezuela)
+      - name: Descargar JSON Trello
         env:
           TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
         run: |
           # Fecha correcta para Venezuela
           DATE=$(TZ='America/Caracas' date +'%Y-%m-%d')
-          FILENAME="data_trello/trello_dump_${DATE}.json"
+          
+          # CAMBIO APLICADO AQUÍ: Formato "YYYY-MM-DD trello.json"
+          FILENAME="data_trello/${DATE} trello.json"
           
           # --- CAMBIOS CRÍTICOS ---
           # actions_limit=1000 -> Aumentamos el historial de 50 a 1000 (el máximo permitido por API)
@@ -55,3 +57,4 @@ jobs:
             git pull --rebase
             git push
           fi
+
