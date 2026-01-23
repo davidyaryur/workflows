@@ -19,19 +19,23 @@ jobs:
       - name: Crear carpeta de backups (si no existe)
         run: mkdir -p data_trello
 
-      - name: Descargar JSON COMPLETO (Hora Venezuela)
+      - name: Descargar JSON MAXIMIZADO (Hora Venezuela)
         env:
           TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
         run: |
-          # --- CORRECCIÓN DE HORA ---
-          # Forzamos la zona horaria a Caracas para obtener la fecha correcta
+          # Fecha correcta para Venezuela
           DATE=$(TZ='America/Caracas' date +'%Y-%m-%d')
-          
           FILENAME="data_trello/trello_dump_${DATE}.json"
           
-          # URL completa (Cards, Lists, Actions, Checklists)
-          curl -L "https://api.trello.com/1/boards/3llFrI1o?key=$TRELLO_KEY&token=$TRELLO_TOKEN&cards=all&lists=all&checklists=all&actions=all&fields=all&customFields=true" -o "$FILENAME"
+          # --- CAMBIOS CRÍTICOS ---
+          # actions_limit=1000 -> Aumentamos el historial de 50 a 1000 (el máximo permitido por API)
+          # card_pluginData=true -> Descarga datos de Power-Ups en las tarjetas
+          # card_attachments=true -> Trae detalles completos de los adjuntos
+          # members=all -> Trae la info completa de los miembros
+          # organization=true -> Datos de la organización/empresa
+          
+          curl -L "https://api.trello.com/1/boards/3llFrI1o?key=$TRELLO_KEY&token=$TRELLO_TOKEN&cards=all&lists=all&checklists=all&actions=all&actions_limit=1000&fields=all&customFields=true&card_pluginData=true&pluginData=true&card_attachments=true&members=all&organization=true" -o "$FILENAME"
           
           echo "Archivo descargado: $FILENAME"
 
@@ -45,9 +49,8 @@ jobs:
           if git diff --staged --quiet; then
             echo "No hay cambios nuevos."
           else
-            # También usamos la fecha de Caracas para el mensaje del commit
             COMMIT_DATE=$(TZ='America/Caracas' date +'%Y-%m-%d')
-            git commit -m "Backup diario: $COMMIT_DATE"
+            git commit -m "Backup diario (Full): $COMMIT_DATE"
             
             git pull --rebase
             git push
