@@ -21,14 +21,13 @@ jobs:
 
       - name: Descargar JSON con fecha (Autenticado)
         env:
-          # Aquí cargamos las llaves que acabas de guardar
           TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
         run: |
           DATE=$(date +'%Y-%m-%d')
           FILENAME="data_trello/trello_dump_${DATE}.json"
           
-          # URL autenticada (segura)
+          # URL autenticada
           curl -L "https://trello.com/b/3llFrI1o.json?key=$TRELLO_KEY&token=$TRELLO_TOKEN" -o "$FILENAME"
           
           echo "Archivo descargado: $FILENAME"
@@ -44,5 +43,11 @@ jobs:
             echo "No hay cambios nuevos."
           else
             git commit -m "Backup diario: $(date +'%Y-%m-%d')"
+            
+            # --- CORRECCIÓN AQUÍ ---
+            # Traemos los últimos cambios del repositorio antes de empujar
+            git pull --rebase
+            # -----------------------
+            
             git push
           fi
