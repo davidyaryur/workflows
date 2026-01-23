@@ -19,7 +19,7 @@ jobs:
       - name: Crear carpeta de backups (si no existe)
         run: mkdir -p data_trello
 
-      - name: Descargar JSON con fecha (Autenticado)
+      - name: Descargar JSON COMPLETO (Autenticado)
         env:
           TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
@@ -27,8 +27,15 @@ jobs:
           DATE=$(date +'%Y-%m-%d')
           FILENAME="data_trello/trello_dump_${DATE}.json"
           
-          # URL autenticada
-          curl -L "https://trello.com/b/3llFrI1o.json?key=$TRELLO_KEY&token=$TRELLO_TOKEN" -o "$FILENAME"
+          # --- CAMBIO IMPORTANTE AQUÍ ---
+          # Usamos la API oficial con todos los parámetros activados:
+          # cards=all      -> Trae todas las tarjetas
+          # lists=all      -> Trae todas las columnas/listas
+          # checklists=all -> Trae los checklists internos
+          # actions=all    -> Trae el historial de actividades
+          # fields=all     -> Asegura que venga toda la data
+          
+          curl -L "https://api.trello.com/1/boards/3llFrI1o?key=$TRELLO_KEY&token=$TRELLO_TOKEN&cards=all&lists=all&checklists=all&actions=all&fields=all&customFields=true" -o "$FILENAME"
           
           echo "Archivo descargado: $FILENAME"
 
@@ -43,11 +50,7 @@ jobs:
             echo "No hay cambios nuevos."
           else
             git commit -m "Backup diario: $(date +'%Y-%m-%d')"
-            
-            # --- CORRECCIÓN AQUÍ ---
-            # Traemos los últimos cambios del repositorio antes de empujar
+            # Prevenimos conflictos de sincronización
             git pull --rebase
-            # -----------------------
-            
             git push
           fi
