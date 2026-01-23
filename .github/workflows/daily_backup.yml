@@ -2,8 +2,9 @@ name: Daily Trello Backup
 
 on:
   schedule:
-    # 6:00 PM Venezuela (GMT-4) = 22:00 UTC
-    - cron: '0 22 * * *'
+    # 6:12 PM Venezuela (GMT-4) = 22:12 UTC
+    # Cambiado de '0' a '12' para evitar colas de espera en los servidores de GitHub
+    - cron: '52 23 * * *'
   workflow_dispatch:
 
 jobs:
@@ -27,15 +28,12 @@ jobs:
           # Fecha correcta para Venezuela
           DATE=$(TZ='America/Caracas' date +'%Y-%m-%d')
           
-          # CAMBIO APLICADO AQUÍ: Formato "YYYY-MM-DD trello.json"
+          # Formato "YYYY-MM-DD trello.json"
           FILENAME="data_trello/${DATE} trello.json"
           
           # --- CAMBIOS CRÍTICOS ---
-          # actions_limit=1000 -> Aumentamos el historial de 50 a 1000 (el máximo permitido por API)
-          # card_pluginData=true -> Descarga datos de Power-Ups en las tarjetas
-          # card_attachments=true -> Trae detalles completos de los adjuntos
-          # members=all -> Trae la info completa de los miembros
-          # organization=true -> Datos de la organización/empresa
+          # actions_limit=1000 -> Aumentamos el historial de 50 a 1000
+          # card_pluginData=true, card_attachments=true, members=all, organization=true
           
           curl -L "https://api.trello.com/1/boards/3llFrI1o?key=$TRELLO_KEY&token=$TRELLO_TOKEN&cards=all&lists=all&checklists=all&actions=all&actions_limit=1000&fields=all&customFields=true&card_pluginData=true&pluginData=true&card_attachments=true&members=all&organization=true" -o "$FILENAME"
           
@@ -58,4 +56,20 @@ jobs:
             git push
           fi
 
-
+      - name: Notificar a Telegram
+        if: always() # Se ejecuta aunque falle lo anterior
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          if [ "$JOB_STATUS" == "success" ]; then
+            MESSAGE="✅ Backup de Trello realizado con éxito."
+          else
+            MESSAGE="❌ ALERTA: El Backup de Trello ha fallado. Revisa los logs en GitHub."
+          fi
+          
+          # Enviar mensaje silencioso para no interrumpir si es solo éxito, o normal si falla
+          curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" \
+          -d chat_id="$TELEGRAM_TO" \
+          -d text="$MESSAGE"
