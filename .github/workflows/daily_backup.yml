@@ -1,10 +1,7 @@
 name: Daily Trello Backup
 
 on:
-  schedule:
-    # 6:12 PM Venezuela (GMT-4) = 22:12 UTC
-    # Cambiado de '0' a '12' para evitar colas de espera en los servidores de GitHub
-    - cron: '52 23 * * *'
+
   workflow_dispatch:
 
 jobs:
@@ -73,3 +70,4 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" \
           -d chat_id="$TELEGRAM_TO" \
           -d text="$MESSAGE"
+
