@@ -1,7 +1,6 @@
 name: Daily Trello Backup
 
 on:
-
   workflow_dispatch:
 
 jobs:
@@ -14,10 +13,13 @@ jobs:
       - name: Checkout del código
         uses: actions/checkout@v4
 
-      - name: Crear carpeta de backups (si no existe)
-        run: mkdir -p data_trello
+      - name: Crear carpetas necesarias
+        run: |
+          mkdir -p data_trello
+          mkdir -p Portadas
 
       - name: Descargar JSON Trello
+        id: download_json
         env:
           TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
@@ -25,50 +27,76 @@ jobs:
           # Fecha correcta para Venezuela
           DATE=$(TZ='America/Caracas' date +'%Y-%m-%d')
           
-          # Formato "YYYY-MM-DD trello.json"
+          # Guardamos el nombre del archivo en una variable de entorno para usarla en el siguiente paso
           FILENAME="data_trello/${DATE} trello.json"
+          echo "JSON_FILE=$FILENAME" >> $GITHUB_ENV
           
-          # --- CAMBIOS CRÍTICOS ---
-          # actions_limit=1000 -> Aumentamos el historial de 50 a 1000
-          # card_pluginData=true, card_attachments=true, members=all, organization=true
-          
+          # Descarga del JSON completo
           curl -L "https://api.trello.com/1/boards/3llFrI1o?key=$TRELLO_KEY&token=$TRELLO_TOKEN&labels=all&cards=all&lists=all&checklists=all&actions=all&actions_limit=1000&fields=all&customFields=true&card_pluginData=true&pluginData=true&card_attachments=true&members=all&organization=true" -o "$FILENAME"
           
-          echo "Archivo descargado: $FILENAME"
+          echo "Archivo JSON descargado: $FILENAME"
+
+      - name: Procesar y Descargar Portadas
+        env:
+          TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
+          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+        run: |
+          echo "Procesando imágenes desde: ${{ env.JSON_FILE }}"
+          
+          # 1. Usamos jq para extraer ID y URL solo de las cartas que tienen portada.
+          # La lógica es: Buscar cartas con idAttachmentCover != null -> Encontrar el adjunto que coincide con ese ID -> Imprimir "ID URL"
+          
+          jq -r '.cards[] | select(.idAttachmentCover != null) | .id as $id | .idAttachmentCover as $cover | .attachments[] | select(.id == $cover) | "\($id) \(.url)"' "${{ env.JSON_FILE }}" > covers_to_download.txt
+          
+          # 2. Leemos el archivo generado y descargamos imagen por imagen
+          count=0
+          while read -r card_id url; do
+            # Definir nombre de archivo según lo que espera tu HTML (ID.png)
+            filepath="Portadas/${card_id}.png"
+            
+            # Descargamos la imagen.
+            # IMPORTANTE: Agregamos key y token a la URL de la imagen por si el tablero es privado.
+            # Usamos -s (silent) para no llenar el log, pero mostramos errores.
+            curl -s -L -o "$filepath" "${url}?key=${TRELLO_KEY}&token=${TRELLO_TOKEN}"
+            
+            ((count++))
+          done < covers_to_download.txt
+          
+          echo "✅ Se han descargado/actualizado $count portadas en la carpeta Portadas/"
+          rm covers_to_download.txt
 
       - name: Guardar cambios en Git
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
           
+          # Agregamos tanto el JSON como las imágenes nuevas
           git add data_trello/
+          git add Portadas/
           
           if git diff --staged --quiet; then
             echo "No hay cambios nuevos."
           else
             COMMIT_DATE=$(TZ='America/Caracas' date +'%Y-%m-%d')
-            git commit -m "Backup diario: $COMMIT_DATE"
+            git commit -m "Backup y Portadas: $COMMIT_DATE"
             
             git pull --rebase
             git push
           fi
 
       - name: Notificar a Telegram
-        if: always() # Se ejecuta aunque falle lo anterior
+        if: always()
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
           JOB_STATUS: ${{ job.status }}
         run: |
           if [ "$JOB_STATUS" == "success" ]; then
-            MESSAGE="✅ Backup de Trello realizado con éxito."
+            MESSAGE="✅ Backup de Trello + Imágenes completado."
           else
-            MESSAGE="❌ ALERTA: El Backup de Trello ha fallado. Revisa los logs en GitHub."
+            MESSAGE="❌ ALERTA: Falló el backup de Trello/Imágenes."
           fi
           
-          # Enviar mensaje silencioso para no interrumpir si es solo éxito, o normal si falla
           curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" \
           -d chat_id="$TELEGRAM_TO" \
           -d text="$MESSAGE"
-
-
