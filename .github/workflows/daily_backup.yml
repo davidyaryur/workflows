@@ -1,143 +1,73 @@
 name: Daily Trello Backup
 
-
-
 on:
-
-
 
   workflow_dispatch:
 
-
-
 jobs:
-
   download-and-commit:
-
     runs-on: ubuntu-latest
-
     permissions:
-
       contents: write
 
-
-
     steps:
-
       - name: Checkout del código
-
         uses: actions/checkout@v4
 
-
-
       - name: Crear carpeta de backups (si no existe)
-
         run: mkdir -p data_trello
 
-
-
       - name: Descargar JSON Trello
-
         env:
-
           TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
-
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
-
         run: |
-
           # Fecha correcta para Venezuela
-
           DATE=$(TZ='America/Caracas' date +'%Y-%m-%d')
-
           
-
           # Formato "YYYY-MM-DD trello.json"
-
           FILENAME="data_trello/${DATE} trello.json"
-
           
-
           # --- CAMBIOS CRÍTICOS ---
-
           # actions_limit=1000 -> Aumentamos el historial de 50 a 1000
-
           # card_pluginData=true, card_attachments=true, members=all, organization=true
-
           
-
           curl -L "https://api.trello.com/1/boards/3llFrI1o?key=$TRELLO_KEY&token=$TRELLO_TOKEN&labels=all&cards=all&lists=all&checklists=all&actions=all&actions_limit=1000&fields=all&customFields=true&card_pluginData=true&pluginData=true&card_attachments=true&members=all&organization=true" -o "$FILENAME"
-
           
-
           echo "Archivo descargado: $FILENAME"
 
-
-
       - name: Guardar cambios en Git
-
         run: |
-
           git config --global user.name "GitHub Actions Bot"
-
           git config --global user.email "actions@github.com"
-
           
-
           git add data_trello/
-
           
-
           if git diff --staged --quiet; then
-
             echo "No hay cambios nuevos."
-
           else
-
             COMMIT_DATE=$(TZ='America/Caracas' date +'%Y-%m-%d')
-
             git commit -m "Backup diario: $COMMIT_DATE"
-
             
-
             git pull --rebase
-
             git push
-
           fi
-
-
 
       - name: Notificar a Telegram
-
         if: always() # Se ejecuta aunque falle lo anterior
-
         env:
-
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-
           TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
-
           JOB_STATUS: ${{ job.status }}
-
         run: |
-
           if [ "$JOB_STATUS" == "success" ]; then
-
             MESSAGE="✅ Backup de Trello realizado con éxito."
-
           else
-
             MESSAGE="❌ ALERTA: El Backup de Trello ha fallado. Revisa los logs en GitHub."
-
           fi
-
           
-
           # Enviar mensaje silencioso para no interrumpir si es solo éxito, o normal si falla
-
           curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" \
-
           -d chat_id="$TELEGRAM_TO" \
-
           -d text="$MESSAGE"
+
