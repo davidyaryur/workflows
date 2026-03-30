@@ -392,7 +392,6 @@
         ]
     };
 
-    // Diccionarios de Normalización y Búsqueda
     const MAP_SELLERS = {
         "ANDREA": "Andrea", "ENMARY": "Enmary", "LORENA": "Lorena", "MARIO": "Mario",
         "MILKA": "Milka", "RICHARD": "Richard", "VERONICA": "Veronica", "ZAIDA": "Zaida"
@@ -420,7 +419,6 @@
     let activePhaseBlockId = null; 
     let activeTooltips = [];
 
-    // Función unificadora
     function unifyName(nameStr, mapObj) {
         if (!nameStr) return "";
         let clean = nameStr.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
@@ -759,7 +757,6 @@
         const sDesigner = document.getElementById('globalDesigner').value; 
         const sSeller = document.getElementById('globalSeller').value;
         
-        // 1. FILTRADO TRELLO
         const filtered = projectDatabase.filter(p => {
             const mClient = !sClient || p.client.toLowerCase().includes(sClient);
             const mDes = sDesigner === 'all' || p.designers.includes(sDesigner); 
@@ -786,7 +783,6 @@
         
         Object.keys(buckets).forEach(key => sortByChecks(buckets[key]));
 
-        // 2. FILTRADO GOOGLE SHEETS (EN VIVO)
         const filterLive = (arr) => arr.filter(p => {
             if (p.estado === "1") return false;
             const mClient = !sClient || (p.cliente && p.cliente.toLowerCase().includes(sClient));
@@ -798,15 +794,7 @@
         const prodFiltered = filterLive(liveProductionData);
         const sampFiltered = filterLive(liveSamplesData);
 
-        const sortByDaysDesc = (a, b) => {
-             let daysA = a.fecha !== "-" && a.fecha ? calculateDays(a.fecha) : -1;
-             let daysB = b.fecha !== "-" && b.fecha ? calculateDays(b.fecha) : -1;
-             return daysB - daysA; 
-        };
-        prodFiltered.sort(sortByDaysDesc);
-        sampFiltered.sort(sortByDaysDesc);
-        
-        // 3. ACTUALIZAR CONTADORES
+        // Actualizar contadores
         document.getElementById('count-production').textContent = prodFiltered.length; 
         document.getElementById('count-samples').textContent = sampFiltered.length;
         document.getElementById('count-active-oc').textContent = buckets.activeOC.length; document.getElementById('count-active-no-oc').textContent = buckets.activeNoOC.length;
@@ -817,7 +805,7 @@
         document.getElementById('count-ventas').textContent = buckets.ventas.length; document.getElementById('count-externos').textContent = buckets.externos.length;
         document.getElementById('count-others').textContent = buckets.others.length;
         
-        // 4. RENDERIZAR TABLAS EN VIVO (CON AGRUPACIÓN COLAPSABLE)
+        // Renderizar tablas con la nueva lógica (incluyendo Muestras que se agrupa y ordena igual)
         renderLiveTableRows('tbody-production', prodFiltered, true); 
         renderLiveTableRows('tbody-samples', sampFiltered, false);
 
@@ -830,44 +818,59 @@
         renderTableRows('tbody-others', buckets.others, true);
     }
 
-    // --- MODIFICACIÓN DE LA FUNCIÓN PARA AGRUPAR EN PRODUCCIÓN Y MUESTRAS ---
+    // --- NUEVA LÓGICA DE AGRUPACIÓN Y ORDENAMIENTO ESTRICTO POR DÍAS (D) ---
     function renderLiveTableRows(tbodyId, projects, isProduccion = false) {
         const tbody = document.getElementById(tbodyId); 
         tbody.innerHTML = ''; 
         if (projects.length === 0) return;
+
+        // Extraer los días limpios para facilitar los cálculos
+        function getNumericDays(dateStr) {
+            let d = calculateDays(dateStr);
+            return (typeof d === 'number' && !isNaN(d)) ? d : -1;
+        }
+
+        const groupedMap = {};
+        const renderList = [];
         
-        // 1. Agrupar proyectos por Trello ID
-        const grouped = {};
-        const noTrello = [];
-        
+        // Separar entre los que tienen Trello válido y los que no
         projects.forEach(p => {
             if (p.trello && p.trello !== "-" && p.trello !== "") {
-                if (!grouped[p.trello]) grouped[p.trello] = [];
-                grouped[p.trello].push(p);
+                if (!groupedMap[p.trello]) groupedMap[p.trello] = [];
+                groupedMap[p.trello].push(p);
             } else {
-                noTrello.push(p);
+                renderList.push({ isGroup: false, effectiveD: getNumericDays(p.fecha), items: [p] });
             }
         });
 
-        // Helper interno para dibujar cualquier fila (padre, hijo o individual)
-        const renderSingleRow = (p, isChild = false, parentGroupId = null, overrideTrello = null, overrideDesc = null, overrideCant = null) => {
+        // Crear la estructura de objetos a renderizar (identificando grupos)
+        Object.keys(groupedMap).forEach(trelloId => {
+            const group = groupedMap[trelloId];
+            if (group.length === 1) {
+                renderList.push({ isGroup: false, effectiveD: getNumericDays(group[0].fecha), items: group });
+            } else {
+                // Sacar el mínimo "D" entre todas las filas del grupo que sean válidas (>= 0)
+                let validDays = group.map(g => getNumericDays(g.fecha)).filter(d => d >= 0);
+                let minD = validDays.length > 0 ? Math.min(...validDays) : -1;
+                renderList.push({ isGroup: true, effectiveD: minD, items: group, trelloId: trelloId });
+            }
+        });
+
+        // ORDEN MAESTRO: Ordenar toda la tabla basándose en el "effectiveD" de mayor a menor
+        renderList.sort((a, b) => b.effectiveD - a.effectiveD);
+
+        // Constructor interno de la fila (tr)
+        const renderSingleRow = (p, isChild = false, parentGroupId = null, overrideTrello = null, overrideDesc = null, overrideCant = null, overrideD = null) => {
             const tr = document.createElement('tr'); 
-            
             const trelloIdMatch = projectDatabase.find(proj => proj.code === p.trello);
             
-            // Asignación de clics y cursores
             if (!isChild && parentGroupId) {
-                // Fila Padre: Se usará para expandir/colapsar (el click event se asigna luego)
                 tr.style.cursor = 'pointer';
                 tr.title = "Clic para expandir/colapsar detalles";
             } else {
-                // Fila Normal o Hija: Redirige al modal de historial
                 if (trelloIdMatch) {
                     tr.className = "project-row";
-                    tr.onclick = (e) => { 
-                        e.stopPropagation(); 
-                        showProjectHistory(trelloIdMatch.id); 
-                    };
+                    tr.onclick = (e) => { e.stopPropagation(); showProjectHistory(trelloIdMatch.id); };
                 } else {
                     tr.className = "project-row";
                     tr.title = "Aún no hay historial de Trello sincronizado para este proyecto";
@@ -879,8 +882,17 @@
                 tr.style.display = 'none'; // Los hijos están ocultos por defecto
             }
             
-            let dCount = calculateDays(p.fecha);
-            if (typeof dCount === 'number' && dCount > 15) {
+            let dCount;
+            if (overrideD !== null) {
+                dCount = overrideD; // Si es el Padre, forzamos su 'effectiveD' calculado
+            } else {
+                dCount = calculateDays(p.fecha);
+            }
+            
+            // Si el cálculo da -1 o inválido, mostramos guión
+            if (dCount === -1 || isNaN(dCount) || dCount < 0) dCount = "-";
+
+            if (dCount !== "-" && dCount > 15) {
                 tr.classList.add('row-blinking');
             }
 
@@ -902,10 +914,8 @@
                 desHtml = `<span class="badge rounded-pill ${desCls} badge-pill badge-designer-base">${p.disenador}</span>`;
             }
             
-            if (isNaN(dCount) || dCount < 0) dCount = "-";
-            
             const descToUse = overrideDesc !== null ? overrideDesc : p.desc;
-            const descShort = limitWords(descToUse, overrideDesc !== null ? 15 : 5); // Dar más palabras si es la concatenada del padre
+            const descShort = limitWords(descToUse, overrideDesc !== null ? 15 : 5); 
             
             const cantToUse = overrideCant !== null ? overrideCant : p.cant;
             let cantHtml = isProduccion ? `<td class="text-center fw-bold" style="color: #495057;">${cantToUse || '-'}</td>` : '';
@@ -924,22 +934,22 @@
             return tr;
         };
 
-        // 2. Renderizar grupos colapsables
-        Object.keys(grouped).forEach(trelloId => {
-            const group = grouped[trelloId];
-            
-            if (group.length === 1) {
-                // Si solo hay uno, se dibuja la línea estándar (sin contador, sin colapsar)
-                tbody.appendChild(renderSingleRow(group[0]));
+        // Renderizar respetando el orden Maestro
+        renderList.forEach(item => {
+            if (!item.isGroup) {
+                // Item solitario
+                tbody.appendChild(renderSingleRow(item.items[0]));
             } else {
-                const groupId = `group-${trelloId}`;
-                
-                // Preparar sumatorias y concatenación para la fila Padre
+                // Es un grupo: Generar Padre e Hijos
+                const groupId = `group-${item.trelloId}`;
                 let totalCant = 0;
                 let hasCant = false;
                 let descrList = [];
                 
-                group.forEach(g => {
+                // Opcional y muy visual: Ordenar también los hijos internamente de mayor a menor D
+                item.items.sort((a, b) => getNumericDays(b.fecha) - getNumericDays(a.fecha));
+
+                item.items.forEach(g => {
                     let c = parseInt(g.cant);
                     if (!isNaN(c)) {
                         totalCant += c;
@@ -949,7 +959,6 @@
                 });
                 
                 let cantPadre = hasCant ? totalCant : '-';
-                
                 let descPadre = "";
                 if (descrList.length > 2) {
                     descPadre = `${descrList[0]}, ${descrList[1]}, ...`;
@@ -957,20 +966,17 @@
                     descPadre = descrList.join(", ");
                 }
                 
-                const trelloPadre = `${trelloId} (${group.length})`;
+                const trelloPadre = `${item.trelloId} (${item.items.length})`;
                 
-                // Generar Padre e Hijos
-                const trPadre = renderSingleRow(group[0], false, groupId, trelloPadre, descPadre, cantPadre);
-                
-                // Resaltar sutilmente la fila padre para denotar que es un contenedor
+                // Instanciar el padre enviándole como "overrideD" el effectiveD (el minD que calculamos)
+                const trPadre = renderSingleRow(item.items[0], false, groupId, trelloPadre, descPadre, cantPadre, item.effectiveD);
                 trPadre.style.boxShadow = 'inset 0 0 0 9999px rgba(0,0,0,0.03)';
                 
                 const childRows = [];
-                group.forEach(p => {
+                item.items.forEach(p => {
                     childRows.push(renderSingleRow(p, true, groupId));
                 });
                 
-                // Asignar el comportamiento al hacer clic en el Padre
                 trPadre.onclick = () => {
                     childRows.forEach(c => {
                         c.style.display = c.style.display === 'none' ? 'table-row' : 'none';
@@ -981,23 +987,16 @@
                 childRows.forEach(cr => tbody.appendChild(cr));
             }
         });
-
-        // 3. Renderizar items que no tengan Trello de forma regular
-        noTrello.forEach(p => {
-            tbody.appendChild(renderSingleRow(p));
-        });
     }
 
     function renderTableRows(tbodyId, projects, showPhase) {
         const tbody = document.getElementById(tbodyId); tbody.innerHTML = ''; if (projects.length === 0) return;
         
-        // Tablas que pertenecen a la pestaña DISEÑO
         const disenoTables = ['tbody-active-oc', 'tbody-active-no-oc', 'tbody-wait-oc', 'tbody-wait-no-oc'];
 
         projects.forEach(p => {
             const tr = document.createElement('tr'); tr.className = "project-row"; tr.onclick = () => showProjectHistory(p.id);
             
-            // Solo aplicar el parpadeo en las tablas de Diseño si D > 3
             if (disenoTables.includes(tbodyId) && p.consecutiveD > 3) { 
                 tr.classList.add('row-blinking'); 
             }
