@@ -1,8 +1,10 @@
 name: Daily Trello Backup
 
 on:
-
   workflow_dispatch:
+  # Si en el futuro quieres que se ejecute solo, puedes descomentar las siguientes líneas
+  # schedule:
+  #   - cron: '0 22 * * *' # Ejecuta todos los días a las 6:00 PM (Hora Vzla aprox)
 
 jobs:
   download-and-commit:
@@ -36,18 +38,30 @@ jobs:
           
           echo "Archivo descargado: $FILENAME"
 
+      # --- NUEVOS PASOS PARA COMPILAR EL HISTORIAL WEB ---
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Generar history_all.json
+        run: python build_history.py
+
+      # --- GUARDADO EN GIT ACTUALIZADO ---
       - name: Guardar cambios en Git
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
           
+          # Agregamos la carpeta de backups y el nuevo archivo compilado
           git add data_trello/
+          git add history_all.json
           
           if git diff --staged --quiet; then
             echo "No hay cambios nuevos."
           else
             COMMIT_DATE=$(TZ='America/Caracas' date +'%Y-%m-%d')
-            git commit -m "Backup diario: $COMMIT_DATE"
+            git commit -m "Backup diario y actualización de historial: $COMMIT_DATE"
             
             git pull --rebase
             git push
@@ -61,7 +75,7 @@ jobs:
           JOB_STATUS: ${{ job.status }}
         run: |
           if [ "$JOB_STATUS" == "success" ]; then
-            MESSAGE="✅ Backup de Trello realizado con éxito."
+            MESSAGE="✅ Backup de Trello y compilación del historial web realizados con éxito."
           else
             MESSAGE="❌ ALERTA: El Backup de Trello ha fallado. Revisa los logs en GitHub."
           fi
@@ -70,4 +84,3 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" \
           -d chat_id="$TELEGRAM_TO" \
           -d text="$MESSAGE"
-
