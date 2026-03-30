@@ -45,6 +45,19 @@
 
         body { background-color: var(--bg-body); padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.8rem; overflow-x: hidden; }
         
+        /* --- LOADER PANTALLA COMPLETA --- */
+        #startup-overlay { position: fixed; inset: 0; background-color: #ffffff; z-index: 10500; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+        .bouncing-dots { display: flex; gap: 8px; margin-top: 15px; justify-content: center;}
+        .bouncing-dots span { width: 14px; height: 14px; background-color: #6c757d; border-radius: 50%; animation: bounce 0.5s infinite alternate; }
+        .bouncing-dots span:nth-child(2) { animation-delay: 0.15s; }
+        .bouncing-dots span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+        
+        #enter-btn-container { display: none; animation: fadeIn 0.8s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .btn-workflows { padding: 15px 50px; font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; border-radius: 50px; background-color: #212529; color: white; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.15); transition: all 0.2s ease; }
+        .btn-workflows:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0,0,0,0.2); background-color: #343a40; color: white; }
+
         /* --- NUEVO HEADER UNIFICADO --- */
         .top-bar-container { background-color: white; border-bottom: 1px solid #ccc; display: flex; align-items: flex-end; padding: 8px 15px 0 15px; height: 55px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; gap: 15px; }
         .logo-box img { height: 35px; margin-bottom: 8px; cursor: pointer; transition: transform 0.2s; }
@@ -57,24 +70,31 @@
         .chrome-link { display: block; padding: 8px 25px; background-color: var(--chrome-inactive); color: #5f6368; font-weight: 600; font-size: 0.8rem; text-decoration: none; border-radius: 12px 12px 0 0; border: 1px solid #ccc; border-bottom: none; position: relative; transition: all 0.2s ease; white-space: nowrap; box-shadow: inset 0 -5px 10px rgba(0,0,0,0.02); transform: perspective(100px) rotateX(2deg); margin-bottom: 0px; }
         .chrome-link:hover { background-color: #e8eaed; z-index: 5; }
         .chrome-link.active { background-color: var(--bg-body); color: #202124; font-weight: 800; z-index: 10; padding-top: 10px; border-bottom: 1px solid var(--bg-body); box-shadow: 0 -2px 5px rgba(0,0,0,0.1); }
-        .nav-item::after { content: ""; position: absolute; right: 12px; top: 25%; height: 50%; width: 1px; background: #9aa0a6; z-index: 11; }
+        .nav-item::after { content: absolute; right: 12px; top: 25%; height: 50%; width: 1px; background: #9aa0a6; z-index: 11; }
         .nav-item:hover::after, .nav-item:has(.active)::after, .nav-item:last-child::after { display: none; }
 
-        /* --- FILTROS COMPACTOS --- */
-        .filters-group { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-        .form-control-compact { font-size: 0.75rem; padding: 4px 8px; height: 30px; width: 140px; border-radius: 15px; }
-        .update-info { font-size: 0.7rem; color: #6c757d; margin-bottom: 8px; white-space: nowrap; font-weight: 600; border-left: 1px solid #ddd; padding-left: 10px; }
+        /* --- BARRA DE FILTROS INFERIOR --- */
+        .bottom-filter-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background-color: white; border-top: 1px solid #dee2e6; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; gap: 20px; z-index: 1000; padding: 0 20px; }
+        .search-client-input { border-radius: 30px; padding: 8px 20px; border: 1px solid #ced4da; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); width: 250px; font-size: 0.9rem; }
+        .search-client-input:focus { outline: none; border-color: #86b7fe; box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25); }
+        .dropdown-filter-btn { border-radius: 30px; padding: 6px 20px; background-color: white; border: 1px solid #ced4da; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; min-width: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .dropdown-menu-filter { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: none; padding: 8px; max-height: 300px; overflow-y: auto; }
+        .dropdown-item-filter { border-radius: 8px; padding: 6px 12px; transition: background-color 0.2s; cursor: pointer; display: flex; align-items: center; }
+        .dropdown-item-filter:hover { background-color: #f8f9fa; }
+        .update-info-bottom { font-size: 0.75rem; color: #6c757d; line-height: 1.2; border-left: 2px solid #e9ecef; padding-left: 15px; margin-left: 10px; }
 
         /* --- CONTENIDO PRINCIPAL --- */
-        .main-content-wrapper { padding: 15px; }
+        /* Ajuste de padding para no pisar la barra inferior */
+        .main-content-wrapper { padding: 15px; padding-bottom: 80px; } 
         .dashboard-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow: hidden; height: 100%; }
         .card-header-large { background-color: white; color: #1a1a1a; padding: 12px 15px; font-size: 1.3rem; font-weight: 900; text-transform: uppercase; text-align: center; border-bottom: 3px solid #eaeff5; display: flex; justify-content: center; align-items: center; position: relative; letter-spacing: 0.5px; }
         .header-counter { position: absolute; right: 20px; color: #adb5bd; background-color: transparent; font-size: 1.4rem; font-weight: 800; border: none; }
 
         /* --- TABLAS --- */
         .table-sticky-header thead th { position: sticky; top: 0; background-color: #ffffff; color: #6c757d; border-bottom: 2px solid #dee2e6; z-index: 2; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 10px 4px !important; }
-        .table-full-height { height: 78vh; overflow-y: auto; background-color: white; }
-        .table-quadrant-height { height: 34vh; overflow-y: auto; background-color: white; }
+        /* Alturas ajustadas para considerar el header y el bottom bar */
+        .table-full-height { height: calc(100vh - 200px); overflow-y: auto; background-color: white; }
+        .table-quadrant-height { height: calc(50vh - 130px); overflow-y: auto; background-color: white; }
 
         tr.project-row { cursor: pointer; transition: background-color 0.1s; }
         tr.project-row:hover td { filter: brightness(0.97); }
@@ -88,13 +108,11 @@
         .row-veronica td { background-color: var(--bg-veronica) !important; color: var(--tx-veronica); }
         .row-default td { background-color: var(--bg-default); color: var(--tx-default); }
 
-        /* --- ESTILOS DE PARPADEO CONTROLADO POR JS --- */
         tr.bg-blink-active td { background-color: #ffcccc !important; color: #cc0000 !important; transition: all 0.2s ease-in-out; }
 
-        .badge-pill { padding: 3px 8px; font-size: 0.75rem; font-weight: normal; margin-right: 2px; }
+        .badge-pill { padding: 4px 10px; font-size: 0.75rem; font-weight: bold; margin-right: 2px; }
 
-        /* VENDEDORES SIN BORDES */
-        .badge-seller-base { border: 1px solid transparent; font-weight: 700; letter-spacing: 0.5px; }
+        .badge-seller-base { border: 1px solid transparent; letter-spacing: 0.5px; }
         .badge-andrea { background-color: var(--bg-andrea); color: var(--tx-andrea); } 
         .badge-milka { background-color: var(--bg-milka); color: var(--tx-milka); } 
         .badge-zaida { background-color: var(--bg-zaida); color: var(--tx-zaida); }
@@ -103,10 +121,9 @@
         .badge-richard { background-color: var(--bg-richard); color: var(--tx-richard); }
         .badge-mario { background-color: var(--bg-mario); color: var(--tx-mario); } 
         .badge-veronica { background-color: var(--bg-veronica); color: var(--tx-veronica); } 
-        .badge-default { background-color: var(--bg-default); color: var(--tx-default); }
+        .badge-default { background-color: var(--bg-default); color: var(--tx-default); border: 1px solid #ccc; }
 
-        /* DISEÑADORES CON BORDES */
-        .badge-designer-base { border: 1px solid transparent; font-weight: 700; letter-spacing: 0.5px; }
+        .badge-designer-base { border: 1px solid transparent; letter-spacing: 0.5px; }
         .badge-des-guillermo { background-color: var(--bg-guillermo); color: var(--tx-guillermo); border-color: var(--tx-guillermo); }
         .badge-des-david { background-color: var(--bg-david); color: var(--tx-david); border-color: var(--tx-david); }
         .badge-des-angel { background-color: var(--bg-angel); color: var(--tx-angel); border-color: var(--tx-angel); }
@@ -121,14 +138,13 @@
         th, td { vertical-align: middle !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-color: #f0f0f0; }
         .col-desc { white-space: normal; line-height: 1.2; }
         
-        /* Celdas interactivas de Checks (Verde Pastel) */
         td.check-cell-active { background-color: #8ad19c !important; color: white !important; cursor: pointer; transition: transform 0.1s; }
         td.check-cell-active .check-icon { color: white !important; font-size: 1.2em; font-weight: bold; }
         td.check-cell-inactive { cursor: pointer; transition: background-color 0.1s; }
         td.check-cell-inactive .check-icon { color: #8ad19c; font-size: 1.2em; font-weight: bold; }
         td.check-cell-active:hover, td.check-cell-inactive:hover { filter: brightness(0.85); transform: scale(1.05); }
 
-        /* --- ESTILOS DEL CALENDARIO Y TOOLTIPS --- */
+        /* --- ESTILOS DEL CALENDARIO, TOOLTIPS Y CINTAS IZQUIERDAS (Se mantienen igual) --- */
         .calendar-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; padding-bottom: 20px; }
         .calendar-month { width: 100%; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; min-height: 240px; }
         .calendar-header { background-color: #ffffff; color: #adb5bd; text-align: center; padding: 10px; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(0,0,0,0.05); }
@@ -155,7 +171,6 @@
 
         .tooltip-inner { text-align: left; max-width: 200px; padding: 8px 12px; font-size: 0.8rem; border-radius: 6px; background-color: #343a40; }
 
-        /* --- CINTAS IZQUIERDA (HISTORIAL) --- */
         .ribbon-container { display: flex; flex-direction: column; gap: 12px; padding-right: 5px; }
         .ribbon-item { position: relative; background: #fff; padding: 12px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.3s ease; }
         .ribbon-item:hover { transform: translateX(3px); box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
@@ -189,6 +204,21 @@
 </head>
 <body>
 
+<div id="startup-overlay">
+    <div id="startup-content" class="text-center">
+        <img src="Inversiones Yar-Yur.png" alt="Logo Yar-Yur" style="height: 60px; margin-bottom: 20px;">
+        <h4 class="fw-bold text-dark m-0" style="letter-spacing: 1px;">Actualizando datos...</h4>
+        <div class="bouncing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+    <div id="enter-btn-container">
+        <button class="btn-workflows" onclick="enterApp()">WORKFLOWS</button>
+    </div>
+</div>
+
 <div class="container-fluid p-0">
     
     <div class="top-bar-container">
@@ -205,17 +235,8 @@
             <li class="nav-item" role="presentation"><button class="chrome-link" id="tab-asignar" data-bs-toggle="tab" data-bs-target="#view-asignar" type="button" role="tab">POR ASIGNAR</button></li>
             <li class="nav-item" role="presentation"><button class="chrome-link" id="tab-otros" data-bs-toggle="tab" data-bs-target="#view-otros" type="button" role="tab">OTROS</button></li>
         </ul>
-
-        <div class="filters-group">
-            <input type="text" id="globalSearchClient" class="form-control form-control-compact" placeholder="Buscar Cliente...">
-            <select id="globalDesigner" class="form-select form-control-compact" style="width: 120px;"><option value="all">Diseñador: Todos</option></select>
-            <select id="globalSeller" class="form-select form-control-compact" style="width: 120px;"><option value="all">Vendedor: Todos</option></select>
-            <div class="update-info">Actualizado: <span id="lastUpdateDate" class="fw-bold text-dark">-</span></div>
-        </div>
     </div>
     
-    <div id="loadingStatus" class="position-fixed top-0 start-50 translate-middle-x bg-warning px-3 py-1 rounded-bottom shadow-sm small fw-bold" style="display:none; z-index: 9999;">Sincronizando con Google Sheets...</div>
-
     <div class="tab-content main-content-wrapper" id="mainDashboardContent">
         
         <div class="tab-pane fade show active" id="view-produccion" role="tabpanel">
@@ -269,7 +290,7 @@
                 <div class="col-12">
                     <div class="dashboard-card">
                         <div class="card-header-large">RESTO DE FASES <span class="header-counter" id="count-others">0</span></div>
-                        <div style="height: 78vh; overflow-y: auto; background: white;"> 
+                        <div style="height: calc(100vh - 200px); overflow-y: auto; background: white;"> 
                             <table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Inicio</th><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th><th>Estado</th><th>Fase</th></tr></thead><tbody id="tbody-others"></tbody></table>
                         </div>
                     </div>
@@ -278,6 +299,30 @@
         </div>
 
     </div> 
+</div>
+
+<div class="bottom-filter-bar">
+    <input type="text" id="globalSearchClient" class="search-client-input" placeholder="Buscar Cliente...">
+    
+    <div class="dropdown">
+        <button class="dropdown-filter-btn dropdown-toggle" type="button" id="btnFilterDesigner" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="text-muted">Diseñador: Todos</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-filter" id="menuFilterDesigner">
+            </ul>
+    </div>
+
+    <div class="dropdown">
+        <button class="dropdown-filter-btn dropdown-toggle" type="button" id="btnFilterSeller" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="text-muted">Vendedor: Todos</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-filter" id="menuFilterSeller">
+            </ul>
+    </div>
+
+    <div class="update-info-bottom">
+        Actualizado:<br><span id="lastUpdateDate" class="fw-bold text-dark">-</span>
+    </div>
 </div>
 
 <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
@@ -418,6 +463,10 @@
     let liveSamplesData = [];
     let activePhaseBlockId = null; 
     let activeTooltips = [];
+    
+    // VARIABLES PARA FILTROS
+    let currentFilterDesigner = 'all';
+    let currentFilterSeller = 'all';
 
     function unifyName(nameStr, mapObj) {
         if (!nameStr) return "";
@@ -433,43 +482,16 @@
         THEME_CONFIG.phases.forEach(p => { root.style.setProperty(`--bg-${p.id}`, p.bg); });
     }
 
-    const configModal = new bootstrap.Modal(document.getElementById('configModal'));
-    function openConfigModal() {
-        renderConfigTab('sellers', 'tab-sellers'); renderConfigTab('designers', 'tab-designers'); renderConfigTab('phases', 'tab-phases');
-        configModal.show();
-    }
-
-    function renderConfigTab(type, containerId) {
-        const container = document.getElementById(containerId); container.innerHTML = '';
-        THEME_CONFIG[type].forEach(item => {
-            const row = document.createElement('div'); row.className = 'config-item-row';
-            const previewBox = document.createElement('div'); previewBox.className = 'config-label-box'; previewBox.textContent = item.name.toUpperCase();
-            
-            previewBox.style.backgroundColor = item.bg; 
-            previewBox.style.color = item.tx; 
-            previewBox.style.borderColor = (type === 'designers') ? item.tx : 'transparent'; 
-            
-            const inputsDiv = document.createElement('div'); inputsDiv.className = 'color-inputs-container';
-            inputsDiv.appendChild(createColorPicker(item.bg, "Fondo", (newColor) => { item.bg = newColor; previewBox.style.backgroundColor = newColor; applyTheme(); }));
-            inputsDiv.appendChild(createColorPicker(item.tx, "Texto", (newColor) => { 
-                item.tx = newColor; 
-                previewBox.style.color = newColor; 
-                if (type === 'designers') {
-                    previewBox.style.borderColor = newColor; 
-                }
-                applyTheme(); 
-            }));
-            row.appendChild(previewBox); row.appendChild(inputsDiv); container.appendChild(row);
-        });
-    }
-
-    function createColorPicker(initialColor, label, onChange) {
-        const wrapper = document.createElement('div'); wrapper.className = 'text-center';
-        const labelEl = document.createElement('div'); labelEl.className = 'picker-label'; labelEl.textContent = label;
-        const circle = document.createElement('div'); circle.className = 'color-picker-wrapper'; circle.style.backgroundColor = initialColor;
-        const input = document.createElement('input'); input.type = 'color'; input.value = initialColor;
-        input.addEventListener('input', (e) => { circle.style.backgroundColor = e.target.value; onChange(e.target.value); });
-        circle.appendChild(input); wrapper.appendChild(labelEl); wrapper.appendChild(circle); return wrapper;
+    // --- LOGICA DEL CARGADOR Y FULLSCREEN ---
+    function enterApp() {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(err => console.log("Fullscreen denegado o no soportado.", err));
+        }
+        document.getElementById('startup-overlay').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('startup-overlay').style.display = 'none';
+        }, 500);
     }
 
     window.onload = function() { 
@@ -485,8 +507,6 @@
 
     async function loadAllHistory() {
         try {
-            document.getElementById('loadingStatus').style.display = 'block';
-            
             const [trelloRes, sheetsRes] = await Promise.allSettled([
                 fetch('history_all.json'),
                 fetch(GOOGLE_SHEETS_API_URL)
@@ -521,142 +541,142 @@
                 }
             }
             
-            document.getElementById('loadingStatus').style.display = 'none';
             initializeFilters(); 
             applyFiltersAndRender();
+            
+            // TRANSICIÓN DEL LOADER AL BOTÓN
+            document.getElementById('startup-content').style.display = 'none';
+            document.getElementById('enter-btn-container').style.display = 'block';
 
         } catch (error) { 
             console.error(error); 
-            document.getElementById('loadingStatus').textContent = "Error de conexión"; 
+            document.getElementById('startup-content').innerHTML = "<h4 class='text-danger'>Error al cargar datos. Actualice la página.</h4>";
         }
     }
 
-    function normalizeTrelloData(rawData) {
-        let data = { ...rawData };
-        if (!data.lists) data.lists = [];
-        if (!data.labels || !Array.isArray(data.labels)) data.labels = []; 
-        if (!data.cards) data.cards = [];
-        return data;
+    // --- MANEJO DE LOS MENÚS DESPLEGABLES CON PÍLDORAS ---
+    function buildBadgeHtml(name, type) {
+        if (name === 'all') {
+            return type === 'seller' ? '<span class="text-muted">Vendedor: Todos</span>' : '<span class="text-muted">Diseñador: Todos</span>';
+        }
+        if (type === 'seller') {
+            let cls = SELLER_IDS[name] ? "badge-"+SELLER_IDS[name] : "badge-default";
+            return `<span class="badge rounded-pill ${cls} badge-pill badge-seller-base">${name}</span>`;
+        } else {
+            let desCls = DESIGNER_IDS[name] ? "badge-des-" + DESIGNER_IDS[name] : "badge-des-default";
+            return `<span class="badge rounded-pill ${desCls} badge-pill badge-designer-base">${name}</span>`;
+        }
     }
 
-    function resolvePhaseName(listName, designState) {
-        const ln = listName.toUpperCase();
-        for (const designer of DESIGN_LIST_NAMES) { if (ln.includes(designer)) { if (designState === "ESPERA") return `${designer} (EN ESPERA)`; return designer; } }
-        return listName;
+    function selectFilter(type, value, htmlStr) {
+        if (type === 'seller') {
+            currentFilterSeller = value;
+            document.getElementById('btnFilterSeller').innerHTML = htmlStr;
+        } else {
+            currentFilterDesigner = value;
+            document.getElementById('btnFilterDesigner').innerHTML = htmlStr;
+        }
+        applyFiltersAndRender();
     }
 
-    function hexToRgba(hex, alpha) {
-        let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    function populateCustomDropdown(containerId, items, type) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        
+        const liAll = document.createElement('li');
+        const aAll = document.createElement('div');
+        aAll.className = 'dropdown-item-filter';
+        aAll.innerHTML = buildBadgeHtml('all', type);
+        aAll.onclick = (e) => { e.preventDefault(); selectFilter(type, 'all', aAll.innerHTML); };
+        liAll.appendChild(aAll);
+        container.appendChild(liAll);
+
+        items.forEach(i => {
+            if (i !== "Varios / Otro") {
+                const li = document.createElement('li');
+                const a = document.createElement('div');
+                a.className = 'dropdown-item-filter';
+                a.innerHTML = buildBadgeHtml(i, type);
+                a.onclick = (e) => { e.preventDefault(); selectFilter(type, i, a.innerHTML); };
+                li.appendChild(a);
+                container.appendChild(li);
+            }
+        });
     }
+
+    function initializeFilters() {
+        let allDesigners = new Set();
+        let allSellers = new Set();
+        
+        projectDatabase.forEach(p => { p.designers.forEach(v => allDesigners.add(v)); p.sellers.forEach(v => allSellers.add(v)); });
+        
+        const processLive = (p) => {
+            if (p.estado === "1") return; 
+            if (p.disenador && p.disenador !== "-") allDesigners.add(p.disenador);
+            if (p.vendedor && p.vendedor !== "-") allSellers.add(p.vendedor);
+        };
+        liveProductionData.forEach(processLive);
+        liveSamplesData.forEach(processLive);
+
+        populateCustomDropdown('menuFilterDesigner', [...allDesigners].sort(), 'designer'); 
+        populateCustomDropdown('menuFilterSeller', [...allSellers].sort(), 'seller');
+    }
+
+    // --- LOGICA DE PROCESAMIENTO (Igual a la versión anterior) ---
+    function normalizeTrelloData(rawData) { let data = { ...rawData }; if (!data.lists) data.lists = []; if (!data.labels || !Array.isArray(data.labels)) data.labels = []; if (!data.cards) data.cards = []; return data; }
+
+    function resolvePhaseName(listName, designState) { const ln = listName.toUpperCase(); for (const designer of DESIGN_LIST_NAMES) { if (ln.includes(designer)) { if (designState === "ESPERA") return `${designer} (EN ESPERA)`; return designer; } } return listName; }
+
+    function hexToRgba(hex, alpha) { let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return `rgba(${r}, ${g}, ${b}, ${alpha})`; }
 
     function getPhaseStyle(displayName) {
-        const upper = displayName.toUpperCase();
-        let isEspera = upper.includes("ESPERA");
-
+        const upper = displayName.toUpperCase(); let isEspera = upper.includes("ESPERA");
         for (const [name, id] of Object.entries(DESIGNER_IDS_FROM_NAME)) {
             if (upper.includes(name)) {
-                const timelinePastels = {
-                    guillermo: "#e0c3fc", david: "#b2f2bb", angel: "#ffc9c9", yarelly: "#fcc2d7",
-                    virley: "#ffec99", eider: "#ffd8a8", aleska: "#eebefa", andreat: "#dee2e6", carelis: "#b2f2e8"
-                };
+                const timelinePastels = { guillermo: "#e0c3fc", david: "#b2f2bb", angel: "#ffc9c9", yarelly: "#fcc2d7", virley: "#ffec99", eider: "#ffd8a8", aleska: "#eebefa", andreat: "#dee2e6", carelis: "#b2f2e8" };
                 let baseHex = timelinePastels[id] || "#e9ecef";
-                
-                if (isEspera) {
-                    return { bg: hexToRgba(baseHex, 0.2), tx: "#495057", border: `1px solid ${baseHex}` }; 
-                } else {
-                    return { bg: baseHex, tx: "#212529", border: `1px solid ${baseHex}` };
-                }
+                if (isEspera) { return { bg: hexToRgba(baseHex, 0.2), tx: "#495057", border: `1px solid ${baseHex}` }; } else { return { bg: baseHex, tx: "#212529", border: `1px solid ${baseHex}` }; }
             }
         }
-
         let phaseId = "externos";
         if (upper.includes("RETIRAR")) phaseId = "retirar"; else if (upper.includes("MUESTRAS")) phaseId = "muestras"; else if (upper.includes("PRODUCCIÓN")) phaseId = "produccion";
         else if (upper.includes("DISEÑO") || MAP_DESIGNERS[upper]) phaseId = "diseno";
-        else if (upper.includes("TERMINADO") || upper.includes("ENTREGADO")) phaseId = "terminado";
-        else if (upper.includes("ANULADO")) phaseId = "anulado"; else if (upper.includes("RECTIFICACIONES")) phaseId = "rectificaciones";
+        else if (upper.includes("TERMINADO") || upper.includes("ENTREGADO")) phaseId = "terminado"; else if (upper.includes("ANULADO")) phaseId = "anulado"; else if (upper.includes("RECTIFICACIONES")) phaseId = "rectificaciones";
         else if (upper.includes("EXTERNOS") || upper.includes("PROVEEDORES")) phaseId = "externos"; else if (upper.includes("VENTAS") || upper.includes("PRESUPUESTO")) phaseId = "ventas";
         else if (upper.includes("DESPACHO") || upper.includes("ENTREGAS")) phaseId = "despacho"; else if (upper.includes("INSTALACIONES")) phaseId = "instalaciones";
         else if (upper.includes("COMPRAS")) phaseId = "compras"; else if (upper.includes("FACTURAR")) phaseId = "facturar";
-        
         const pConf = THEME_CONFIG.phases.find(p => p.id === phaseId) || THEME_CONFIG.phases[0];
         return { bg: pConf.bg, tx: pConf.tx || "#ffffff", border: `1px solid ${pConf.bg}` };
     }
 
     function calculateDays(dateStr) { 
-        if (!dateStr || dateStr === '-') return '-'; 
-        let year, month, day;
-        
-        if (dateStr.includes('T')) {
-            const d = new Date(dateStr);
-            year = d.getFullYear(); month = d.getMonth() + 1; day = d.getDate();
-        } else if (dateStr.includes('-') || dateStr.includes('/')) {
-            const sep = dateStr.includes('-') ? '-' : '/';
-            const parts = dateStr.split(sep);
-            
-            if (parts.length === 3) {
-                if (parts[0].length === 4) {
-                    year = parts[0]; month = parts[1]; day = parts[2];
-                } else {
-                    day = parts[0]; month = parts[1]; year = parts[2];
-                }
-            }
-        }
-
-        if (year && month && day) {
-            const start = new Date(year, month - 1, day);
-            const now = new Date();
-            start.setHours(0,0,0,0);
-            now.setHours(0,0,0,0);
-            return Math.floor((now - start) / (1000 * 60 * 60 * 24));
-        }
+        if (!dateStr || dateStr === '-') return '-'; let year, month, day;
+        if (dateStr.includes('T')) { const d = new Date(dateStr); year = d.getFullYear(); month = d.getMonth() + 1; day = d.getDate(); } 
+        else if (dateStr.includes('-') || dateStr.includes('/')) { const sep = dateStr.includes('-') ? '-' : '/'; const parts = dateStr.split(sep); if (parts.length === 3) { if (parts[0].length === 4) { year = parts[0]; month = parts[1]; day = parts[2]; } else { day = parts[0]; month = parts[1]; year = parts[2]; } } }
+        if (year && month && day) { const start = new Date(year, month - 1, day); const now = new Date(); start.setHours(0,0,0,0); now.setHours(0,0,0,0); return Math.floor((now - start) / (1000 * 60 * 60 * 24)); }
         return '-';
     }
 
-    function calculateConsecutiveAllChecks(history) {
-        if (!history || history.length === 0) return 0;
-        let count = 0;
-        for (let i = history.length - 1; i >= 0; i--) {
-            let h = history[i];
-            if (h.hasOC && h.hasSample && h.hasArts) { count++; } else { break; }
-        }
-        return count;
-    }
+    function calculateConsecutiveAllChecks(history) { if (!history || history.length === 0) return 0; let count = 0; for (let i = history.length - 1; i >= 0; i--) { let h = history[i]; if (h.hasOC && h.hasSample && h.hasArts) { count++; } else { break; } } return count; }
 
-    function parseDateCustom(dateStr) {
-        const parts = dateStr.split('-'); return new Date(parts[0], parts[1] - 1, parts[2]);
-    }
+    function parseDateCustom(dateStr) { const parts = dateStr.split('-'); return new Date(parts[0], parts[1] - 1, parts[2]); }
 
     function processHistoryBlocks(item) {
-        const rawMap = {}; item.history.forEach(h => { rawMap[h.date] = h; });
-        let dates = Object.keys(rawMap).sort();
+        const rawMap = {}; item.history.forEach(h => { rawMap[h.date] = h; }); let dates = Object.keys(rawMap).sort();
         if (dates.length === 0) return { blocks: [], events: {}, minDate: new Date(), maxDate: new Date() };
-        
-        let minDateObj = parseDateCustom(dates[0]);
-        const now = new Date(); 
-        let maxDateObj = new Date(now.getFullYear(), now.getMonth(), now.getDate()); 
-
+        let minDateObj = parseDateCustom(dates[0]); const now = new Date(); let maxDateObj = new Date(now.getFullYear(), now.getMonth(), now.getDate()); 
         const filledEvents = {}; let lastKnownState = null; let sortedDates = [];
-        
         for (let d = new Date(minDateObj); d <= maxDateObj; d.setDate(d.getDate() + 1)) {
-            const yr = d.getFullYear(); const mo = String(d.getMonth() + 1).padStart(2, '0'); const da = String(d.getDate()).padStart(2, '0');
-            const dateStr = `${yr}-${mo}-${da}`;
-
+            const yr = d.getFullYear(); const mo = String(d.getMonth() + 1).padStart(2, '0'); const da = String(d.getDate()).padStart(2, '0'); const dateStr = `${yr}-${mo}-${da}`;
             if (rawMap[dateStr]) lastKnownState = rawMap[dateStr];
             if (lastKnownState) {
                 const displayName = resolvePhaseName(lastKnownState.listName, lastKnownState.designState);
                 if (displayName.toUpperCase().includes("VENTAS") || displayName.toUpperCase().includes("PRESUPUESTO")) { continue; }
-                const styleObj = getPhaseStyle(displayName);
-                filledEvents[dateStr] = { name: displayName, style: styleObj, rawDate: dateStr }; 
-                sortedDates.push(dateStr);
+                const styleObj = getPhaseStyle(displayName); filledEvents[dateStr] = { name: displayName, style: styleObj, rawDate: dateStr }; sortedDates.push(dateStr);
             }
         }
-
         if (sortedDates.length === 0) return { blocks: [], events: {}, minDate: new Date(), maxDate: new Date() };
-        
-        const visualMinDate = parseDateCustom(sortedDates[0]); 
-        const visualMaxDate = parseDateCustom(sortedDates[sortedDates.length - 1]);
-        
+        const visualMinDate = parseDateCustom(sortedDates[0]); const visualMaxDate = parseDateCustom(sortedDates[sortedDates.length - 1]);
         let blocks = []; let currentStreakPhase = ""; let currentStreakStart = "";
         sortedDates.forEach((dateStr, index) => {
             const ev = filledEvents[dateStr];
@@ -666,7 +686,6 @@
             }
             if (index === sortedDates.length - 1) { blocks.push({ phase: currentStreakPhase, start: currentStreakStart, end: dateStr, count: calculateDays(currentStreakStart) - calculateDays(dateStr) + 1, style: getPhaseStyle(currentStreakPhase), id: `block-${blocks.length}` }); }
         });
-
         sortedDates.forEach(dateStr => { const ev = filledEvents[dateStr]; const block = blocks.find(b => b.phase === ev.name && dateStr >= b.start && dateStr <= b.end); if (block) ev.blockId = block.id; });
         return { blocks, events: filledEvents, minDate: visualMinDate, maxDate: visualMaxDate };
     }
@@ -686,20 +705,14 @@
                     const isDivider = card.name.toUpperCase().includes("ESPERA") && !card.name.match(/^(\d+)/);
                     if (isDivider && isDesignList) { currentDesignState = "ESPERA"; return; }
                     const match = card.name.match(/^(\d+)\s*\/\s*(\d+)\s*-\s*(.*?)\s*-\s*(.*)/);
-                    
                     let base = match ? { code: String(parseInt(match[1], 10)).padStart(3, '0'), year: match[2], client: match[3].trim(), desc: match[4].trim() } : { code: "N/A", year: "-", client: "Varios / Otro", desc: card.name };
-                    
                     let designers = [], sellers = [], hasOC = false, hasSample = false, hasArts = false; 
                     if (card.idLabels && Array.isArray(card.idLabels)) {
                         card.idLabels.forEach(id => {
                             const rawName = labelsMap[id];
                             if(rawName) {
-                                const upper = rawName.toUpperCase().trim();
-                                const cleanLabel = rawName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
-                                
-                                if(MAP_DESIGNERS[cleanLabel]) designers.push(MAP_DESIGNERS[cleanLabel]);
-                                else if(MAP_SELLERS[cleanLabel]) sellers.push(MAP_SELLERS[cleanLabel]);
-                                
+                                const upper = rawName.toUpperCase().trim(); const cleanLabel = rawName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
+                                if(MAP_DESIGNERS[cleanLabel]) designers.push(MAP_DESIGNERS[cleanLabel]); else if(MAP_SELLERS[cleanLabel]) sellers.push(MAP_SELLERS[cleanLabel]);
                                 if(upper.includes(TAG_OC)) hasOC = true; else if(upper.includes(TAG_SAMPLE)) hasSample = true; else if(upper.includes(TAG_ARTS)) hasArts = true;
                             }
                         });
@@ -712,50 +725,19 @@
         });
         projectHistoryMap = tempMap; projectDatabase = [];
         Object.keys(tempMap).forEach(id => {
-            const item = tempMap[id]; const latest = item.history[item.history.length - 1]; const finalStartDate = item.startDate ? item.startDate : "-";
-            const consecutiveD = calculateConsecutiveAllChecks(item.history);
-            if (item.metadata.year !== '-' && item.metadata.code !== 'N/A') {
-                projectDatabase.push({ id: id, ...item.metadata, startDate: finalStartDate, listName: latest.listName, designState: latest.designState, designers: latest.designers, sellers: latest.sellers, hasOC: latest.hasOC, hasSample: latest.hasSample, hasArts: latest.hasArts, consecutiveD: consecutiveD });
-            }
+            const item = tempMap[id]; const latest = item.history[item.history.length - 1]; const finalStartDate = item.startDate ? item.startDate : "-"; const consecutiveD = calculateConsecutiveAllChecks(item.history);
+            if (item.metadata.year !== '-' && item.metadata.code !== 'N/A') { projectDatabase.push({ id: id, ...item.metadata, startDate: finalStartDate, listName: latest.listName, designState: latest.designState, designers: latest.designers, sellers: latest.sellers, hasOC: latest.hasOC, hasSample: latest.hasSample, hasArts: latest.hasArts, consecutiveD: consecutiveD }); }
         });
     }
 
-    function initializeFilters() {
-        let allDesigners = new Set();
-        let allSellers = new Set();
-        
-        projectDatabase.forEach(p => {
-            p.designers.forEach(v => allDesigners.add(v));
-            p.sellers.forEach(v => allSellers.add(v));
-        });
-        
-        const processLive = (p) => {
-            if (p.estado === "1") return; 
-            if (p.disenador && p.disenador !== "-") allDesigners.add(p.disenador);
-            if (p.vendedor && p.vendedor !== "-") allSellers.add(p.vendedor);
-        };
-        liveProductionData.forEach(processLive);
-        liveSamplesData.forEach(processLive);
-
-        populateSelect('globalDesigner', [...allDesigners].sort()); 
-        populateSelect('globalSeller', [...allSellers].sort());
-    }
-    
-    function populateSelect(id, items) { const sel = document.getElementById(id); items.forEach(i => { if(i !== "Varios / Otro") { let opt = document.createElement('option'); opt.value = i; opt.textContent = i; sel.appendChild(opt); } }); }
-    
     function limitWords(str, n) { const words = str.split(' '); if (words.length <= n) return str; return words.slice(0, n).join(' ') + '...'; }
 
-    const sortByChecks = (list) => list.sort((a, b) => { 
-        const checksA = (a.hasOC?1:0) + (a.hasSample?1:0) + (a.hasArts?1:0);
-        const checksB = (b.hasOC?1:0) + (b.hasSample?1:0) + (b.hasArts?1:0);
-        if (checksA !== checksB) return checksB - checksA; 
-        return b.consecutiveD - a.consecutiveD; 
-    });
+    const sortByChecks = (list) => list.sort((a, b) => { const checksA = (a.hasOC?1:0) + (a.hasSample?1:0) + (a.hasArts?1:0); const checksB = (b.hasOC?1:0) + (b.hasSample?1:0) + (b.hasArts?1:0); if (checksA !== checksB) return checksB - checksA; return b.consecutiveD - a.consecutiveD; });
 
     function applyFiltersAndRender() {
         const sClient = document.getElementById('globalSearchClient').value.toLowerCase(); 
-        const sDesigner = document.getElementById('globalDesigner').value; 
-        const sSeller = document.getElementById('globalSeller').value;
+        const sDesigner = currentFilterDesigner; 
+        const sSeller = currentFilterSeller;
         
         const filtered = projectDatabase.filter(p => {
             const mClient = !sClient || p.client.toLowerCase().includes(sClient);
@@ -770,15 +752,10 @@
             const ln = p.listName.toUpperCase();
             if (p.designState === 'ACTIVO') { if (p.hasOC) buckets.activeOC.push(p); else buckets.activeNoOC.push(p); } 
             else if (p.designState === 'ESPERA') { if (p.hasOC) buckets.waitOC.push(p); else buckets.waitNoOC.push(p); }
-            else if (["COMPRAS"].includes(ln)) buckets.compras.push(p);
-            else if (["MUESTRAS FÍSICAS POR RETIRAR"].includes(ln)) buckets.retirar.push(p);
-            else if (["RECTIFICACIONES DE MEDIDAS"].includes(ln)) buckets.rectificaciones.push(p);
-            else if (["INSTALACIONES", "CARLOS JULIO INSTALACIONES"].includes(ln)) buckets.instalaciones.push(p);
-            else if (["DESPACHO/ENTREGAS", "DESPACHO Y PROYECTOS UNILEVER LISELLOT"].includes(ln)) buckets.despacho.push(p);
-            else if (["PENDIENTE POR FACTURAR"].includes(ln)) buckets.facturar.push(p);
-            else if (["VENTAS"].includes(ln)) buckets.ventas.push(p);
-            else if (["PROVEEDORES EXTERNOS"].includes(ln)) buckets.externos.push(p);
-            else buckets.others.push(p);
+            else if (["COMPRAS"].includes(ln)) buckets.compras.push(p); else if (["MUESTRAS FÍSICAS POR RETIRAR"].includes(ln)) buckets.retirar.push(p);
+            else if (["RECTIFICACIONES DE MEDIDAS"].includes(ln)) buckets.rectificaciones.push(p); else if (["INSTALACIONES", "CARLOS JULIO INSTALACIONES"].includes(ln)) buckets.instalaciones.push(p);
+            else if (["DESPACHO/ENTREGAS", "DESPACHO Y PROYECTOS UNILEVER LISELLOT"].includes(ln)) buckets.despacho.push(p); else if (["PENDIENTE POR FACTURAR"].includes(ln)) buckets.facturar.push(p);
+            else if (["VENTAS"].includes(ln)) buckets.ventas.push(p); else if (["PROVEEDORES EXTERNOS"].includes(ln)) buckets.externos.push(p); else buckets.others.push(p);
         });
         
         Object.keys(buckets).forEach(key => sortByChecks(buckets[key]));
@@ -794,9 +771,7 @@
         const prodFiltered = filterLive(liveProductionData);
         const sampFiltered = filterLive(liveSamplesData);
 
-        // Actualizar contadores
-        document.getElementById('count-production').textContent = prodFiltered.length; 
-        document.getElementById('count-samples').textContent = sampFiltered.length;
+        document.getElementById('count-production').textContent = prodFiltered.length; document.getElementById('count-samples').textContent = sampFiltered.length;
         document.getElementById('count-active-oc').textContent = buckets.activeOC.length; document.getElementById('count-active-no-oc').textContent = buckets.activeNoOC.length;
         document.getElementById('count-wait-oc').textContent = buckets.waitOC.length; document.getElementById('count-wait-no-oc').textContent = buckets.waitNoOC.length;
         document.getElementById('count-compras').textContent = buckets.compras.length; document.getElementById('count-retirar').textContent = buckets.retirar.length;
@@ -805,245 +780,70 @@
         document.getElementById('count-ventas').textContent = buckets.ventas.length; document.getElementById('count-externos').textContent = buckets.externos.length;
         document.getElementById('count-others').textContent = buckets.others.length;
         
-        // Renderizar tablas con la nueva lógica (incluyendo Muestras que se agrupa y ordena igual)
-        renderLiveTableRows('tbody-production', prodFiltered, true); 
-        renderLiveTableRows('tbody-samples', sampFiltered, false);
-
+        renderLiveTableRows('tbody-production', prodFiltered, true); renderLiveTableRows('tbody-samples', sampFiltered, false);
         renderTableRows('tbody-active-oc', buckets.activeOC, false); renderTableRows('tbody-active-no-oc', buckets.activeNoOC, false);
         renderTableRows('tbody-wait-oc', buckets.waitOC, false); renderTableRows('tbody-wait-no-oc', buckets.waitNoOC, false);
         renderTableRows('tbody-compras', buckets.compras, false); renderTableRows('tbody-retirar', buckets.retirar, false);
         renderTableRows('tbody-rectificaciones', buckets.rectificaciones, false); renderTableRows('tbody-instalaciones', buckets.instalaciones, false);
         renderTableRows('tbody-despacho', buckets.despacho, false); renderTableRows('tbody-facturar', buckets.facturar, false);
-        renderTableRows('tbody-ventas', buckets.ventas, false); renderTableRows('tbody-externos', buckets.externos, false);
-        renderTableRows('tbody-others', buckets.others, true);
+        renderTableRows('tbody-ventas', buckets.ventas, false); renderTableRows('tbody-externos', buckets.externos, false); renderTableRows('tbody-others', buckets.others, true);
     }
 
-    // --- NUEVA LÓGICA DE AGRUPACIÓN Y ORDENAMIENTO ESTRICTO POR DÍAS (D) ---
     function renderLiveTableRows(tbodyId, projects, isProduccion = false) {
-        const tbody = document.getElementById(tbodyId); 
-        tbody.innerHTML = ''; 
-        if (projects.length === 0) return;
-
-        // Extraer los días limpios para facilitar los cálculos
-        function getNumericDays(dateStr) {
-            let d = calculateDays(dateStr);
-            return (typeof d === 'number' && !isNaN(d)) ? d : -1;
-        }
-
-        const groupedMap = {};
-        const renderList = [];
-        
-        // Separar entre los que tienen Trello válido y los que no
-        projects.forEach(p => {
-            if (p.trello && p.trello !== "-" && p.trello !== "") {
-                if (!groupedMap[p.trello]) groupedMap[p.trello] = [];
-                groupedMap[p.trello].push(p);
-            } else {
-                renderList.push({ isGroup: false, effectiveD: getNumericDays(p.fecha), items: [p] });
-            }
-        });
-
-        // Crear la estructura de objetos a renderizar (identificando grupos)
-        Object.keys(groupedMap).forEach(trelloId => {
-            const group = groupedMap[trelloId];
-            if (group.length === 1) {
-                renderList.push({ isGroup: false, effectiveD: getNumericDays(group[0].fecha), items: group });
-            } else {
-                // Sacar el mínimo "D" entre todas las filas del grupo que sean válidas (>= 0)
-                let validDays = group.map(g => getNumericDays(g.fecha)).filter(d => d >= 0);
-                let minD = validDays.length > 0 ? Math.min(...validDays) : -1;
-                renderList.push({ isGroup: true, effectiveD: minD, items: group, trelloId: trelloId });
-            }
-        });
-
-        // ORDEN MAESTRO: Ordenar toda la tabla basándose en el "effectiveD" de mayor a menor
+        const tbody = document.getElementById(tbodyId); tbody.innerHTML = ''; if (projects.length === 0) return;
+        function getNumericDays(dateStr) { let d = calculateDays(dateStr); return (typeof d === 'number' && !isNaN(d)) ? d : -1; }
+        const groupedMap = {}; const renderList = [];
+        projects.forEach(p => { if (p.trello && p.trello !== "-" && p.trello !== "") { if (!groupedMap[p.trello]) groupedMap[p.trello] = []; groupedMap[p.trello].push(p); } else { renderList.push({ isGroup: false, effectiveD: getNumericDays(p.fecha), items: [p] }); } });
+        Object.keys(groupedMap).forEach(trelloId => { const group = groupedMap[trelloId]; if (group.length === 1) { renderList.push({ isGroup: false, effectiveD: getNumericDays(group[0].fecha), items: group }); } else { let validDays = group.map(g => getNumericDays(g.fecha)).filter(d => d >= 0); let minD = validDays.length > 0 ? Math.min(...validDays) : -1; renderList.push({ isGroup: true, effectiveD: minD, items: group, trelloId: trelloId }); } });
         renderList.sort((a, b) => b.effectiveD - a.effectiveD);
 
-        // Constructor interno de la fila (tr)
         const renderSingleRow = (p, isChild = false, parentGroupId = null, overrideTrello = null, overrideDesc = null, overrideCant = null, overrideD = null) => {
-            const tr = document.createElement('tr'); 
-            const trelloIdMatch = projectDatabase.find(proj => proj.code === p.trello);
-            
-            if (!isChild && parentGroupId) {
-                tr.style.cursor = 'pointer';
-                tr.title = "Clic para expandir/colapsar detalles";
-            } else {
-                if (trelloIdMatch) {
-                    tr.className = "project-row";
-                    tr.onclick = (e) => { e.stopPropagation(); showProjectHistory(trelloIdMatch.id); };
-                } else {
-                    tr.className = "project-row";
-                    tr.title = "Aún no hay historial de Trello sincronizado para este proyecto";
-                }
-            }
-
-            if (isChild) {
-                tr.classList.add(`child-of-${parentGroupId}`);
-                tr.style.display = 'none'; // Los hijos están ocultos por defecto
-            }
-            
-            let dCount;
-            if (overrideD !== null) {
-                dCount = overrideD; // Si es el Padre, forzamos su 'effectiveD' calculado
-            } else {
-                dCount = calculateDays(p.fecha);
-            }
-            
-            // Si el cálculo da -1 o inválido, mostramos guión
+            const tr = document.createElement('tr'); const trelloIdMatch = projectDatabase.find(proj => proj.code === p.trello);
+            if (!isChild && parentGroupId) { tr.style.cursor = 'pointer'; tr.title = "Clic para expandir/colapsar detalles"; } else { if (trelloIdMatch) { tr.className = "project-row"; tr.onclick = (e) => { e.stopPropagation(); showProjectHistory(trelloIdMatch.id); }; } else { tr.className = "project-row"; tr.title = "Aún no hay historial de Trello sincronizado para este proyecto"; } }
+            if (isChild) { tr.classList.add(`child-of-${parentGroupId}`); tr.style.display = 'none'; }
+            let dCount; if (overrideD !== null) { dCount = overrideD; } else { dCount = calculateDays(p.fecha); }
             if (dCount === -1 || isNaN(dCount) || dCount < 0) dCount = "-";
-
-            if (dCount !== "-" && dCount > 15) {
-                tr.classList.add('row-blinking');
-            }
-
-            let rowClass = "row-default";
-            const vName = p.vendedor || "";
-            if (SELLER_IDS[vName]) rowClass = "row-" + SELLER_IDS[vName];
-            tr.classList.add(rowClass);
-            
-            let sellHtml = '';
-            if (p.vendedor) {
-                let cls = SELLER_IDS[vName] ? "badge-"+SELLER_IDS[vName] : "badge-default";
-                sellHtml = `<span class="badge rounded-pill ${cls} badge-pill badge-seller-base">${p.vendedor}</span>`;
-            }
-            
-            let desHtml = '';
-            const dName = p.disenador || "";
-            if (p.disenador) {
-                let desCls = DESIGNER_IDS[dName] ? "badge-des-" + DESIGNER_IDS[dName] : "badge-des-default";
-                desHtml = `<span class="badge rounded-pill ${desCls} badge-pill badge-designer-base">${p.disenador}</span>`;
-            }
-            
-            const descToUse = overrideDesc !== null ? overrideDesc : p.desc;
-            const descShort = limitWords(descToUse, overrideDesc !== null ? 15 : 5); 
-            
-            const cantToUse = overrideCant !== null ? overrideCant : p.cant;
-            let cantHtml = isProduccion ? `<td class="text-center fw-bold" style="color: #495057;">${cantToUse || '-'}</td>` : '';
-            
+            if (dCount !== "-" && dCount > 15) { tr.classList.add('row-blinking'); }
+            let rowClass = "row-default"; const vName = p.vendedor || ""; if (SELLER_IDS[vName]) rowClass = "row-" + SELLER_IDS[vName]; tr.classList.add(rowClass);
+            let sellHtml = ''; if (p.vendedor) { let cls = SELLER_IDS[vName] ? "badge-"+SELLER_IDS[vName] : "badge-default"; sellHtml = `<span class="badge rounded-pill ${cls} badge-pill badge-seller-base">${p.vendedor}</span>`; }
+            let desHtml = ''; const dName = p.disenador || ""; if (p.disenador) { let desCls = DESIGNER_IDS[dName] ? "badge-des-" + DESIGNER_IDS[dName] : "badge-des-default"; desHtml = `<span class="badge rounded-pill ${desCls} badge-pill badge-designer-base">${p.disenador}</span>`; }
+            const descToUse = overrideDesc !== null ? overrideDesc : p.desc; const descShort = limitWords(descToUse, overrideDesc !== null ? 15 : 5); 
+            const cantToUse = overrideCant !== null ? overrideCant : p.cant; let cantHtml = isProduccion ? `<td class="text-center fw-bold" style="color: #495057;">${cantToUse || '-'}</td>` : '';
             const trelloDisplay = overrideTrello !== null ? overrideTrello : p.trello;
-            
-            tr.innerHTML = `
-                <td class="fw-bold">${isChild ? '&nbsp;&nbsp;↳ ' : ''}${trelloDisplay}</td>
-                <td class="fw-bold text-dark">${p.cliente}</td>
-                <td class="small text-truncate col-desc" title="${descToUse}">${descShort}</td>
-                ${cantHtml}
-                <td>${desHtml}</td>
-                <td>${sellHtml}</td>
-                <td class="text-center fw-bold text-dark bg-white border-start">${dCount}</td>
-            `;
+            tr.innerHTML = `<td class="fw-bold">${isChild ? '&nbsp;&nbsp;↳ ' : ''}${trelloDisplay}</td><td class="fw-bold text-dark">${p.cliente}</td><td class="small text-truncate col-desc" title="${descToUse}">${descShort}</td>${cantHtml}<td>${desHtml}</td><td>${sellHtml}</td><td class="text-center fw-bold text-dark bg-white border-start">${dCount}</td>`;
             return tr;
         };
 
-        // Renderizar respetando el orden Maestro
         renderList.forEach(item => {
-            if (!item.isGroup) {
-                // Item solitario
-                tbody.appendChild(renderSingleRow(item.items[0]));
-            } else {
-                // Es un grupo: Generar Padre e Hijos
-                const groupId = `group-${item.trelloId}`;
-                let totalCant = 0;
-                let hasCant = false;
-                let descrList = [];
-                
-                // Opcional y muy visual: Ordenar también los hijos internamente de mayor a menor D
+            if (!item.isGroup) { tbody.appendChild(renderSingleRow(item.items[0])); } else {
+                const groupId = `group-${item.trelloId}`; let totalCant = 0; let hasCant = false; let descrList = [];
                 item.items.sort((a, b) => getNumericDays(b.fecha) - getNumericDays(a.fecha));
-
-                item.items.forEach(g => {
-                    let c = parseInt(g.cant);
-                    if (!isNaN(c)) {
-                        totalCant += c;
-                        hasCant = true;
-                    }
-                    if (g.desc) descrList.push(g.desc);
-                });
-                
-                let cantPadre = hasCant ? totalCant : '-';
-                let descPadre = "";
-                if (descrList.length > 2) {
-                    descPadre = `${descrList[0]}, ${descrList[1]}, ...`;
-                } else {
-                    descPadre = descrList.join(", ");
-                }
-                
+                item.items.forEach(g => { let c = parseInt(g.cant); if (!isNaN(c)) { totalCant += c; hasCant = true; } if (g.desc) descrList.push(g.desc); });
+                let cantPadre = hasCant ? totalCant : '-'; let descPadre = ""; if (descrList.length > 2) { descPadre = `${descrList[0]}, ${descrList[1]}, ...`; } else { descPadre = descrList.join(", "); }
                 const trelloPadre = `${item.trelloId} (${item.items.length})`;
-                
-                // Instanciar el padre enviándole como "overrideD" el effectiveD (el minD que calculamos)
-                const trPadre = renderSingleRow(item.items[0], false, groupId, trelloPadre, descPadre, cantPadre, item.effectiveD);
-                trPadre.style.boxShadow = 'inset 0 0 0 9999px rgba(0,0,0,0.03)';
-                
-                const childRows = [];
-                item.items.forEach(p => {
-                    childRows.push(renderSingleRow(p, true, groupId));
-                });
-                
-                trPadre.onclick = () => {
-                    childRows.forEach(c => {
-                        c.style.display = c.style.display === 'none' ? 'table-row' : 'none';
-                    });
-                };
-                
-                tbody.appendChild(trPadre);
-                childRows.forEach(cr => tbody.appendChild(cr));
+                const trPadre = renderSingleRow(item.items[0], false, groupId, trelloPadre, descPadre, cantPadre, item.effectiveD); trPadre.style.boxShadow = 'inset 0 0 0 9999px rgba(0,0,0,0.03)';
+                const childRows = []; item.items.forEach(p => { childRows.push(renderSingleRow(p, true, groupId)); });
+                trPadre.onclick = () => { childRows.forEach(c => { c.style.display = c.style.display === 'none' ? 'table-row' : 'none'; }); };
+                tbody.appendChild(trPadre); childRows.forEach(cr => tbody.appendChild(cr));
             }
         });
     }
 
     function renderTableRows(tbodyId, projects, showPhase) {
         const tbody = document.getElementById(tbodyId); tbody.innerHTML = ''; if (projects.length === 0) return;
-        
         const disenoTables = ['tbody-active-oc', 'tbody-active-no-oc', 'tbody-wait-oc', 'tbody-wait-no-oc'];
-
         projects.forEach(p => {
             const tr = document.createElement('tr'); tr.className = "project-row"; tr.onclick = () => showProjectHistory(p.id);
-            
-            if (disenoTables.includes(tbodyId) && p.consecutiveD > 3) { 
-                tr.classList.add('row-blinking'); 
-            }
-
-            let rowClass = "row-default";
-            if (p.sellers.length > 0) { 
-                const sName = p.sellers[0]; 
-                if (SELLER_IDS[sName]) rowClass = "row-" + SELLER_IDS[sName]; 
-            }
-            tr.classList.add(rowClass);
-            
-            let sellHtml = '';
-            if (p.sellers.length > 0) {
-                const s = p.sellers[0]; 
-                let cls = SELLER_IDS[s] ? "badge-"+SELLER_IDS[s] : "badge-default";
-                sellHtml = `<span class="badge rounded-pill ${cls} badge-pill badge-seller-base">${s}</span>`;
-            }
-            let desHtml = '';
-            if (p.designers.length > 0) {
-                const d = p.designers[0];
-                let desCls = DESIGNER_IDS[d] ? "badge-des-" + DESIGNER_IDS[d] : "badge-des-default";
-                desHtml = `<span class="badge rounded-pill ${desCls} badge-pill badge-designer-base">${d}</span>`;
-            }
-            
-            const iOC = p.hasOC ? '<i class="bi bi-check-lg check-icon"></i>' : ''; 
-            const iM = p.hasSample ? '<i class="bi bi-check-lg check-icon"></i>' : ''; 
-            const iA = p.hasArts ? '<i class="bi bi-check-lg check-icon"></i>' : '';
-            
-            const bgOC = p.hasOC ? 'check-cell-active' : 'check-cell-inactive';
-            const bgM = p.hasSample ? 'check-cell-active' : 'check-cell-inactive';
-            const bgA = p.hasArts ? 'check-cell-active' : 'check-cell-inactive';
-
-            const cellOC = `<td class="text-center ${bgOC}" onclick="showUnifiedCheckHistory(event, '${p.id}')">${iOC}</td>`;
-            const cellM = `<td class="text-center ${bgM}" onclick="showUnifiedCheckHistory(event, '${p.id}')">${iM}</td>`;
-            const cellA = `<td class="text-center ${bgA}" onclick="showUnifiedCheckHistory(event, '${p.id}')">${iA}</td>`;
-            
+            if (disenoTables.includes(tbodyId) && p.consecutiveD > 3) { tr.classList.add('row-blinking'); }
+            let rowClass = "row-default"; if (p.sellers.length > 0) { const sName = p.sellers[0]; if (SELLER_IDS[sName]) rowClass = "row-" + SELLER_IDS[sName]; } tr.classList.add(rowClass);
+            let sellHtml = ''; if (p.sellers.length > 0) { const s = p.sellers[0]; let cls = SELLER_IDS[s] ? "badge-"+SELLER_IDS[s] : "badge-default"; sellHtml = `<span class="badge rounded-pill ${cls} badge-pill badge-seller-base">${s}</span>`; }
+            let desHtml = ''; if (p.designers.length > 0) { const d = p.designers[0]; let desCls = DESIGNER_IDS[d] ? "badge-des-" + DESIGNER_IDS[d] : "badge-des-default"; desHtml = `<span class="badge rounded-pill ${desCls} badge-pill badge-designer-base">${d}</span>`; }
+            const iOC = p.hasOC ? '<i class="bi bi-check-lg check-icon"></i>' : ''; const iM = p.hasSample ? '<i class="bi bi-check-lg check-icon"></i>' : ''; const iA = p.hasArts ? '<i class="bi bi-check-lg check-icon"></i>' : '';
+            const bgOC = p.hasOC ? 'check-cell-active' : 'check-cell-inactive'; const bgM = p.hasSample ? 'check-cell-active' : 'check-cell-inactive'; const bgA = p.hasArts ? 'check-cell-active' : 'check-cell-inactive';
+            const cellOC = `<td class="text-center ${bgOC}" onclick="showUnifiedCheckHistory(event, '${p.id}')">${iOC}</td>`; const cellM = `<td class="text-center ${bgM}" onclick="showUnifiedCheckHistory(event, '${p.id}')">${iM}</td>`; const cellA = `<td class="text-center ${bgA}" onclick="showUnifiedCheckHistory(event, '${p.id}')">${iA}</td>`;
             let htmlD = `<td class="text-center fw-bold text-dark bg-white border-start">${p.consecutiveD}</td>`;
-
-            const descShort = limitWords(p.desc, 3);
-            let commonCols = `<td class="fw-bold">${p.code}</td><td class="fw-bold text-dark">${p.client}</td><td class="small text-truncate col-desc" title="${p.desc}">${descShort}</td><td>${desHtml}</td><td>${sellHtml}</td>`;
-            
-            if (showPhase) {
-                let statusBadge = p.designState !== 'N/A' ? `<span class="badge bg-secondary badge-pill">${p.designState}</span>` : '-';
-                tr.innerHTML = `<td class="small text-secondary">${p.startDate}</td>${commonCols}${cellOC}${cellM}${cellA}${htmlD}<td class="text-center small">${statusBadge}</td><td class="small fw-bold text-secondary">${p.listName}</td>`;
-            } else { 
-                tr.innerHTML = `${commonCols}${cellOC}${cellM}${cellA}${htmlD}`; 
-            }
+            const descShort = limitWords(p.desc, 3); let commonCols = `<td class="fw-bold">${p.code}</td><td class="fw-bold text-dark">${p.client}</td><td class="small text-truncate col-desc" title="${p.desc}">${descShort}</td><td>${desHtml}</td><td>${sellHtml}</td>`;
+            if (showPhase) { let statusBadge = p.designState !== 'N/A' ? `<span class="badge bg-secondary badge-pill">${p.designState}</span>` : '-'; tr.innerHTML = `<td class="small text-secondary">${p.startDate}</td>${commonCols}${cellOC}${cellM}${cellA}${htmlD}<td class="text-center small">${statusBadge}</td><td class="small fw-bold text-secondary">${p.listName}</td>`; } else { tr.innerHTML = `${commonCols}${cellOC}${cellM}${cellA}${htmlD}`; }
             tbody.appendChild(tr);
         });
     }
@@ -1052,24 +852,15 @@
     
     function toggleFocus(blockId) {
         if (activePhaseBlockId === blockId) { activePhaseBlockId = null; } else { activePhaseBlockId = blockId; }
-        const allRibbons = document.querySelectorAll('.ribbon-item');
-        allRibbons.forEach(r => { if (activePhaseBlockId === null) { r.classList.remove('ribbon-hidden'); } else { if (r.dataset.blockId === activePhaseBlockId) { r.classList.remove('ribbon-hidden'); } else { r.classList.add('ribbon-hidden'); } } });
-        const allDays = document.querySelectorAll('.day-cell');
-        allDays.forEach(d => { if (!d.dataset.blockId) return; if (activePhaseBlockId === null) { d.classList.remove('day-dimmed'); d.style.backgroundColor = d.dataset.color; d.style.borderColor = d.dataset.border; } else { if (d.dataset.blockId === activePhaseBlockId) { d.classList.remove('day-dimmed'); d.style.backgroundColor = d.dataset.color; d.style.borderColor = d.dataset.border; } else { d.classList.add('day-dimmed'); } } });
+        const allRibbons = document.querySelectorAll('.ribbon-item'); allRibbons.forEach(r => { if (activePhaseBlockId === null) { r.classList.remove('ribbon-hidden'); } else { if (r.dataset.blockId === activePhaseBlockId) { r.classList.remove('ribbon-hidden'); } else { r.classList.add('ribbon-hidden'); } } });
+        const allDays = document.querySelectorAll('.day-cell'); allDays.forEach(d => { if (!d.dataset.blockId) return; if (activePhaseBlockId === null) { d.classList.remove('day-dimmed'); d.style.backgroundColor = d.dataset.color; d.style.borderColor = d.dataset.border; } else { if (d.dataset.blockId === activePhaseBlockId) { d.classList.remove('day-dimmed'); d.style.backgroundColor = d.dataset.color; d.style.borderColor = d.dataset.border; } else { d.classList.add('day-dimmed'); } } });
     }
 
     function showProjectHistory(projectId) {
         activePhaseBlockId = null; const fullData = projectHistoryMap[projectId]; if (!fullData) return;
         const latest = fullData.history[fullData.history.length - 1];
         let sellerBg = "#ffffff"; let sellerNameHtml = `<span class="text-muted small">SIN ASIGNAR</span>`;
-        if (latest.sellers.length > 0) {
-            const s = latest.sellers[0]; 
-            const sellerId = SELLER_IDS[s];
-            const config = THEME_CONFIG.sellers.find(sel => sel.id === sellerId); 
-            if(config) sellerBg = config.bg; 
-            let cls = SELLER_IDS[s] ? "badge-"+SELLER_IDS[s] : "badge-default";
-            sellerNameHtml = `<span class="badge rounded-pill ${cls} badge-seller-base fs-4 px-3 py-2">${s}</span>`;
-        }
+        if (latest.sellers.length > 0) { const s = latest.sellers[0]; const sellerId = SELLER_IDS[s]; const config = THEME_CONFIG.sellers.find(sel => sel.id === sellerId); if(config) sellerBg = config.bg; let cls = SELLER_IDS[s] ? "badge-"+SELLER_IDS[s] : "badge-default"; sellerNameHtml = `<span class="badge rounded-pill ${cls} badge-seller-base fs-4 px-3 py-2">${s}</span>`; }
         let designerHtml = '<span class="text-muted small">PENDIENTE</span>';
         if (latest.designers.length > 0) { designerHtml = latest.designers.map(d => { let desCls = DESIGNER_IDS[d] ? "badge-des-" + DESIGNER_IDS[d] : "badge-des-default"; return `<span class="badge rounded-pill ${desCls} badge-designer-base fs-4 px-3 py-2 me-1">${d}</span>`; }).join(""); }
         const modalContent = document.querySelector('#historyModal .modal-content'); if(modalContent) modalContent.style.backgroundColor = sellerBg;
@@ -1077,193 +868,64 @@
         const days = calculateDays(fullData.startDate); const clientNameSafe = fullData.metadata.client;
         
         const clientHtml = `<h2 class="text-dark text-center fw-bolder m-0 text-uppercase w-100" style="word-break: break-word; font-size: 1.8rem; letter-spacing: 1px;">${clientNameSafe}</h2>`;
-        
-        const headerHtml = `
-            <div class="row align-items-stretch" style="min-height: 140px;">
-                <div class="col-lg-4 mb-3 mb-lg-0"><div class="logo-large-container shadow-sm p-3">${clientHtml}</div></div>
-                <div class="col-lg-8 d-flex flex-column justify-content-between">
-                    <div class="d-flex justify-content-between align-items-start mb-2 bg-white p-2 rounded shadow-sm border border-light">
-                        <div class="pe-2"><h2 class="fw-bold m-0 text-dark lh-sm mb-1">${fullData.metadata.desc}</h2></div>
-                        <div class="text-end ps-3"><div class="badge bg-primary fs-6 mb-1">${fullData.metadata.code}</div><div class="small fw-bold text-muted">Días Activo: ${days}</div></div>
-                    </div>
-                    <div class="row g-2 h-100">
-                        <div class="col-6"><div class="info-card-box shadow-sm text-center"><div class="info-label">VENDEDOR</div><div>${sellerNameHtml}</div></div></div>
-                        <div class="col-6"><div class="info-card-box shadow-sm text-center"><div class="info-label">DISEÑADOR</div><div>${designerHtml}</div></div></div>
-                    </div>
-                </div>
-            </div>
-        `;
+        const headerHtml = `<div class="row align-items-stretch" style="min-height: 140px;"><div class="col-lg-4 mb-3 mb-lg-0"><div class="logo-large-container shadow-sm p-3">${clientHtml}</div></div><div class="col-lg-8 d-flex flex-column justify-content-between"><div class="d-flex justify-content-between align-items-start mb-2 bg-white p-2 rounded shadow-sm border border-light"><div class="pe-2"><h2 class="fw-bold m-0 text-dark lh-sm mb-1">${fullData.metadata.desc}</h2></div><div class="text-end ps-3"><div class="badge bg-primary fs-6 mb-1">${fullData.metadata.code}</div><div class="small fw-bold text-muted">Días Activo: ${days}</div></div></div><div class="row g-2 h-100"><div class="col-6"><div class="info-card-box shadow-sm text-center"><div class="info-label">VENDEDOR</div><div>${sellerNameHtml}</div></div></div><div class="col-6"><div class="info-card-box shadow-sm text-center"><div class="info-label">DISEÑADOR</div><div>${designerHtml}</div></div></div></div></div></div>`;
         document.getElementById('modalHeaderContent').innerHTML = headerHtml;
         const { blocks, events, minDate, maxDate } = processHistoryBlocks(fullData);
         const ribbonContainer = document.getElementById('timelineRibbons'); ribbonContainer.innerHTML = '';
-        if (blocks.length === 0) { ribbonContainer.innerHTML = '<p class="text-muted text-center small mt-3">Sin actividad registrada.</p>'; } else {
-            blocks.forEach(block => {
-                const ribbon = document.createElement('div'); ribbon.className = 'ribbon-item'; 
-                ribbon.style.backgroundColor = block.style.bg;
-                ribbon.style.color = block.style.tx;
-                ribbon.style.borderLeft = `5px solid ${block.style.tx}`; 
-                
-                ribbon.dataset.blockId = block.id; ribbon.innerHTML = `<div class="ribbon-title">${block.phase}</div><div class="ribbon-duration">${block.count} días</div><div class="ribbon-period" style="border-top-color: ${hexToRgba(block.style.tx, 0.2)}">Del ${block.start} al ${block.end}</div>`; ribbon.onclick = () => toggleFocus(block.id); ribbonContainer.appendChild(ribbon);
-            });
-        }
-        const calendarBody = document.getElementById('modalCalendarBody'); calendarBody.innerHTML = '';
-        const startYear = minDate.getFullYear(); const endYear = maxDate.getFullYear();
+        if (blocks.length === 0) { ribbonContainer.innerHTML = '<p class="text-muted text-center small mt-3">Sin actividad registrada.</p>'; } else { blocks.forEach(block => { const ribbon = document.createElement('div'); ribbon.className = 'ribbon-item'; ribbon.style.backgroundColor = block.style.bg; ribbon.style.color = block.style.tx; ribbon.style.borderLeft = `5px solid ${block.style.tx}`; ribbon.dataset.blockId = block.id; ribbon.innerHTML = `<div class="ribbon-title">${block.phase}</div><div class="ribbon-duration">${block.count} días</div><div class="ribbon-period" style="border-top-color: ${hexToRgba(block.style.tx, 0.2)}">Del ${block.start} al ${block.end}</div>`; ribbon.onclick = () => toggleFocus(block.id); ribbonContainer.appendChild(ribbon); }); }
+        const calendarBody = document.getElementById('modalCalendarBody'); calendarBody.innerHTML = ''; const startYear = minDate.getFullYear(); const endYear = maxDate.getFullYear();
         for (let y = startYear; y <= endYear; y++) { for (let m = 0; m < 12; m++) { calendarBody.appendChild(createMonthCalendar(y, m, events)); } }
         historyModal.show();
     }
 
     function createMonthCalendar(year, month, events) {
-        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-        const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDayIndex = new Date(year, month, 1).getDay();
-        const wrapper = document.createElement('div'); wrapper.className = 'calendar-month';
-        const header = document.createElement('div'); header.className = 'calendar-header'; header.textContent = `${monthNames[month]} ${year}`; wrapper.appendChild(header);
-        const daysName = document.createElement('div'); daysName.className = 'calendar-days-name';
-        ["D","L","M","M","J","V","S"].forEach(d => { const sp = document.createElement('div'); sp.textContent = d; daysName.appendChild(sp); }); wrapper.appendChild(daysName);
-        const grid = document.createElement('div'); grid.className = 'calendar-grid';
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]; const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDayIndex = new Date(year, month, 1).getDay(); const wrapper = document.createElement('div'); wrapper.className = 'calendar-month'; const header = document.createElement('div'); header.className = 'calendar-header'; header.textContent = `${monthNames[month]} ${year}`; wrapper.appendChild(header); const daysName = document.createElement('div'); daysName.className = 'calendar-days-name'; ["D","L","M","M","J","V","S"].forEach(d => { const sp = document.createElement('div'); sp.textContent = d; daysName.appendChild(sp); }); wrapper.appendChild(daysName); const grid = document.createElement('div'); grid.className = 'calendar-grid';
         for (let i = 0; i < firstDayIndex; i++) grid.appendChild(document.createElement('div'));
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayCell = document.createElement('div'); dayCell.className = 'day-cell'; dayCell.textContent = day;
-            const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            if (events[dateKey]) {
-                dayCell.style.backgroundColor = events[dateKey].style.bg; 
-                dayCell.style.color = events[dateKey].style.tx;
-                dayCell.style.border = events[dateKey].style.border;
-                
-                dayCell.classList.add('day-active'); 
-                dayCell.dataset.blockId = events[dateKey].blockId; 
-                dayCell.dataset.color = events[dateKey].style.bg;
-                dayCell.dataset.border = events[dateKey].style.border;
-                
-                if (events[dateKey].blockId !== 'chk') {
-                    dayCell.onclick = () => toggleFocus(events[dateKey].blockId);
-                }
-            } else { dayCell.classList.add('day-dimmed'); }
+            const dayCell = document.createElement('div'); dayCell.className = 'day-cell'; dayCell.textContent = day; const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            if (events[dateKey]) { dayCell.style.backgroundColor = events[dateKey].style.bg; dayCell.style.color = events[dateKey].style.tx; dayCell.style.border = events[dateKey].style.border; dayCell.classList.add('day-active'); dayCell.dataset.blockId = events[dateKey].blockId; dayCell.dataset.color = events[dateKey].style.bg; dayCell.dataset.border = events[dateKey].style.border; if (events[dateKey].blockId !== 'chk') { dayCell.onclick = () => toggleFocus(events[dateKey].blockId); } } else { dayCell.classList.add('day-dimmed'); }
             grid.appendChild(dayCell);
         }
         wrapper.appendChild(grid); return wrapper;
     }
 
     const checkHistoryModal = new bootstrap.Modal(document.getElementById('checkHistoryModal'));
-    
-    function destroyOldTooltips() {
-        activeTooltips.forEach(t => t.dispose());
-        activeTooltips = [];
-    }
+    function destroyOldTooltips() { activeTooltips.forEach(t => t.dispose()); activeTooltips = []; }
 
     function showUnifiedCheckHistory(event, projectId) {
-        event.stopPropagation(); 
-        const fullData = projectHistoryMap[projectId];
-        if (!fullData || fullData.history.length === 0) return;
-
+        event.stopPropagation(); const fullData = projectHistoryMap[projectId]; if (!fullData || fullData.history.length === 0) return;
         destroyOldTooltips();
-
-        document.getElementById('checkModalTitle').innerHTML = `
-            <i class="bi bi-calendar-check me-2"></i>Historial de Requisitos (O.C. / M / A)<br>
-            <small class="text-white-50 fs-6 fw-normal">${fullData.metadata.client} - ${fullData.metadata.desc}</small>
-        `;
-
-        const events = {};
-        const minDateStr = fullData.history[0].date;
-        const maxDateStr = fullData.history[fullData.history.length-1].date;
-
-        const minDate = parseDateCustom(minDateStr);
-        const maxDate = parseDateCustom(maxDateStr);
-
-        const historyMap = {};
-        fullData.history.forEach(h => { historyMap[h.date] = h; });
-
-        let lastState = { hasOC: false, hasSample: false, hasArts: false };
-
-        for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            const dStr = `${y}-${m}-${day}`;
-
-            if (historyMap[dStr]) {
-                lastState = { hasOC: historyMap[dStr].hasOC, hasSample: historyMap[dStr].hasSample, hasArts: historyMap[dStr].hasArts };
-            }
-            events[dStr] = { ...lastState };
-        }
-
-        const calendarBody = document.getElementById('checkCalendarBody');
-        calendarBody.innerHTML = '';
-
-        const startYear = minDate.getFullYear(); const endYear = maxDate.getFullYear();
-        const startMonth = minDate.getMonth(); const endMonth = maxDate.getMonth();
-
-        for (let y = startYear; y <= endYear; y++) {
-            let mStart = (y === startYear) ? startMonth : 0;
-            let mEnd = (y === endYear) ? endMonth : 11;
-            for (let m = mStart; m <= mEnd; m++) {
-                calendarBody.appendChild(createUnifiedCheckMonthCalendar(y, m, events));
-            }
-        }
-        
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-        tooltipTriggerList.forEach(el => { activeTooltips.push(new bootstrap.Tooltip(el)); });
-
+        document.getElementById('checkModalTitle').innerHTML = `<i class="bi bi-calendar-check me-2"></i>Historial de Requisitos (O.C. / M / A)<br><small class="text-white-50 fs-6 fw-normal">${fullData.metadata.client} - ${fullData.metadata.desc}</small>`;
+        const events = {}; const minDateStr = fullData.history[0].date; const maxDateStr = fullData.history[fullData.history.length-1].date; const minDate = parseDateCustom(minDateStr); const maxDate = parseDateCustom(maxDateStr);
+        const historyMap = {}; fullData.history.forEach(h => { historyMap[h.date] = h; }); let lastState = { hasOC: false, hasSample: false, hasArts: false };
+        for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) { const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); const dStr = `${y}-${m}-${day}`; if (historyMap[dStr]) { lastState = { hasOC: historyMap[dStr].hasOC, hasSample: historyMap[dStr].hasSample, hasArts: historyMap[dStr].hasArts }; } events[dStr] = { ...lastState }; }
+        const calendarBody = document.getElementById('checkCalendarBody'); calendarBody.innerHTML = '';
+        const startYear = minDate.getFullYear(); const endYear = maxDate.getFullYear(); const startMonth = minDate.getMonth(); const endMonth = maxDate.getMonth();
+        for (let y = startYear; y <= endYear; y++) { let mStart = (y === startYear) ? startMonth : 0; let mEnd = (y === endYear) ? endMonth : 11; for (let m = mStart; m <= mEnd; m++) { calendarBody.appendChild(createUnifiedCheckMonthCalendar(y, m, events)); } }
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]'); tooltipTriggerList.forEach(el => { activeTooltips.push(new bootstrap.Tooltip(el)); });
         checkHistoryModal.show();
     }
 
     function createUnifiedCheckMonthCalendar(year, month, events) {
-        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-        const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDayIndex = new Date(year, month, 1).getDay();
-        const wrapper = document.createElement('div'); wrapper.className = 'calendar-month';
-        const header = document.createElement('div'); header.className = 'calendar-header'; header.textContent = `${monthNames[month]} ${year}`; wrapper.appendChild(header);
-        const daysName = document.createElement('div'); daysName.className = 'calendar-days-name';
-        ["D","L","M","M","J","V","S"].forEach(d => { const sp = document.createElement('div'); sp.textContent = d; daysName.appendChild(sp); }); wrapper.appendChild(daysName);
-        
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]; const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDayIndex = new Date(year, month, 1).getDay(); const wrapper = document.createElement('div'); wrapper.className = 'calendar-month'; const header = document.createElement('div'); header.className = 'calendar-header'; header.textContent = `${monthNames[month]} ${year}`; wrapper.appendChild(header); const daysName = document.createElement('div'); daysName.className = 'calendar-days-name'; ["D","L","M","M","J","V","S"].forEach(d => { const sp = document.createElement('div'); sp.textContent = d; daysName.appendChild(sp); }); wrapper.appendChild(daysName);
         const grid = document.createElement('div'); grid.className = 'calendar-grid';
         for (let i = 0; i < firstDayIndex; i++) grid.appendChild(document.createElement('div'));
-        
         for (let day = 1; day <= daysInMonth; day++) {
-            const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            const dayCell = document.createElement('div'); 
-            
+            const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`; const dayCell = document.createElement('div'); 
             if (events[dateKey]) {
-                const ev = events[dateKey];
-                const activeCount = (ev.hasOC ? 1 : 0) + (ev.hasSample ? 1 : 0) + (ev.hasArts ? 1 : 0);
-                
-                let bgClass = "day-0-checks";
-                if (activeCount === 3) { bgClass = "day-full-checks"; } 
-                else if (activeCount > 0) { bgClass = "day-partial-checks"; }
-                
-                dayCell.className = `check-day-cell ${bgClass}`;
-                
-                const ttText = `
-                    <div class="mb-1">Orden de Compra: <strong class="${ev.hasOC?'text-success':'text-danger'}">${ev.hasOC?'SÍ':'NO'}</strong></div>
-                    <div class="mb-1">Muestra: <strong class="${ev.hasSample?'text-success':'text-danger'}">${ev.hasSample?'SÍ':'NO'}</strong></div>
-                    <div>Artes: <strong class="${ev.hasArts?'text-success':'text-danger'}">${ev.hasArts?'SÍ':'NO'}</strong></div>
-                `;
-
-                dayCell.setAttribute('data-bs-toggle', 'tooltip');
-                dayCell.setAttribute('data-bs-html', 'true');
-                dayCell.setAttribute('title', ttText);
-                
-                const dotOC = ev.hasOC ? 'tiny-dot-active' : 'tiny-dot-inactive';
-                const dotM = ev.hasSample ? 'tiny-dot-active' : 'tiny-dot-inactive';
-                const dotA = ev.hasArts ? 'tiny-dot-active' : 'tiny-dot-inactive';
-
-                dayCell.innerHTML = `
-                    <span>${day}</span>
-                    <div class="tiny-checks-container">
-                        <span class="tiny-dot ${dotOC}"></span>
-                        <span class="tiny-dot ${dotM}"></span>
-                        <span class="tiny-dot ${dotA}"></span>
-                    </div>
-                `;
-            } else {
-                dayCell.className = 'day-cell day-dimmed';
-                dayCell.textContent = day;
-            }
+                const ev = events[dateKey]; const activeCount = (ev.hasOC ? 1 : 0) + (ev.hasSample ? 1 : 0) + (ev.hasArts ? 1 : 0);
+                let bgClass = "day-0-checks"; if (activeCount === 3) { bgClass = "day-full-checks"; } else if (activeCount > 0) { bgClass = "day-partial-checks"; }
+                dayCell.className = `check-day-cell ${bgClass}`; const ttText = `<div class="mb-1">Orden de Compra: <strong class="${ev.hasOC?'text-success':'text-danger'}">${ev.hasOC?'SÍ':'NO'}</strong></div><div class="mb-1">Muestra: <strong class="${ev.hasSample?'text-success':'text-danger'}">${ev.hasSample?'SÍ':'NO'}</strong></div><div>Artes: <strong class="${ev.hasArts?'text-success':'text-danger'}">${ev.hasArts?'SÍ':'NO'}</strong></div>`;
+                dayCell.setAttribute('data-bs-toggle', 'tooltip'); dayCell.setAttribute('data-bs-html', 'true'); dayCell.setAttribute('title', ttText);
+                const dotOC = ev.hasOC ? 'tiny-dot-active' : 'tiny-dot-inactive'; const dotM = ev.hasSample ? 'tiny-dot-active' : 'tiny-dot-inactive'; const dotA = ev.hasArts ? 'tiny-dot-active' : 'tiny-dot-inactive';
+                dayCell.innerHTML = `<span>${day}</span><div class="tiny-checks-container"><span class="tiny-dot ${dotOC}"></span><span class="tiny-dot ${dotM}"></span><span class="tiny-dot ${dotA}"></span></div>`;
+            } else { dayCell.className = 'day-cell day-dimmed'; dayCell.textContent = day; }
             grid.appendChild(dayCell);
         }
-        wrapper.appendChild(grid); 
-        return wrapper;
+        wrapper.appendChild(grid); return wrapper;
     }
 
-    ['globalSearchClient', 'globalDesigner', 'globalSeller'].forEach(id => { document.getElementById(id).addEventListener('input', applyFiltersAndRender); document.getElementById(id).addEventListener('change', applyFiltersAndRender); });
+    document.getElementById('globalSearchClient').addEventListener('input', applyFiltersAndRender);
 </script>
 </body>
 </html>
