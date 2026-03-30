@@ -192,8 +192,8 @@
 <div class="container-fluid p-0">
     
     <div class="top-bar-container">
-        <div class="logo-box" title="Clic para personalizar colores">
-            <img src="Inversiones Yar-Yur.png" alt="Yar-Yur" onclick="openConfigModal()">
+        <div class="logo-box" title="Ir al Tablero de Trello">
+            <img src="Inversiones Yar-Yur.png" alt="Yar-Yur" onclick="window.location.href='https://davidyaryur.github.io/trello/'">
         </div>
 
         <ul class="nav chrome-tabs" id="mainDashboardTabs" role="tablist">
@@ -817,7 +817,7 @@
         document.getElementById('count-ventas').textContent = buckets.ventas.length; document.getElementById('count-externos').textContent = buckets.externos.length;
         document.getElementById('count-others').textContent = buckets.others.length;
         
-        // 4. RENDERIZAR TABLAS (Se pasa TRUE a Producción para que dibuje la columna Cant.)
+        // 4. RENDERIZAR TABLAS EN VIVO (CON AGRUPACIÓN COLAPSABLE)
         renderLiveTableRows('tbody-production', prodFiltered, true); 
         renderLiveTableRows('tbody-samples', sampFiltered, false);
 
@@ -830,26 +830,56 @@
         renderTableRows('tbody-others', buckets.others, true);
     }
 
-    // AHORA RECIBE EL PARÁMETRO isProduccion
+    // --- MODIFICACIÓN DE LA FUNCIÓN PARA AGRUPAR EN PRODUCCIÓN Y MUESTRAS ---
     function renderLiveTableRows(tbodyId, projects, isProduccion = false) {
         const tbody = document.getElementById(tbodyId); 
         tbody.innerHTML = ''; 
         if (projects.length === 0) return;
         
+        // 1. Agrupar proyectos por Trello ID
+        const grouped = {};
+        const noTrello = [];
+        
         projects.forEach(p => {
+            if (p.trello && p.trello !== "-" && p.trello !== "") {
+                if (!grouped[p.trello]) grouped[p.trello] = [];
+                grouped[p.trello].push(p);
+            } else {
+                noTrello.push(p);
+            }
+        });
+
+        // Helper interno para dibujar cualquier fila (padre, hijo o individual)
+        const renderSingleRow = (p, isChild = false, parentGroupId = null, overrideTrello = null, overrideDesc = null, overrideCant = null) => {
             const tr = document.createElement('tr'); 
             
             const trelloIdMatch = projectDatabase.find(proj => proj.code === p.trello);
-            if (trelloIdMatch) {
-                tr.className = "project-row";
-                tr.onclick = () => showProjectHistory(trelloIdMatch.id);
+            
+            // Asignación de clics y cursores
+            if (!isChild && parentGroupId) {
+                // Fila Padre: Se usará para expandir/colapsar (el click event se asigna luego)
+                tr.style.cursor = 'pointer';
+                tr.title = "Clic para expandir/colapsar detalles";
             } else {
-                tr.className = "project-row";
-                tr.title = "Aún no hay historial de Trello sincronizado para este proyecto";
+                // Fila Normal o Hija: Redirige al modal de historial
+                if (trelloIdMatch) {
+                    tr.className = "project-row";
+                    tr.onclick = (e) => { 
+                        e.stopPropagation(); 
+                        showProjectHistory(trelloIdMatch.id); 
+                    };
+                } else {
+                    tr.className = "project-row";
+                    tr.title = "Aún no hay historial de Trello sincronizado para este proyecto";
+                }
+            }
+
+            if (isChild) {
+                tr.classList.add(`child-of-${parentGroupId}`);
+                tr.style.display = 'none'; // Los hijos están ocultos por defecto
             }
             
             let dCount = calculateDays(p.fecha);
-            
             if (typeof dCount === 'number' && dCount > 15) {
                 tr.classList.add('row-blinking');
             }
@@ -873,21 +903,88 @@
             }
             
             if (isNaN(dCount) || dCount < 0) dCount = "-";
-            const descShort = limitWords(p.desc, 5);
             
-            // LÓGICA DE INYECCIÓN CONDICIONAL
-            let cantHtml = isProduccion ? `<td class="text-center fw-bold" style="color: #495057;">${p.cant || '-'}</td>` : '';
+            const descToUse = overrideDesc !== null ? overrideDesc : p.desc;
+            const descShort = limitWords(descToUse, overrideDesc !== null ? 15 : 5); // Dar más palabras si es la concatenada del padre
+            
+            const cantToUse = overrideCant !== null ? overrideCant : p.cant;
+            let cantHtml = isProduccion ? `<td class="text-center fw-bold" style="color: #495057;">${cantToUse || '-'}</td>` : '';
+            
+            const trelloDisplay = overrideTrello !== null ? overrideTrello : p.trello;
             
             tr.innerHTML = `
-                <td class="fw-bold">${p.trello}</td>
+                <td class="fw-bold">${isChild ? '&nbsp;&nbsp;↳ ' : ''}${trelloDisplay}</td>
                 <td class="fw-bold text-dark">${p.cliente}</td>
-                <td class="small text-truncate col-desc" title="${p.desc}">${descShort}</td>
+                <td class="small text-truncate col-desc" title="${descToUse}">${descShort}</td>
                 ${cantHtml}
                 <td>${desHtml}</td>
                 <td>${sellHtml}</td>
                 <td class="text-center fw-bold text-dark bg-white border-start">${dCount}</td>
             `;
-            tbody.appendChild(tr);
+            return tr;
+        };
+
+        // 2. Renderizar grupos colapsables
+        Object.keys(grouped).forEach(trelloId => {
+            const group = grouped[trelloId];
+            
+            if (group.length === 1) {
+                // Si solo hay uno, se dibuja la línea estándar (sin contador, sin colapsar)
+                tbody.appendChild(renderSingleRow(group[0]));
+            } else {
+                const groupId = `group-${trelloId}`;
+                
+                // Preparar sumatorias y concatenación para la fila Padre
+                let totalCant = 0;
+                let hasCant = false;
+                let descrList = [];
+                
+                group.forEach(g => {
+                    let c = parseInt(g.cant);
+                    if (!isNaN(c)) {
+                        totalCant += c;
+                        hasCant = true;
+                    }
+                    if (g.desc) descrList.push(g.desc);
+                });
+                
+                let cantPadre = hasCant ? totalCant : '-';
+                
+                let descPadre = "";
+                if (descrList.length > 2) {
+                    descPadre = `${descrList[0]}, ${descrList[1]}, ...`;
+                } else {
+                    descPadre = descrList.join(", ");
+                }
+                
+                const trelloPadre = `${trelloId} (${group.length})`;
+                
+                // Generar Padre e Hijos
+                const trPadre = renderSingleRow(group[0], false, groupId, trelloPadre, descPadre, cantPadre);
+                
+                // Resaltar sutilmente la fila padre para denotar que es un contenedor
+                trPadre.style.boxShadow = 'inset 0 0 0 9999px rgba(0,0,0,0.03)';
+                
+                const childRows = [];
+                group.forEach(p => {
+                    childRows.push(renderSingleRow(p, true, groupId));
+                });
+                
+                // Asignar el comportamiento al hacer clic en el Padre
+                trPadre.onclick = () => {
+                    childRows.forEach(c => {
+                        c.style.display = c.style.display === 'none' ? 'table-row' : 'none';
+                    });
+                };
+                
+                tbody.appendChild(trPadre);
+                childRows.forEach(cr => tbody.appendChild(cr));
+            }
+        });
+
+        // 3. Renderizar items que no tengan Trello de forma regular
+        noTrello.forEach(p => {
+            tbody.appendChild(renderSingleRow(p));
         });
     }
 
