@@ -490,7 +490,7 @@
             document.getElementById('loadingStatus').style.display = 'block';
             
             const [trelloRes, sheetsRes] = await Promise.allSettled([
-                fetch('/api/history'),
+                fetch('history_all.json'),
                 fetch(GOOGLE_SHEETS_API_URL)
             ]);
 
