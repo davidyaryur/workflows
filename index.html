@@ -67,10 +67,10 @@
             padding: 15px 50px; font-size: 1.4rem; font-weight: 900; letter-spacing: 2px; line-height: 1.2; 
             text-align: center; border-radius: 50px; background-color: #ffc107; color: #111; border: none; 
             box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3); transition: all 0.2s ease;
-            animation: pulse-bounce 1.5s infinite ease-in-out; /* Animación constante */
+            animation: pulse-bounce 1.5s infinite ease-in-out; 
         }
         .btn-workflows:hover { 
-            animation-play-state: paused; /* Pausa el salto al poner el mouse */
+            animation-play-state: paused; 
             transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 193, 7, 0.5); 
             background-color: #e0a800; color: #000; 
         }
@@ -131,6 +131,17 @@
         /* Ahora las tablas crecen hacia abajo en vez de tener scroll interno */
         .table-full-height { min-height: calc(100vh - 200px); height: auto; background-color: white; padding-bottom: 10px; }
         .table-quadrant-height { min-height: 400px; height: auto; background-color: white; padding-bottom: 10px; }
+
+        /* --- CLASE PARA LIMITAR A ~15 FILAS CON SCROLL --- */
+        .table-limit-15 {
+            max-height: 500px; /* ~15 filas dependiendo del contenido */
+            overflow-y: auto;
+        }
+        /* Para que el header se quede pegado dentro del contenedor específico que hace scroll */
+        .table-limit-15 thead th {
+            top: 0 !important; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Separación visual en el scroll interno */
+        }
 
         tr.project-row { cursor: pointer; transition: background-color 0.1s; }
         tr.project-row:hover td { filter: brightness(0.97); }
@@ -274,8 +285,9 @@
             <li class="nav-item" role="presentation"><button class="chrome-link btn-tab-plus" id="btn-cycle-tabs" type="button"><i class="bi bi-plus-lg fw-bold"></i></button></li>
         </ul>
 
-        <div class="d-flex align-items-center ms-auto ms-lg-3 gap-3 zoom-controls">
+        <div class="d-flex align-items-center ms-auto ms-lg-3 gap-2 zoom-controls">
             <button class="btn-zoom" id="btn-zoom-out" title="Alejar"><i class="bi bi-zoom-out"></i></button>
+            <span id="zoom-level-text" class="fw-bold text-secondary" style="font-size: 0.9rem; min-width: 40px; text-align: center;">100%</span>
             <button class="btn-zoom" id="btn-zoom-in" title="Acercar"><i class="bi bi-zoom-in"></i></button>
         </div>
     </div>
@@ -294,8 +306,8 @@
         <div class="tab-pane fade" id="view-diseno" role="tabpanel">
             <div class="fixed-grid-container">
                 <div class="row g-3 mb-3">
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS CON O.C. <span class="header-counter" id="count-active-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-oc"></tbody></table></div></div></div>
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS SIN O.C. <span class="header-counter" id="count-active-no-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-no-oc"></tbody></table></div></div></div>
+                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS CON O.C. <span class="header-counter" id="count-active-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-oc"></tbody></table></div></div></div>
+                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS SIN O.C. <span class="header-counter" id="count-active-no-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-no-oc"></tbody></table></div></div></div>
                 </div>
                 <div class="row g-3">
                     <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ESPERA CON O.C. <span class="header-counter" id="count-wait-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-wait-oc"></tbody></table></div></div></div>
@@ -506,9 +518,6 @@
     let dataLoaded = false;
     let appStarted = false;
 
-    // CONTROL DE ZOOM
-    let currentZoom = 1.0;
-
     function unifyName(nameStr, mapObj) {
         if (!nameStr) return "";
         let clean = nameStr.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
@@ -546,17 +555,22 @@
     });
 
     // --- LOGICA DE ZOOM ---
+    let currentZoom = 1.0;
+    const zoomLevelText = document.getElementById('zoom-level-text');
+
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
         if (currentZoom < 1.5) {
-            currentZoom += 0.1;
+            currentZoom = Math.round((currentZoom + 0.1) * 10) / 10;
             document.body.style.zoom = currentZoom;
+            zoomLevelText.textContent = Math.round(currentZoom * 100) + '%';
         }
     });
 
     document.getElementById('btn-zoom-out').addEventListener('click', () => {
         if (currentZoom > 0.5) {
-            currentZoom -= 0.1;
+            currentZoom = Math.round((currentZoom - 0.1) * 10) / 10;
             document.body.style.zoom = currentZoom;
+            zoomLevelText.textContent = Math.round(currentZoom * 100) + '%';
         }
     });
 
@@ -565,13 +579,11 @@
         if (!dataLoaded) return; 
         
         if (window.innerHeight > window.innerWidth) {
-            // Dispositivo Vertical
             document.getElementById('orientation-overlay').style.display = 'flex';
             if (!appStarted) {
                 document.getElementById('enter-btn-container').style.display = 'none';
             }
         } else {
-            // Dispositivo Horizontal
             document.getElementById('orientation-overlay').style.display = 'none';
             if (!appStarted) {
                 document.getElementById('enter-btn-container').style.display = 'block';
@@ -645,13 +657,12 @@
             initializeFilters(); 
             applyFiltersAndRender();
             
-            // Ocultar Loader de manera limpia
             const startupContent = document.getElementById('startup-content');
             startupContent.classList.remove('d-flex'); 
             startupContent.classList.add('d-none'); 
             
             dataLoaded = true;
-            checkOrientation(); // Muestra el botón o la pantalla de rotación
+            checkOrientation();
 
         } catch (error) { 
             console.error(error); 
