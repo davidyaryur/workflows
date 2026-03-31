@@ -517,6 +517,8 @@
     // CONTROL DE PANTALLA Y ORIENTACIÓN
     let dataLoaded = false;
     let appStarted = false;
+    let loadedInPortrait = false;
+    let mobileZoomApplied = false;
 
     function unifyName(nameStr, mapObj) {
         if (!nameStr) return "";
@@ -558,20 +560,18 @@
     let currentZoom = 1.0;
     const zoomLevelText = document.getElementById('zoom-level-text');
 
+    function updateZoom(newZoom) {
+        currentZoom = Math.round(newZoom * 10) / 10;
+        document.body.style.zoom = currentZoom;
+        zoomLevelText.textContent = Math.round(currentZoom * 100) + '%';
+    }
+
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
-        if (currentZoom < 1.5) {
-            currentZoom = Math.round((currentZoom + 0.1) * 10) / 10;
-            document.body.style.zoom = currentZoom;
-            zoomLevelText.textContent = Math.round(currentZoom * 100) + '%';
-        }
+        if (currentZoom < 1.5) updateZoom(currentZoom + 0.1);
     });
 
     document.getElementById('btn-zoom-out').addEventListener('click', () => {
-        if (currentZoom > 0.5) {
-            currentZoom = Math.round((currentZoom - 0.1) * 10) / 10;
-            document.body.style.zoom = currentZoom;
-            zoomLevelText.textContent = Math.round(currentZoom * 100) + '%';
-        }
+        if (currentZoom > 0.5) updateZoom(currentZoom - 0.1);
     });
 
     // --- LOGICA DEL CARGADOR, FULLSCREEN Y ORIENTACIÓN ---
@@ -583,8 +583,16 @@
             if (!appStarted) {
                 document.getElementById('enter-btn-container').style.display = 'none';
             }
+            loadedInPortrait = true; // Se marca que pasó por vertical
         } else {
             document.getElementById('orientation-overlay').style.display = 'none';
+            
+            // Si pasó por vertical y aún no se ha aplicado el zoom automático, se aplica
+            if (loadedInPortrait && !mobileZoomApplied) {
+                updateZoom(0.5);
+                mobileZoomApplied = true;
+            }
+
             if (!appStarted) {
                 document.getElementById('enter-btn-container').style.display = 'block';
             }
