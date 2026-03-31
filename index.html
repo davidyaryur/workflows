@@ -25,12 +25,12 @@
             --bg-guillermo: #f3e5f5; --tx-guillermo: #6f42c1;
             --bg-david: #d4edda;     --tx-david: #28a745;
             --bg-angel: #f8d7da;     --tx-angel: #800020;
-            --bg-yarelly: #fcc2d7;   --tx-yarelly: #e83e8c;
+            --bg-yarelly: #e83e8c;   --tx-yarelly: #ffffff; /* Rosa intenso */
             --bg-virley: #fff3cd;    --tx-virley: #d4ac0d;
             --bg-eider: #ffe5d0;     --tx-eider: #fd7e14;
             --bg-aleska: #fff9db;    --tx-aleska: #997b00;
-            --bg-andreat: #e2e3e5;   --tx-andreat: #495057;
-            --bg-carelis: #e8fdf5;   --tx-carelis: #0ca678;
+            --bg-andreat: #d0ebff;   --tx-andreat: #084298; /* Azul claro */
+            --bg-carelis: #fcc2d7;   --tx-carelis: #e83e8c; /* Rosa claro */
 
             /* Fases Intensas */
             --bg-produccion: #cf4500; --bg-muestras: #fd7e14; --bg-diseno: #0d6efd; --bg-espera: #d0bfff;
@@ -43,8 +43,11 @@
             --chrome-inactive: #dfe1e5;
         }
 
-        body { background-color: var(--bg-body); padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.8rem; overflow-x: hidden; transition: zoom 0.2s ease; }
+        body { background-color: var(--bg-body); padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.8rem; overflow-x: hidden; }
         
+        /* Contenedor principal que recibe el zoom para no afectar modals */
+        #app-wrapper { transition: zoom 0.2s ease; }
+
         /* --- LOADER PANTALLA COMPLETA --- */
         #startup-overlay { position: fixed; inset: 0; background-color: #ffffff; z-index: 10500; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
         .bouncing-dots { display: flex; gap: 8px; justify-content: center; }
@@ -174,7 +177,7 @@
         .badge-des-guillermo { background-color: var(--bg-guillermo); color: var(--tx-guillermo); border-color: var(--tx-guillermo); }
         .badge-des-david { background-color: var(--bg-david); color: var(--tx-david); border-color: var(--tx-david); }
         .badge-des-angel { background-color: var(--bg-angel); color: var(--tx-angel); border-color: var(--tx-angel); }
-        .badge-des-yarelly { background-color: var(--bg-yarelly); color: var(--tx-yarelly); border-color: var(--tx-yarelly); }
+        .badge-des-yarelly { background-color: var(--bg-yarelly); color: var(--tx-yarelly); border-color: var(--bg-yarelly); }
         .badge-des-virley { background-color: var(--bg-virley); color: var(--tx-virley); border-color: var(--tx-virley); }
         .badge-des-eider { background-color: var(--bg-eider); color: var(--tx-eider); border-color: var(--tx-eider); }
         .badge-des-aleska { background-color: var(--bg-aleska); color: var(--tx-aleska); border-color: var(--tx-aleska); }
@@ -244,7 +247,7 @@
 
 <div id="startup-overlay">
     <div id="startup-content" class="text-center d-flex flex-column align-items-center justify-content-center">
-        <a href="https://davidyaryur.github.io/trello/" title="Ir al Tablero de Trello">
+        <a href="https://davidyaryur.github.io/trello/" title="Buscar proyecto por palabra clave">
             <img src="Inversiones Yar-Yur.png" alt="Logo Yar-Yur" style="height: 160px; margin-bottom: 70px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
         </a>
         <h4 class="fw-bold text-dark m-0" style="letter-spacing: 1px; font-size: 1.5rem;">Actualizando...</h4>
@@ -265,136 +268,136 @@
     <p class="text-muted">Para acceder a los Workflows de Yar-Yur, pon tu pantalla en modo horizontal.</p>
 </div>
 
-<div class="container-fluid p-0">
-    
-    <div class="top-bar-container">
-        <div class="logo-box" title="Ir al Tablero de Trello">
-            <img src="Inversiones Yar-Yur.png" alt="Yar-Yur" onclick="window.location.href='https://davidyaryur.github.io/trello/'">
-        </div>
-
-        <ul class="nav chrome-tabs" id="mainDashboardTabs" role="tablist">
-            <li class="nav-item" role="presentation"><button class="chrome-link active main-tab-btn" id="tab-produccion" data-bs-toggle="tab" data-bs-target="#view-produccion" type="button" role="tab">PRODUCCIÓN</button></li>
-            <li class="nav-item" role="presentation"><button class="chrome-link main-tab-btn" id="tab-diseno" data-bs-toggle="tab" data-bs-target="#view-diseno" type="button" role="tab">DISEÑO</button></li>
-            
-            <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-compras" data-bs-toggle="tab" data-bs-target="#view-compras" type="button" role="tab">COMPRAS</button></li>
-            <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-instaladores" data-bs-toggle="tab" data-bs-target="#view-instaladores" type="button" role="tab">INSTALADORES</button></li>
-            <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-despacho" data-bs-toggle="tab" data-bs-target="#view-despacho" type="button" role="tab">DESPACHO</button></li>
-            <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-asignar" data-bs-toggle="tab" data-bs-target="#view-asignar" type="button" role="tab">POR ASIGNAR</button></li>
-            <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-otros" data-bs-toggle="tab" data-bs-target="#view-otros" type="button" role="tab">TERMINADOS</button></li>
-
-            <li class="nav-item" role="presentation"><button class="chrome-link btn-tab-plus" id="btn-cycle-tabs" type="button"><i class="bi bi-plus-lg fw-bold"></i></button></li>
-        </ul>
-
-        <div class="d-flex align-items-center ms-auto ms-lg-3 gap-2 zoom-controls">
-            <button class="btn-zoom" id="btn-zoom-out" title="Alejar"><i class="bi bi-zoom-out"></i></button>
-            <span id="zoom-level-text" class="fw-bold text-secondary" style="font-size: 0.9rem; min-width: 40px; text-align: center;">100%</span>
-            <button class="btn-zoom" id="btn-zoom-in" title="Acercar"><i class="bi bi-zoom-in"></i></button>
-        </div>
-    </div>
-    
-    <div class="tab-content main-content-wrapper" id="mainDashboardContent">
+<div id="app-wrapper">
+    <div class="container-fluid p-0">
         
-        <div class="tab-pane fade show active" id="view-produccion" role="tabpanel">
-            <div class="fixed-grid-container">
-                <div class="row g-4">
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PRODUCCIÓN <span class="header-counter" id="count-production">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th class="text-center">Cant.</th><th>Diseñador</th><th>Vendedor</th><th class="text-center" title="Días en Producción">D</th></tr></thead><tbody id="tbody-production"></tbody></table></div></div></div>
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">MUESTRAS <span class="header-counter" id="count-samples">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center" title="Días en Muestras">D</th></tr></thead><tbody id="tbody-samples"></tbody></table></div></div></div>
-                </div>
+        <div class="top-bar-container">
+            <div class="logo-box" title="Ir al Tablero de Trello">
+                <img src="Inversiones Yar-Yur.png" alt="Yar-Yur" onclick="window.location.href='https://davidyaryur.github.io/trello/'">
+            </div>
+
+            <ul class="nav chrome-tabs" id="mainDashboardTabs" role="tablist">
+                <li class="nav-item" role="presentation"><button class="chrome-link active main-tab-btn" id="tab-produccion" data-bs-toggle="tab" data-bs-target="#view-produccion" type="button" role="tab">PRODUCCIÓN</button></li>
+                <li class="nav-item" role="presentation"><button class="chrome-link main-tab-btn" id="tab-diseno" data-bs-toggle="tab" data-bs-target="#view-diseno" type="button" role="tab">DISEÑO</button></li>
+                
+                <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-compras" data-bs-toggle="tab" data-bs-target="#view-compras" type="button" role="tab">COMPRAS</button></li>
+                <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-instaladores" data-bs-toggle="tab" data-bs-target="#view-instaladores" type="button" role="tab">INSTALADORES</button></li>
+                <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-despacho" data-bs-toggle="tab" data-bs-target="#view-despacho" type="button" role="tab">DESPACHO</button></li>
+                <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-asignar" data-bs-toggle="tab" data-bs-target="#view-asignar" type="button" role="tab">POR ASIGNAR</button></li>
+                <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-otros" data-bs-toggle="tab" data-bs-target="#view-otros" type="button" role="tab">TERMINADOS</button></li>
+
+                <li class="nav-item" role="presentation"><button class="chrome-link btn-tab-plus" id="btn-cycle-tabs" type="button"><i class="bi bi-plus-lg fw-bold"></i></button></li>
+            </ul>
+
+            <div class="d-flex align-items-center ms-auto ms-lg-3 gap-2 zoom-controls">
+                <button class="btn-zoom" id="btn-zoom-out" title="Alejar"><i class="bi bi-zoom-out"></i></button>
+                <span id="zoom-level-text" class="fw-bold text-secondary" style="font-size: 0.9rem; min-width: 40px; text-align: center;">100%</span>
+                <button class="btn-zoom" id="btn-zoom-in" title="Acercar"><i class="bi bi-zoom-in"></i></button>
             </div>
         </div>
-
-        <div class="tab-pane fade" id="view-diseno" role="tabpanel">
-            <div class="fixed-grid-container">
-                <div class="row g-3 mb-3">
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS CON O.C. <span class="header-counter" id="count-active-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-oc"></tbody></table></div></div></div>
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS SIN O.C. <span class="header-counter" id="count-active-no-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-no-oc"></tbody></table></div></div></div>
-                </div>
-                <div class="row g-3">
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ESPERA CON O.C. <span class="header-counter" id="count-wait-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-wait-oc"></tbody></table></div></div></div>
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ESPERA SIN O.C. <span class="header-counter" id="count-wait-no-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-wait-no-oc"></tbody></table></div></div></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="view-compras" role="tabpanel">
-            <div class="fixed-grid-container">
-                <div class="row g-4">
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">COMPRAS <span class="header-counter" id="count-compras">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-compras"></tbody></table></div></div></div>
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">MUESTRAS POR RETIRAR <span class="header-counter" id="count-retirar">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-retirar"></tbody></table></div></div></div>
+        
+        <div class="tab-content main-content-wrapper" id="mainDashboardContent">
+            
+            <div class="tab-pane fade show active" id="view-produccion" role="tabpanel">
+                <div class="fixed-grid-container">
+                    <div class="row g-4">
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PRODUCCIÓN <span class="header-counter" id="count-production">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th class="text-center">Cant.</th><th>Diseñador</th><th>Vendedor</th><th class="text-center" title="Días en Producción">D</th></tr></thead><tbody id="tbody-production"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">MUESTRAS <span class="header-counter" id="count-samples">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center" title="Días en Muestras">D</th></tr></thead><tbody id="tbody-samples"></tbody></table></div></div></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="tab-pane fade" id="view-instaladores" role="tabpanel">
-            <div class="fixed-grid-container">
-                <div class="row g-4">
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">RECTIFICACIONES <span class="header-counter" id="count-rectificaciones">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-rectificaciones"></tbody></table></div></div></div>
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">INSTALACIONES <span class="header-counter" id="count-instalaciones">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-instalaciones"></tbody></table></div></div></div>
+            <div class="tab-pane fade" id="view-diseno" role="tabpanel">
+                <div class="fixed-grid-container">
+                    <div class="row g-3 mb-3">
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS CON O.C. <span class="header-counter" id="count-active-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-oc"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS SIN O.C. <span class="header-counter" id="count-active-no-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-no-oc"></tbody></table></div></div></div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ESPERA CON O.C. <span class="header-counter" id="count-wait-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-wait-oc"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ESPERA SIN O.C. <span class="header-counter" id="count-wait-no-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-wait-no-oc"></tbody></table></div></div></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="tab-pane fade" id="view-despacho" role="tabpanel">
-            <div class="fixed-grid-container">
-                <div class="row g-4">
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">DESPACHO / ENTREGAS <span class="header-counter" id="count-despacho">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-despacho"></tbody></table></div></div></div>
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PENDIENTE POR FACTURAR <span class="header-counter" id="count-facturar">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-facturar"></tbody></table></div></div></div>
+            <div class="tab-pane fade" id="view-compras" role="tabpanel">
+                <div class="fixed-grid-container">
+                    <div class="row g-4">
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">COMPRAS <span class="header-counter" id="count-compras">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-compras"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">MUESTRAS POR RETIRAR <span class="header-counter" id="count-retirar">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-retirar"></tbody></table></div></div></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="tab-pane fade" id="view-asignar" role="tabpanel">
-            <div class="fixed-grid-container">
-                <div class="row g-4">
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">VENTAS <span class="header-counter" id="count-ventas">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-ventas"></tbody></table></div></div></div>
-                    <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PROVEEDORES EXTERNOS <span class="header-counter" id="count-externos">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-externos"></tbody></table></div></div></div>
+            <div class="tab-pane fade" id="view-instaladores" role="tabpanel">
+                <div class="fixed-grid-container">
+                    <div class="row g-4">
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">RECTIFICACIONES <span class="header-counter" id="count-rectificaciones">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-rectificaciones"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">INSTALACIONES <span class="header-counter" id="count-instalaciones">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-instalaciones"></tbody></table></div></div></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="tab-pane fade" id="view-otros" role="tabpanel">
-            <div class="fixed-grid-container">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="dashboard-card">
-                            <div class="card-header-large">TERMINADOS <span class="header-counter" id="count-others">0</span></div>
-                            <div style="min-height: calc(100vh - 200px); height: auto; background: white;"> 
-                                <table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Inicio</th><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th><th>Estado</th><th>Fase</th></tr></thead><tbody id="tbody-others"></tbody></table>
+            <div class="tab-pane fade" id="view-despacho" role="tabpanel">
+                <div class="fixed-grid-container">
+                    <div class="row g-4">
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">DESPACHO / ENTREGAS <span class="header-counter" id="count-despacho">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-despacho"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PENDIENTE POR FACTURAR <span class="header-counter" id="count-facturar">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-facturar"></tbody></table></div></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="view-asignar" role="tabpanel">
+                <div class="fixed-grid-container">
+                    <div class="row g-4">
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">VENTAS <span class="header-counter" id="count-ventas">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-ventas"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PROVEEDORES EXTERNOS <span class="header-counter" id="count-externos">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-externos"></tbody></table></div></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="view-otros" role="tabpanel">
+                <div class="fixed-grid-container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="dashboard-card">
+                                <div class="card-header-large">TERMINADOS <span class="header-counter" id="count-others">0</span></div>
+                                <div style="min-height: calc(100vh - 200px); height: auto; background: white;"> 
+                                    <table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Inicio</th><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th><th>Estado</th><th>Fase</th></tr></thead><tbody id="tbody-others"></tbody></table>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+        </div> 
+    </div>
+
+    <div class="bottom-filter-bar">
+        <input type="text" id="globalSearchClient" class="search-client-input" placeholder="Buscar Cliente...">
+        
+        <div class="dropdown">
+            <button class="dropdown-filter-btn dropdown-toggle" type="button" id="btnFilterDesigner" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="text-muted">Diseñador: Todos</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-filter" id="menuFilterDesigner">
+                </ul>
         </div>
 
-    </div> 
-</div>
+        <div class="dropdown">
+            <button class="dropdown-filter-btn dropdown-toggle" type="button" id="btnFilterSeller" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="text-muted">Vendedor: Todos</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-filter" id="menuFilterSeller">
+                </ul>
+        </div>
 
-<div class="bottom-filter-bar">
-    <input type="text" id="globalSearchClient" class="search-client-input" placeholder="Buscar Cliente...">
-    
-    <div class="dropdown">
-        <button class="dropdown-filter-btn dropdown-toggle" type="button" id="btnFilterDesigner" data-bs-toggle="dropdown" aria-expanded="false">
-            <span class="text-muted">Diseñador: Todos</span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-filter" id="menuFilterDesigner">
-            </ul>
+        <div class="update-info-bottom">
+            Actualizado:<br><span id="lastUpdateDate" class="fw-bold text-dark">-</span>
+        </div>
     </div>
-
-    <div class="dropdown">
-        <button class="dropdown-filter-btn dropdown-toggle" type="button" id="btnFilterSeller" data-bs-toggle="dropdown" aria-expanded="false">
-            <span class="text-muted">Vendedor: Todos</span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-filter" id="menuFilterSeller">
-            </ul>
-    </div>
-
-    <div class="update-info-bottom">
-        Actualizado:<br><span id="lastUpdateDate" class="fw-bold text-dark">-</span>
-    </div>
-</div>
-
-<div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+</div> <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-fullscreen"> 
         <div class="modal-content">
             <div id="stickyHeaderPanel" class="sticky-header-panel">
@@ -426,13 +429,13 @@
 </div>
 
 <div class="modal fade" id="checkHistoryModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg" style="height: auto;">
+    <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white py-2">
-                <h6 class="modal-title fw-bold" id="checkModalTitle">Historial de Requisitos</h6>
+            <div class="modal-header bg-dark text-white py-3 px-4 border-0">
+                <h5 class="modal-title fw-bold" id="checkModalTitle">Historial de Requisitos</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4" style="overflow-y: auto; max-height: 80vh; background-color: #f0f2f5;">
+            <div class="modal-body p-4" style="background-color: #f0f2f5; overflow-y: auto;">
                 <div id="checkCalendarBody" class="calendar-container"></div>
             </div>
         </div>
@@ -456,14 +459,14 @@
         ],
         designers: [
             { id: "aleska", name: "Aleska", bg: "#fff9db", tx: "#997b00" },
-            { id: "andreat", name: "Andrea T", bg: "#e2e3e5", tx: "#495057" },
+            { id: "andreat", name: "Andrea T", bg: "#d0ebff", tx: "#084298" },
             { id: "angel", name: "Angel", bg: "#f8d7da", tx: "#800020" },
-            { id: "carelis", name: "Carelis", bg: "#e8fdf5", tx: "#0ca678" },
+            { id: "carelis", name: "Carelis", bg: "#fcc2d7", tx: "#e83e8c" },
             { id: "david", name: "David", bg: "#d4edda", tx: "#28a745" },
             { id: "eider", name: "Eider", bg: "#ffe5d0", tx: "#fd7e14" },
             { id: "guillermo", name: "Guillermo", bg: "#f3e5f5", tx: "#6f42c1" },
             { id: "virley", name: "Virley", bg: "#fff3cd", tx: "#d4ac0d" },
-            { id: "yarelly", name: "Yarelly", bg: "#fcc2d7", tx: "#e83e8c" }
+            { id: "yarelly", name: "Yarelly", bg: "#e83e8c", tx: "#ffffff" }
         ],
         phases: [
             { id: "produccion", name: "PRODUCCIÓN", bg: "#cf4500", tx: "#ffffff" },
@@ -491,7 +494,7 @@
     const MAP_DESIGNERS = {
         "ALESKA": "Aleska", "ANDREA T": "Andrea T", "ANDREAT": "Andrea T", "ANGEL": "Angel", 
         "CARELIS": "Carelis", "DAVID": "David", "EIDER": "Eider", "GUILLERMO": "Guillermo",
-        "VIRLEY": "Virley", "YARELLY": "YARELLY"
+        "VIRLEY": "Virley", "YARELLY": "Yarelly"
     };
 
     const DESIGN_LIST_NAMES = ["ALESKA", "ANDREA", "ANDREA T", "ANGEL", "CARELIS", "DAVID", "EIDER", "GUILLERMO", "VIRLEY", "YARELLY"];
@@ -556,13 +559,14 @@
         });
     });
 
-    // --- LOGICA DE ZOOM ---
+    // --- LOGICA DE ZOOM MEJORADA ---
     let currentZoom = 1.0;
     const zoomLevelText = document.getElementById('zoom-level-text');
 
     function updateZoom(newZoom) {
         currentZoom = Math.round(newZoom * 10) / 10;
-        document.body.style.zoom = currentZoom;
+        // Ahora aplicamos el zoom SOLO al contenedor interno, no al body
+        document.getElementById('app-wrapper').style.zoom = currentZoom;
         zoomLevelText.textContent = Math.round(currentZoom * 100) + '%';
     }
 
@@ -583,11 +587,10 @@
             if (!appStarted) {
                 document.getElementById('enter-btn-container').style.display = 'none';
             }
-            loadedInPortrait = true; // Se marca que pasó por vertical
+            loadedInPortrait = true; 
         } else {
             document.getElementById('orientation-overlay').style.display = 'none';
             
-            // Si pasó por vertical y aún no se ha aplicado el zoom automático, se aplica
             if (loadedInPortrait && !mobileZoomApplied) {
                 updateZoom(0.5);
                 mobileZoomApplied = true;
@@ -756,7 +759,8 @@
         const upper = displayName.toUpperCase(); let isEspera = upper.includes("ESPERA");
         for (const [name, id] of Object.entries(DESIGNER_IDS_FROM_NAME)) {
             if (upper.includes(name)) {
-                const timelinePastels = { guillermo: "#e0c3fc", david: "#b2f2bb", angel: "#ffc9c9", yarelly: "#fcc2d7", virley: "#ffec99", eider: "#ffd8a8", aleska: "#eebefa", andreat: "#dee2e6", carelis: "#b2f2e8" };
+                // Actualizados pasteles para alinear al theme config
+                const timelinePastels = { guillermo: "#e0c3fc", david: "#b2f2bb", angel: "#ffc9c9", yarelly: "#e83e8c", virley: "#ffec99", eider: "#ffd8a8", aleska: "#eebefa", andreat: "#d0ebff", carelis: "#fcc2d7" };
                 let baseHex = timelinePastels[id] || "#e9ecef";
                 if (isEspera) { return { bg: hexToRgba(baseHex, 0.2), tx: "#495057", border: `1px solid ${baseHex}` }; } else { return { bg: baseHex, tx: "#212529", border: `1px solid ${baseHex}` }; }
             }
