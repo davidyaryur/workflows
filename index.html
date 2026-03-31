@@ -47,16 +47,19 @@
         
         /* --- LOADER PANTALLA COMPLETA --- */
         #startup-overlay { position: fixed; inset: 0; background-color: #ffffff; z-index: 10500; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
-        .bouncing-dots { display: flex; gap: 8px; margin-top: 15px; justify-content: center;}
-        .bouncing-dots span { width: 14px; height: 14px; background-color: #6c757d; border-radius: 50%; animation: bounce 0.5s infinite alternate; }
+        .bouncing-dots { display: flex; gap: 8px; justify-content: center; }
+        /* Puntos rebotando en color mostaza */
+        .bouncing-dots span { width: 14px; height: 14px; background-color: #ffc107; border-radius: 50%; animation: bounce 0.5s infinite alternate; }
         .bouncing-dots span:nth-child(2) { animation-delay: 0.15s; }
         .bouncing-dots span:nth-child(3) { animation-delay: 0.3s; }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
         
         #enter-btn-container { display: none; animation: fadeIn 0.8s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        .btn-workflows { padding: 15px 50px; font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; border-radius: 50px; background-color: #212529; color: white; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.15); transition: all 0.2s ease; }
-        .btn-workflows:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0,0,0,0.2); background-color: #343a40; color: white; }
+        
+        /* Botón Mostaza */
+        .btn-workflows { padding: 15px 50px; font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; border-radius: 50px; background-color: #ffc107; color: #111; border: none; box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3); transition: all 0.2s ease; }
+        .btn-workflows:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 193, 7, 0.5); background-color: #e0a800; color: #000; }
 
         /* --- NUEVO HEADER UNIFICADO --- */
         .top-bar-container { background-color: white; border-bottom: 1px solid #ccc; display: flex; align-items: flex-end; padding: 8px 15px 0 15px; height: 55px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; gap: 15px; }
@@ -79,12 +82,11 @@
         .search-client-input:focus { outline: none; border-color: #86b7fe; box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25); }
         .dropdown-filter-btn { border-radius: 30px; padding: 6px 20px; background-color: white; border: 1px solid #ced4da; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; min-width: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .dropdown-menu-filter { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: none; padding: 8px; max-height: 300px; overflow-y: auto; }
-        .dropdown-item-filter { border-radius: 8px; padding: 6px 12px; transition: background-color 0.2s; cursor: pointer; display: flex; align-items: center; }
+        .dropdown-item-filter { border-radius: 8px; padding: 6px 12px; transition: background-color: 0.2s; cursor: pointer; display: flex; align-items: center; }
         .dropdown-item-filter:hover { background-color: #f8f9fa; }
         .update-info-bottom { font-size: 0.75rem; color: #6c757d; line-height: 1.2; border-left: 2px solid #e9ecef; padding-left: 15px; margin-left: 10px; }
 
         /* --- CONTENIDO PRINCIPAL --- */
-        /* Ajuste de padding para no pisar la barra inferior */
         .main-content-wrapper { padding: 15px; padding-bottom: 80px; } 
         .dashboard-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow: hidden; height: 100%; }
         .card-header-large { background-color: white; color: #1a1a1a; padding: 12px 15px; font-size: 1.3rem; font-weight: 900; text-transform: uppercase; text-align: center; border-bottom: 3px solid #eaeff5; display: flex; justify-content: center; align-items: center; position: relative; letter-spacing: 0.5px; }
@@ -92,7 +94,6 @@
 
         /* --- TABLAS --- */
         .table-sticky-header thead th { position: sticky; top: 0; background-color: #ffffff; color: #6c757d; border-bottom: 2px solid #dee2e6; z-index: 2; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 10px 4px !important; }
-        /* Alturas ajustadas para considerar el header y el bottom bar */
         .table-full-height { height: calc(100vh - 200px); overflow-y: auto; background-color: white; }
         .table-quadrant-height { height: calc(50vh - 130px); overflow-y: auto; background-color: white; }
 
@@ -144,7 +145,7 @@
         td.check-cell-inactive .check-icon { color: #8ad19c; font-size: 1.2em; font-weight: bold; }
         td.check-cell-active:hover, td.check-cell-inactive:hover { filter: brightness(0.85); transform: scale(1.05); }
 
-        /* --- ESTILOS DEL CALENDARIO, TOOLTIPS Y CINTAS IZQUIERDAS (Se mantienen igual) --- */
+        /* --- ESTILOS DEL CALENDARIO, TOOLTIPS Y CINTAS IZQUIERDAS --- */
         .calendar-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; padding-bottom: 20px; }
         .calendar-month { width: 100%; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; min-height: 240px; }
         .calendar-header { background-color: #ffffff; color: #adb5bd; text-align: center; padding: 10px; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(0,0,0,0.05); }
@@ -205,17 +206,17 @@
 <body>
 
 <div id="startup-overlay">
-    <div id="startup-content" class="text-center">
-        <img src="Inversiones Yar-Yur.png" alt="Logo Yar-Yur" style="height: 60px; margin-bottom: 20px;">
-        <h4 class="fw-bold text-dark m-0" style="letter-spacing: 1px;">Actualizando datos...</h4>
-        <div class="bouncing-dots">
+    <div id="startup-content" class="text-center d-flex flex-column align-items-center justify-content-center">
+        <img src="Inversiones Yar-Yur.png" alt="Logo Yar-Yur" style="height: 160px; margin-bottom: 70px;">
+        <h4 class="fw-bold text-dark m-0" style="letter-spacing: 1px; font-size: 1.5rem;">Actualizando datos...</h4>
+        <div class="bouncing-dots" style="margin-top: 50px;">
             <span></span>
             <span></span>
             <span></span>
         </div>
     </div>
     <div id="enter-btn-container">
-        <button class="btn-workflows" onclick="enterApp()">WORKFLOWS</button>
+        <button class="btn-workflows" onclick="enterApp()">WORKFLOWS YAR-YUR</button>
     </div>
 </div>
 
@@ -544,8 +545,11 @@
             initializeFilters(); 
             applyFiltersAndRender();
             
-            // TRANSICIÓN DEL LOADER AL BOTÓN
-            document.getElementById('startup-content').style.display = 'none';
+            // TRANSICIÓN DEL LOADER AL BOTÓN (Corrección de clases para asegurar ocultamiento)
+            const startupContent = document.getElementById('startup-content');
+            startupContent.classList.remove('d-flex'); // Removemos la clase de Bootstrap que forzaba el display
+            startupContent.classList.add('d-none'); // Aplicamos clase nativa para ocultar
+            
             document.getElementById('enter-btn-container').style.display = 'block';
 
         } catch (error) { 
@@ -622,7 +626,6 @@
         populateCustomDropdown('menuFilterSeller', [...allSellers].sort(), 'seller');
     }
 
-    // --- LOGICA DE PROCESAMIENTO (Igual a la versión anterior) ---
     function normalizeTrelloData(rawData) { let data = { ...rawData }; if (!data.lists) data.lists = []; if (!data.labels || !Array.isArray(data.labels)) data.labels = []; if (!data.cards) data.cards = []; return data; }
 
     function resolvePhaseName(listName, designState) { const ln = listName.toUpperCase(); for (const designer of DESIGN_LIST_NAMES) { if (ln.includes(designer)) { if (designState === "ESPERA") return `${designer} (EN ESPERA)`; return designer; } } return listName; }
