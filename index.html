@@ -56,13 +56,10 @@
         #enter-btn-container { display: none; animation: fadeIn 0.8s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         
-        /* --- ANIMACIÓN PULSO/REBOTE PARA EL BOTÓN (Cada 3 Segundos) --- */
+        /* --- ANIMACIÓN PULSO/REBOTE PARA EL BOTÓN (Constante) --- */
         @keyframes pulse-bounce {
             0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3); }
-            5% { transform: translateY(-8px) scale(1.05); box-shadow: 0 15px 25px rgba(255, 193, 7, 0.6); }
-            10% { transform: translateY(0) scale(1); box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3); }
-            15% { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 22px rgba(255, 193, 7, 0.4); }
-            20% { transform: translateY(0) scale(1); box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3); }
+            50% { transform: translateY(-8px) scale(1.05); box-shadow: 0 15px 30px rgba(255, 193, 7, 0.6); }
         }
 
         /* Botón Mostaza de 2 líneas */
@@ -70,7 +67,7 @@
             padding: 15px 50px; font-size: 1.4rem; font-weight: 900; letter-spacing: 2px; line-height: 1.2; 
             text-align: center; border-radius: 50px; background-color: #ffc107; color: #111; border: none; 
             box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3); transition: all 0.2s ease;
-            animation: pulse-bounce 3s infinite ease-in-out; /* Animación aplicada aquí */
+            animation: pulse-bounce 1.5s infinite ease-in-out; /* Animación constante */
         }
         .btn-workflows:hover { 
             animation-play-state: paused; /* Pausa el salto al poner el mouse */
@@ -219,8 +216,7 @@
         .ribbon-period { font-size: 0.7rem; opacity: 0.8; font-weight: 600; border-top: 1px solid rgba(0,0,0,0.1); margin-top: 6px; padding-top: 4px; display: inline-block; width: 100%; }
 
         /* --- MODALES --- */
-        .modal-dialog { height: 94vh; margin-top: 3vh; margin-bottom: 3vh; }
-        .modal-content { height: 100%; display: flex; flex-direction: column; overflow: hidden; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.3); transition: background-color 0.3s ease; }
+        #historyModal .modal-content { display: flex; flex-direction: column; overflow: hidden; border: none; transition: background-color 0.3s ease; }
         .sticky-header-panel { flex: 0 0 auto; padding: 20px 25px 10px 25px; z-index: 1050; border-bottom: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: background-color 0.3s ease; }
         .split-columns-wrapper { flex: 1; overflow: hidden; display: flex; padding: 0 15px; }
         .split-row { width: 100%; height: 100%; display: flex; gap: 20px; }
@@ -237,7 +233,9 @@
 
 <div id="startup-overlay">
     <div id="startup-content" class="text-center d-flex flex-column align-items-center justify-content-center">
-        <img src="Inversiones Yar-Yur.png" alt="Logo Yar-Yur" style="height: 160px; margin-bottom: 70px;">
+        <a href="https://davidyaryur.github.io/trello/" title="Ir al Tablero de Trello">
+            <img src="Inversiones Yar-Yur.png" alt="Logo Yar-Yur" style="height: 160px; margin-bottom: 70px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        </a>
         <h4 class="fw-bold text-dark m-0" style="letter-spacing: 1px; font-size: 1.5rem;">Actualizando...</h4>
         <div class="bouncing-dots" style="margin-top: 50px;">
             <span></span>
@@ -385,7 +383,7 @@
 </div>
 
 <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl"> 
+    <div class="modal-dialog modal-fullscreen"> 
         <div class="modal-content">
             <div id="stickyHeaderPanel" class="sticky-header-panel">
                 <div class="d-flex justify-content-between align-items-center mb-3">
