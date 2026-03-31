@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Control Yar-Yur</title>
+    <title>Workflows Yar-Yur</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
@@ -43,7 +43,7 @@
             --chrome-inactive: #dfe1e5;
         }
 
-        body { background-color: var(--bg-body); padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.8rem; overflow-x: hidden; }
+        body { background-color: var(--bg-body); padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.8rem; overflow-x: hidden; transition: zoom 0.2s ease; }
         
         /* --- LOADER PANTALLA COMPLETA --- */
         #startup-overlay { position: fixed; inset: 0; background-color: #ffffff; z-index: 10500; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
@@ -70,6 +70,12 @@
         .top-bar-container { background-color: white; border-bottom: 1px solid #ccc; display: flex; align-items: flex-end; padding: 8px 15px 0 15px; height: 55px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; gap: 15px; }
         .logo-box img { height: 35px; margin-bottom: 8px; cursor: pointer; transition: transform 0.2s; }
         .logo-box img:hover { transform: scale(1.1); }
+
+        /* --- CONTROLES DE ZOOM --- */
+        .zoom-controls { margin-bottom: 8px; }
+        .btn-zoom { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; font-size: 1.2rem; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; padding: 0; }
+        .btn-zoom:hover { background-color: #e9ecef; color: #212529; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .btn-zoom:active { transform: scale(0.95); }
 
         /* --- PESTAÑAS ESTILO CHROME --- */
         .chrome-tabs { display: flex; align-items: flex-end; list-style: none; margin: 0; padding: 0; flex-grow: 1; overflow-x: auto; scrollbar-width: none; }
@@ -226,7 +232,7 @@
 <div id="orientation-overlay">
     <div class="phone-icon mb-4"></div>
     <h3 class="fw-bold text-dark">Gira tu dispositivo</h3>
-    <p class="text-muted">Para acceder a los Workflows, pon tu pantalla en modo horizontal.</p>
+    <p class="text-muted">Para acceder a los Workflows de Yar-Yur, pon tu pantalla en modo horizontal.</p>
 </div>
 
 <div class="container-fluid p-0">
@@ -244,10 +250,15 @@
             <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-instaladores" data-bs-toggle="tab" data-bs-target="#view-instaladores" type="button" role="tab">INSTALADORES</button></li>
             <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-despacho" data-bs-toggle="tab" data-bs-target="#view-despacho" type="button" role="tab">DESPACHO</button></li>
             <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-asignar" data-bs-toggle="tab" data-bs-target="#view-asignar" type="button" role="tab">POR ASIGNAR</button></li>
-            <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-otros" data-bs-toggle="tab" data-bs-target="#view-otros" type="button" role="tab">OTROS</button></li>
+            <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-otros" data-bs-toggle="tab" data-bs-target="#view-otros" type="button" role="tab">TERMINADOS</button></li>
 
             <li class="nav-item" role="presentation"><button class="chrome-link btn-tab-plus" id="btn-cycle-tabs" type="button"><i class="bi bi-plus-lg fw-bold"></i></button></li>
         </ul>
+
+        <div class="d-flex align-items-center ms-auto ms-lg-3 gap-3 zoom-controls">
+            <button class="btn-zoom" id="btn-zoom-out" title="Alejar"><i class="bi bi-zoom-out"></i></button>
+            <button class="btn-zoom" id="btn-zoom-in" title="Acercar"><i class="bi bi-zoom-in"></i></button>
+        </div>
     </div>
     
     <div class="tab-content main-content-wrapper" id="mainDashboardContent">
@@ -315,7 +326,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="dashboard-card">
-                            <div class="card-header-large">RESTO DE FASES <span class="header-counter" id="count-others">0</span></div>
+                            <div class="card-header-large">TERMINADOS <span class="header-counter" id="count-others">0</span></div>
                             <div style="height: calc(100vh - 200px); overflow-y: auto; background: white;"> 
                                 <table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Inicio</th><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th><th>Estado</th><th>Fase</th></tr></thead><tbody id="tbody-others"></tbody></table>
                             </div>
@@ -473,7 +484,11 @@
     let currentFilterSeller = 'all';
     
     // CONTROL DE PANTALLA Y ORIENTACIÓN
+    let dataLoaded = false;
     let appStarted = false;
+
+    // CONTROL DE ZOOM
+    let currentZoom = 1.0;
 
     function unifyName(nameStr, mapObj) {
         if (!nameStr) return "";
@@ -496,21 +511,14 @@
     document.getElementById('btn-cycle-tabs').addEventListener('click', (e) => {
         e.preventDefault();
         currentExtraIndex = (currentExtraIndex + 1) % extraTabs.length;
-        
-        // Ocultar todas las pestañas extras
         document.querySelectorAll('.extra-tab-item').forEach(el => el.style.display = 'none');
-        
-        // Mostrar la que toca
         const targetTabId = extraTabs[currentExtraIndex];
         const targetBtn = document.getElementById(targetTabId);
         targetBtn.parentElement.style.display = 'block';
-        
-        // Activar la pestaña mostrada
         const bsTab = new bootstrap.Tab(targetBtn);
         bsTab.show();
     });
 
-    // Al hacer clic en las fijas, se ocultan las extras
     document.querySelectorAll('.main-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.extra-tab-item').forEach(el => el.style.display = 'none');
@@ -518,14 +526,37 @@
         });
     });
 
+    // --- LOGICA DE ZOOM ---
+    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+        if (currentZoom < 1.5) {
+            currentZoom += 0.1;
+            document.body.style.zoom = currentZoom;
+        }
+    });
+
+    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+        if (currentZoom > 0.5) {
+            currentZoom -= 0.1;
+            document.body.style.zoom = currentZoom;
+        }
+    });
+
     // --- LOGICA DEL CARGADOR, FULLSCREEN Y ORIENTACIÓN ---
     function checkOrientation() {
-        if (!appStarted) return;
-        // Detectar retrato si la altura es mayor al ancho
+        if (!dataLoaded) return; 
+        
         if (window.innerHeight > window.innerWidth) {
+            // Dispositivo Vertical
             document.getElementById('orientation-overlay').style.display = 'flex';
+            if (!appStarted) {
+                document.getElementById('enter-btn-container').style.display = 'none';
+            }
         } else {
+            // Dispositivo Horizontal
             document.getElementById('orientation-overlay').style.display = 'none';
+            if (!appStarted) {
+                document.getElementById('enter-btn-container').style.display = 'block';
+            }
         }
     }
 
@@ -538,11 +569,10 @@
             elem.requestFullscreen().catch(err => console.log("Fullscreen no soportado automáticamente.", err));
         }
         document.getElementById('startup-overlay').style.opacity = '0';
-        
         setTimeout(() => {
             document.getElementById('startup-overlay').style.display = 'none';
             appStarted = true;
-            checkOrientation(); // Validar al instante si es necesario pedir rotación
+            checkOrientation(); 
         }, 500);
     }
 
@@ -596,12 +626,13 @@
             initializeFilters(); 
             applyFiltersAndRender();
             
-            // Destruye todo rastro del loader para mostrar el botón limpio
+            // Ocultar Loader de manera limpia
             const startupContent = document.getElementById('startup-content');
             startupContent.classList.remove('d-flex'); 
             startupContent.classList.add('d-none'); 
             
-            document.getElementById('enter-btn-container').style.display = 'block';
+            dataLoaded = true;
+            checkOrientation(); // Muestra el botón o la pantalla de rotación
 
         } catch (error) { 
             console.error(error); 
