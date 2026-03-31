@@ -565,9 +565,20 @@
 
     function updateZoom(newZoom) {
         currentZoom = Math.round(newZoom * 10) / 10;
-        // Ahora aplicamos el zoom SOLO al contenedor interno, no al body
+        
+        // 1. Zoom al contenedor principal de la app
         document.getElementById('app-wrapper').style.zoom = currentZoom;
         zoomLevelText.textContent = Math.round(currentZoom * 100) + '%';
+
+        // 2. Aplicamos la magia proporcional a los modales fullscreen
+        const modales = document.querySelectorAll('.modal-fullscreen .modal-content');
+        modales.forEach(modal => {
+            modal.style.zoom = currentZoom;
+            // Si el zoom baja (ej: 0.5), el tamaño sube proporcionalmente (ej: 200%)
+            // Así el modal siempre toca los bordes de la pantalla.
+            modal.style.width = (100 / currentZoom) + '%';
+            modal.style.height = (100 / currentZoom) + '%';
+        });
     }
 
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
