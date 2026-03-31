@@ -570,14 +570,30 @@
         document.getElementById('app-wrapper').style.zoom = currentZoom;
         zoomLevelText.textContent = Math.round(currentZoom * 100) + '%';
 
-        // 2. Aplicamos la magia proporcional a los modales fullscreen
-        const modales = document.querySelectorAll('.modal-fullscreen .modal-content');
+        // 2. Zoom al contenedor overlay fijo del modal (.modal)
+        const modales = document.querySelectorAll('.modal');
         modales.forEach(modal => {
             modal.style.zoom = currentZoom;
-            // Si el zoom baja (ej: 0.5), el tamaño sube proporcionalmente (ej: 200%)
-            // Así el modal siempre toca los bordes de la pantalla.
             modal.style.width = (100 / currentZoom) + '%';
             modal.style.height = (100 / currentZoom) + '%';
+        });
+
+        // 3. ¡EL FIX! Neutralizamos el "100vw" de Bootstrap
+        // Forzamos al diálogo a usar porcentajes puros para que no se multiplique con el zoom
+        const modalesDialog = document.querySelectorAll('.modal-dialog.modal-fullscreen');
+        modalesDialog.forEach(dialog => {
+            dialog.style.width = '100%';
+            dialog.style.height = '100%';
+            dialog.style.maxWidth = '100%';
+            dialog.style.margin = '0';
+        });
+        
+        // 4. Limpiamos cualquier estilo residual en el content de la prueba anterior
+        const modalesContent = document.querySelectorAll('.modal-fullscreen .modal-content');
+        modalesContent.forEach(content => {
+            content.style.width = '';
+            content.style.height = '';
+            content.style.zoom = '';
         });
     }
 
