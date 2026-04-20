@@ -86,8 +86,7 @@
 
         /* --- NUEVO HEADER UNIFICADO --- */
         .top-bar-container { background-color: white; border-bottom: 1px solid #ccc; display: flex; align-items: flex-end; padding: 8px 15px 0 15px; height: 55px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; gap: 15px; }
-        .logo-box img { height: 35px; margin-bottom: 8px; cursor: pointer; transition: transform 0.2s; }
-        .logo-box img:hover { transform: scale(1.1); }
+        .logo-box img { height: 35px; margin-bottom: 8px; }
 
         /* --- CONTROLES DE ZOOM --- */
         .zoom-controls { margin-bottom: 8px; }
@@ -261,9 +260,7 @@
 
 <div id="startup-overlay">
     <div id="startup-content" class="text-center d-flex flex-column align-items-center justify-content-center">
-        <a href="https://davidyaryur.github.io/trello/" title="Buscar proyecto por palabra clave">
-            <img src="Inversiones Yar-Yur.png" alt="Logo Yar-Yur" style="height: 160px; margin-bottom: 70px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-        </a>
+        <img src="Inversiones Yar-Yur.png" alt="Logo Yar-Yur" style="height: 160px; margin-bottom: 70px;">
         <h4 class="fw-bold text-dark m-0" style="letter-spacing: 1px; font-size: 1.5rem;">Actualizando...</h4>
         <div class="bouncing-dots" style="margin-top: 50px;">
             <span></span>
@@ -286,8 +283,8 @@
     <div class="container-fluid p-0">
         
         <div class="top-bar-container">
-            <div class="logo-box" title="Ir al Tablero de Trello">
-                <img src="Inversiones Yar-Yur.png" alt="Yar-Yur" onclick="window.location.href='https://davidyaryur.github.io/trello/'">
+            <div class="logo-box">
+                <img src="Inversiones Yar-Yur.png" alt="Yar-Yur">
             </div>
 
             <ul class="nav chrome-tabs" id="mainDashboardTabs" role="tablist">
