@@ -291,8 +291,8 @@
             </div>
 
             <ul class="nav chrome-tabs" id="mainDashboardTabs" role="tablist">
-                <li class="nav-item" role="presentation"><button class="chrome-link active main-tab-btn" id="tab-produccion" data-bs-toggle="tab" data-bs-target="#view-produccion" type="button" role="tab">PRODUCCIÓN</button></li>
-                <li class="nav-item" role="presentation"><button class="chrome-link main-tab-btn" id="tab-diseno" data-bs-toggle="tab" data-bs-target="#view-diseno" type="button" role="tab">DISEÑO</button></li>
+                <li class="nav-item" role="presentation"><button class="chrome-link main-tab-btn" id="tab-produccion" data-bs-toggle="tab" data-bs-target="#view-produccion" type="button" role="tab">PRODUCCIÓN</button></li>
+                <li class="nav-item" role="presentation"><button class="chrome-link active main-tab-btn" id="tab-diseno" data-bs-toggle="tab" data-bs-target="#view-diseno" type="button" role="tab">DISEÑO</button></li>
                 
                 <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-compras" data-bs-toggle="tab" data-bs-target="#view-compras" type="button" role="tab">COMPRAS</button></li>
                 <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-instaladores" data-bs-toggle="tab" data-bs-target="#view-instaladores" type="button" role="tab">INSTALADORES</button></li>
@@ -312,7 +312,7 @@
         
         <div class="tab-content main-content-wrapper" id="mainDashboardContent">
             
-            <div class="tab-pane fade show active" id="view-produccion" role="tabpanel">
+            <div class="tab-pane fade" id="view-produccion" role="tabpanel">
                 <div class="fixed-grid-container">
                     <div class="row g-4">
                         <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PRODUCCIÓN <span class="header-counter" id="count-production">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th class="text-center">Cant.</th><th>Diseñador</th><th>Vendedor</th><th class="text-center" title="Días en Producción">D</th></tr></thead><tbody id="tbody-production"></tbody></table></div></div></div>
@@ -321,7 +321,7 @@
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="view-diseno" role="tabpanel">
+            <div class="tab-pane fade show active" id="view-diseno" role="tabpanel">
                 <div class="fixed-grid-container">
                     <div class="row g-3 mb-3">
                         <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS CON O.C. <span class="header-counter" id="count-active-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-oc"></tbody></table></div></div></div>
@@ -543,6 +543,7 @@
     let appStarted = false;
     let loadedInPortrait = false;
     let mobileZoomApplied = false;
+    let firstLandscapeCheck = true; // Controla la aplicación del 80% al iniciar
 
     function unifyName(nameStr, mapObj) {
         if (!nameStr) return "";
@@ -624,8 +625,13 @@
         } else {
             document.getElementById('orientation-overlay').style.display = 'none';
             
-            if (loadedInPortrait && !mobileZoomApplied) {
-                updateZoom(0.5);
+            // --- CÓDIGO DE ZOOM AL CARGAR EN HORIZONTAL ---
+            if (firstLandscapeCheck) {
+                updateZoom(0.8);
+                firstLandscapeCheck = false;
+                mobileZoomApplied = true;
+            } else if (loadedInPortrait && !mobileZoomApplied) {
+                updateZoom(0.8);
                 mobileZoomApplied = true;
             }
 
