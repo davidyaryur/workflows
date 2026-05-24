@@ -3,107 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorpresa de Confeti</title>
-    <!-- Importamos la librería de confeti -->
+    <title>Seguimiento Yar-Yur</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* Reseteamos el margen y hacemos que el body ocupe toda la pantalla */
         body {
             margin: 0;
             height: 100vh;
             display: flex;
-            justify-content: center; /* Centra horizontalmente */
-            align-items: center;     /* Centra verticalmente */
-            background-color: #212121; /* Color oscuro inicial */
-            transition: background-color 1s ease; /* Transición suave del color */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #212121;
+            transition: background-color 1s ease;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #888;
+        }
+        body.exito { background-color: #2e7d32; }
+        
+        /* Contenedores para cambiar entre Login y la App */
+        #login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        #app-container {
+            display: none; /* Oculto por defecto hasta iniciar sesión */
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
         }
 
-        /* Clase que se añadirá cuando se escriba "hola" */
-        body.exito {
-            background-color: #2e7d32; /* Color verde victoria */
-        }
-
-        /* Estilos para el campo de texto */
+        /* Estilos del input principal */
         input {
             padding: 15px 30px;
             font-size: 24px;
             border: 2px solid #555;
-            border-radius: 50px; /* Bordes redondeados */
+            border-radius: 50px;
             outline: none;
             background-color: #333;
             color: white;
             text-align: center;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            width: 80%;
+            max-width: 400px;
         }
-
-        /* Efecto cuando hacemos clic en el input */
         input:focus {
             border-color: #4CAF50;
             background-color: #444;
             box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
         }
-
-        /* Placeholder personalizado */
-        input::placeholder {
-            color: #aaa;
+        input::placeholder { color: #aaa; }
+        
+        /* Estilos de botones */
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
         }
+        #btn-login {
+            background-color: white;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        #btn-login:hover { background-color: #eee; }
+        #btn-logout {
+            background-color: #d32f2f;
+            color: white;
+            padding: 5px 15px;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        #btn-logout:hover { background-color: #b71c1c; }
+
+        #estado { font-size: 14px; margin-bottom: 20px; }
+        #usuario-info { margin-bottom: 30px; font-size: 18px; color: #ccc; }
     </style>
 </head>
 <body>
 
-    <input type="text" id="campoMagico" placeholder="Escribe la palabra mágica..." autocomplete="off">
+    <div id="login-container">
+        <h2 style="color: white; margin-bottom: 5px;">Herramienta Interna</h2>
+        <p>Inicia sesión para acceder</p>
+        <button id="btn-login">
+            <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+            Acceder con Google
+        </button>
+    </div>
 
-    <script>
+    <div id="app-container">
+        <div id="usuario-info">Conectado como: <span id="nombre-usuario" style="color: white; font-weight: bold;"></span></div>
+        <div id="estado">Sincronizando...</div>
+        
+        <input type="text" id="campoMagico" placeholder="Escribe la palabra mágica..." autocomplete="off">
+        
+        <button id="btn-logout">Cerrar sesión</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+        // Importamos los módulos de autenticación
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAPRAy9kHU8gxt3SYYXKuG9xGNtlbI18HQ",
+  authDomain: "seguimiento-proyectos-yar-yur.firebaseapp.com",
+  projectId: "seguimiento-proyectos-yar-yur",
+  storageBucket: "seguimiento-proyectos-yar-yur.firebasestorage.app",
+  messagingSenderId: "952890737656",
+  appId: "1:952890737656:web:486c9a7d2c9ed13060cc0d",
+  measurementId: "G-XMNDL0V5KQ"
+};
+
+
+        // Inicializamos Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        
+        const palabraRef = ref(db, 'palabraCompartida');
+
+        // Elementos de la interfaz
+        const loginContainer = document.getElementById('login-container');
+        const appContainer = document.getElementById('app-container');
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        const nombreUsuarioSpan = document.getElementById('nombre-usuario');
         const input = document.getElementById('campoMagico');
-        let yaCelebro = false; // Variable para no repetir la animación miles de veces
+        const estado = document.getElementById('estado');
+        let yaCelebro = false;
 
-        input.addEventListener('input', function(e) {
-            // Convertimos el texto a minúsculas y quitamos espacios a los lados
-            const texto = e.target.value.trim().toLowerCase();
+        // ACCIONES DE LOS BOTONES
+        btnLogin.addEventListener('click', () => {
+            signInWithPopup(auth, provider).catch((error) => {
+                console.error("Error al iniciar sesión:", error);
+                alert("Hubo un error al iniciar sesión.");
+            });
+        });
 
-            if (texto === 'hola' && !yaCelebro) {
-                yaCelebro = true;
+        btnLogout.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // ESCUCHAMOS LOS CAMBIOS DE SESIÓN (Login / Logout)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Si hay usuario logueado, ocultamos el login y mostramos la app
+                loginContainer.style.display = 'none';
+                appContainer.style.display = 'flex';
                 
-                // 1. Cambiar el color de fondo a verde
-                document.body.classList.add('exito');
-                
-                // 2. Ejecutar la animación de victoria (duración: 3 segundos)
-                const duracion = 3000;
-                const fin = Date.now() + duracion;
+                // Mostramos el nombre de la persona que entró
+                nombreUsuarioSpan.innerText = user.displayName;
 
-                (function frame() {
-                    // Confeti desde la izquierda
-                    confetti({
-                        particleCount: 7,
-                        angle: 60,
-                        spread: 55,
-                        origin: { x: 0 },
-                        colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
-                    });
-                    
-                    // Confeti desde la derecha
-                    confetti({
-                        particleCount: 7,
-                        angle: 120,
-                        spread: 55,
-                        origin: { x: 1 },
-                        colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
-                    });
-
-                    // Si aún no termina el tiempo, seguimos lanzando confeti
-                    if (Date.now() < fin) {
-                        requestAnimationFrame(frame);
-                    }
-                }());
-
-            } else if (texto !== 'hola' && yaCelebro) {
-                // Si el usuario borra la palabra, revertimos el color para que pueda intentarlo de nuevo
-                yaCelebro = false;
+                // INICIAMOS LA CONEXIÓN A LA BASE DE DATOS
+                iniciarSincronizacion();
+            } else {
+                // Si no hay usuario, mostramos el login y ocultamos la app
+                loginContainer.style.display = 'flex';
+                appContainer.style.display = 'none';
                 document.body.classList.remove('exito');
             }
         });
+
+        // FUNCIÓN QUE MANEJA LA BASE DE DATOS
+        function iniciarSincronizacion() {
+            // Cuando tú escribes:
+            input.addEventListener('input', (e) => {
+                set(palabraRef, e.target.value);
+            });
+
+            // Cuando alguien más escribe o entras a la página:
+            onValue(palabraRef, (snapshot) => {
+                estado.innerText = "Conectado en tiempo real 🟢";
+                const palabraActual = snapshot.val() || "";
+
+                if (input.value !== palabraActual) {
+                    input.value = palabraActual;
+                }
+
+                const textoLimpio = palabraActual.trim().toLowerCase();
+
+                if (textoLimpio === 'hola' && !yaCelebro) {
+                    yaCelebro = true;
+                    document.body.classList.add('exito');
+                    lanzarConfeti();
+                } else if (textoLimpio !== 'hola' && yaCelebro) {
+                    yaCelebro = false;
+                    document.body.classList.remove('exito');
+                }
+            }, (error) => {
+                console.error("Error de base de datos:", error);
+                estado.innerText = "Error de permisos 🔴 (Revisa tus Reglas)";
+            });
+        }
+
+        // FUNCIÓN DEL CONFETI
+        function lanzarConfeti() {
+            const duracion = 3000;
+            const fin = Date.now() + duracion;
+
+            (function frame() {
+                confetti({ particleCount: 7, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'] });
+                confetti({ particleCount: 7, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'] });
+                if (Date.now() < fin) requestAnimationFrame(frame);
+            }());
+        }
     </script>
 </body>
 </html>
