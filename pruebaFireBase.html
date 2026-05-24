@@ -162,7 +162,6 @@
 
         let projectDatabase = [];
 
-        // ESTRUCTURA DE LIMPIEZA INTERNA DEL JSON (Idéntica a la del Dashboard)
         function normalizeTrelloData(rawData) { 
             let data = { ...rawData }; 
             if (!data.lists) data.lists = []; 
@@ -214,7 +213,6 @@
             });
         }
 
-        // NUEVA FUNCIÓN: Extrae los datos desde el JSON local diario
         async function cargarProyectosDesdeJSON() {
             try {
                 estado.innerText = "Procesando historial JSON... ⏳";
@@ -231,12 +229,20 @@
                     
                     const unicos = new Set();
                     projectDatabase.forEach(p => {
-                        // Construimos la sugerencia formateada de autocompletado
                         const textoFinal = `${p.code} - ${p.client} - ${p.desc}`;
                         unicos.add(textoFinal);
                     });
 
-                    unicos.forEach(texto => {
+                    // ORDENAMIENTO NUMÉRICO ASCENDENTE
+                    const listaOrdenada = Array.from(unicos).sort((a, b) => {
+                        // Extraemos el primer fragmento antes del guion y lo pasamos a entero
+                        const numA = parseInt(a.split('-')[0].trim(), 10) || 0;
+                        const numB = parseInt(b.split('-')[0].trim(), 10) || 0;
+                        return numA - numB;
+                    });
+
+                    // Llenamos el HTML con la lista ya ordenada
+                    listaOrdenada.forEach(texto => {
                         const option = document.createElement('option');
                         option.value = texto;
                         datalist.appendChild(option);
@@ -292,7 +298,7 @@
                 nombreUsuarioSpan.innerText = user.displayName;
                 
                 generarTabla();
-                cargarProyectosDesdeJSON(); // <--- Ahora lee de history_all.json
+                cargarProyectosDesdeJSON(); 
                 iniciarSincronizacion();
             } else {
                 loginContainer.style.display = 'flex';
