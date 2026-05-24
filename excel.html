@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exportar Datos Yar-Yur</title>
-    <!-- Librería SheetJS para generar Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
@@ -96,7 +95,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
 
-        // 1. Configuración de Firebase (Idéntica a tu tablero)
+        // 1. Configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAPRAy9kHU8gxt3SYYXKuG9xGNtlbI18HQ",
             authDomain: "seguimiento-proyectos-yar-yur.firebaseapp.com",
@@ -141,7 +140,7 @@
                     return obj;
                 });
 
-                // Intenta buscar una columna que se llame 'fecha' (sin importar mayúsculas) para ordenar
+                // Intenta buscar una columna que se llame 'fecha' para ordenar
                 const fechaKey = headers.find(h => h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date'));
                 
                 if (fechaKey) {
@@ -158,43 +157,92 @@
             }
         }
 
-        // B) Obtener del JSON y ordenar por número de Trello
+        // B) Obtener del JSON, dejar solo la versión más reciente y expandir columnas
         async function fetchJsonData() {
             try {
                 const res = await fetch('history_all.json');
                 const rawData = await res.json();
                 
-                let cardsList = [];
+                let latestCards = {};
+                let listMap = {};
+                let labelMap = {};
 
-                // Aplanar las tarjetas de los distintos días registrados en el JSON
+                // Iterar sobre todos los días para acumular diccionarios y actualizar tarjetas
                 rawData.forEach(day => {
-                    if (day.data && day.data.cards) {
-                        day.data.cards.forEach(card => {
-                            // Extraer el número de Trello usando regex (Ej: "001 / 25 - Cliente - Info")
-                            let trelloNum = 999999; // Número muy alto si no tiene formato
-                            const match = card.name.match(/^(\d+)\s*\//);
-                            if (match) {
-                                trelloNum = parseInt(match[1], 10);
-                            }
+                    if (day.data) {
+                        // 1. Guardar nombres de las Listas
+                        if (day.data.lists) {
+                            day.data.lists.forEach(l => listMap[l.id] = l.name);
+                        }
+                        
+                        // 2. Guardar nombres de las Etiquetas
+                        if (day.data.labels) {
+                            day.data.labels.forEach(l => labelMap[l.id] = l.name || `Color: ${l.color}`);
+                        }
 
-                            cardsList.push({
-                                "Número Trello": trelloNum === 999999 ? "N/A" : trelloNum,
-                                "Fecha Registro": day.fecha,
-                                "Nombre Tarjeta": card.name,
-                                "Lista (ID)": card.idList
+                        // 3. Actualizar tarjetas (Al usar el ID como llave, se sobreescribe con la info más reciente)
+                        if (day.data.cards) {
+                            day.data.cards.forEach(card => {
+                                latestCards[card.id] = card;
                             });
-                        });
+                        }
                     }
                 });
 
-                // Ordenar por número de Trello
-                cardsList.sort((a, b) => {
-                    let numA = a["Número Trello"] === "N/A" ? 999999 : a["Número Trello"];
-                    let numB = b["Número Trello"] === "N/A" ? 999999 : b["Número Trello"];
-                    return numA - numB;
+                let cardsList = [];
+
+                // Convertir nuestro diccionario de tarjetas recientes a un arreglo para el Excel
+                Object.values(latestCards).forEach(card => {
+                    // Extraer los datos mediante formato: "001 / 26 - CLIENTE - DESCRIPCIÓN"
+                    const match = card.name.match(/^(\d+)\s*\/\s*(\d+)\s*-\s*(.*?)\s*-\s*(.*)/);
+                    
+                    let codigoCompleto = "S/C";
+                    let cliente = "Varios / Otro";
+                    let descripcion = card.name;
+                    let numOrden = 999999; // Número alto para mandar los "Sin código" al final
+
+                    if (match) {
+                        let numero = String(parseInt(match[1], 10)).padStart(3, '0');
+                        let anio = match[2];
+                        codigoCompleto = `${numero}/${anio}`;
+                        cliente = match[3].trim();
+                        descripcion = match[4].trim();
+                        numOrden = parseInt(match[1], 10); 
+                    } else {
+                        const matchSimple = card.name.match(/^(\d+)\s*\//);
+                        if (matchSimple) {
+                            numOrden = parseInt(matchSimple[1], 10);
+                            codigoCompleto = `${String(numOrden).padStart(3, '0')}/??`;
+                        }
+                    }
+
+                    // Traducir el ID de la lista a su nombre real
+                    const nombreLista = listMap[card.idList] || "Desconocida";
+
+                    // Traducir los IDs de las etiquetas a texto
+                    let nombresEtiquetas = [];
+                    if (card.idLabels && Array.isArray(card.idLabels)) {
+                        nombresEtiquetas = card.idLabels.map(id => labelMap[id] || "Etiqueta oculta");
+                    }
+
+                    cardsList.push({
+                        "_numOrden": numOrden, // Columna oculta para ordenar
+                        "Código Proyecto": codigoCompleto,
+                        "Cliente": cliente,
+                        "Descripción Tarea": descripcion,
+                        "Fase / Asignación": nombreLista,
+                        "Etiquetas": nombresEtiquetas.join(', '),
+                        "Archivado en Trello": card.closed ? "Sí" : "No"
+                    });
                 });
 
-                return cardsList.length > 0 ? cardsList : [{ "Info": "No se encontraron tarjetas en el JSON" }];
+                // Ordenar la lista por el número del proyecto (001, 002, 003...)
+                cardsList.sort((a, b) => a._numOrden - b._numOrden);
+
+                // Eliminar la propiedad temporal _numOrden
+                cardsList.forEach(item => delete item._numOrden);
+
+                return cardsList.length > 0 ? cardsList : [{ "Info": "No se encontraron tarjetas procesables en el JSON" }];
             } catch (error) {
                 console.error("Error JSON:", error);
                 return [{ "Error": "No se encontró el archivo history_all.json o formato inválido" }];
@@ -221,12 +269,11 @@
                     let diaNum = parts[2] || "01";
                     let mesNum = parts[3] || "01";
                     
-                    // Aproximar una fecha para poder ordenar (Asumimos año actual para cálculos)
                     let currentYear = new Date().getFullYear();
                     let dateObj = new Date(`${currentYear}-${mesNum}-${diaNum}T00:00:00`);
 
                     fbArray.push({
-                        "_dateObj": dateObj, // Se usa para el sort, se borrará luego
+                        "_dateObj": dateObj, 
                         "Fecha": `${diaSemana} ${diaNum}/${mesNum}`,
                         "Persona": persona,
                         "Proyecto": info.texto,
@@ -275,9 +322,11 @@
                 const ws3 = XLSX.utils.json_to_sheet(dataSheet3);
 
                 // Ajustar ancho de columnas para mejor legibilidad
-                const colWidths = [{wch: 15}, {wch: 25}, {wch: 40}, {wch: 20}];
-                ws1['!cols'] = colWidths;
-                ws2['!cols'] = [{wch: 15}, {wch: 20}, {wch: 60}, {wch: 25}];
+                ws1['!cols'] = [{wch: 15}, {wch: 25}, {wch: 40}, {wch: 20}];
+                
+                // Anchos para la nueva estructura de Trello (Código, Cliente, Desc, Fase, Etiquetas, Archivado)
+                ws2['!cols'] = [{wch: 15}, {wch: 25}, {wch: 60}, {wch: 20}, {wch: 35}, {wch: 15}];
+                
                 ws3['!cols'] = [{wch: 15}, {wch: 15}, {wch: 60}, {wch: 15}, {wch: 25}];
 
                 // Añadir hojas al libro
