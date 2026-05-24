@@ -133,6 +133,9 @@
             flex: 1;
             transition: all 0.2s ease;
         }
+        
+        /* Regla para evitar que los menús se vuelvan invisibles al cambiar texto a blanco */
+        option { color: black; background: white; }
 
         .select-fase { text-align: left; }
         .select-status { text-align: right; }
@@ -223,7 +226,7 @@
         const maxCamposPorCelda = 10; 
 
         let projectDatabase = [];
-        let listaCompletaProyectos = []; // Almacena la lista global de proyectos para la búsqueda inteligente
+        let listaCompletaProyectos = [];
 
         function normalizeTrelloData(rawData) { 
             let data = { ...rawData }; 
@@ -315,7 +318,6 @@
                         return numCodigoA - numCodigoB;
                     });
 
-                    // Guardamos la lista en nuestra variable global y generamos el datalist inicial
                     listaCompletaProyectos = listaOrdenada;
                     actualizarDatalist("");
                 }
@@ -324,21 +326,17 @@
             }
         }
 
-        // MOTOR DE BÚSQUEDA INTELIGENTE
         function actualizarDatalist(filtro) {
             const datalist = document.getElementById('lista-proyectos');
             datalist.innerHTML = '';
             
-            // Separamos por espacios para buscar coincidencias no secuenciales (Ej: "PEP nav")
             const terms = filtro.toLowerCase().split(' ').filter(t => t.trim() !== '');
 
             const filtrados = listaCompletaProyectos.filter(texto => {
                 const textoLower = texto.toLowerCase();
-                // Verificamos que TODAS las palabras clave escritas estén en el texto
                 return terms.every(term => textoLower.includes(term));
             });
 
-            // Limitamos los resultados a 50 para evitar lag de renderizado
             const limit = 50; 
             for (let i = 0; i < Math.min(filtrados.length, limit); i++) {
                 const option = document.createElement('option');
@@ -347,7 +345,6 @@
             }
         }
 
-        // GENERACIÓN DE LA TABLA Y EL BOTÓN DE HAMBURGUESA
         function generarTabla() {
             let html = '<table>';
             html += '<tr><th><button id="menu-toggle" title="Alternar Encabezado">&#9776;</button></th>';
@@ -365,6 +362,7 @@
                         const idUnico = `${persona}-${dia}-${i}`.replace(/\s|\//g, '-');
                         const estiloDisplay = i === 0 ? 'flex' : 'none'; 
                         
+                        // Añadida la opción NO ENTREGADO al Select Status
                         html += `
                         <div class="slot-wrapper" id="wrapper-${idUnico}" style="display: ${estiloDisplay};">
                             <div class="slot-header">
@@ -382,6 +380,7 @@
                                     <option value="COMPROMISO">COMPROMISO</option>
                                     <option value="ENTREGADO">ENTREGADO</option>
                                     <option value="EN ESPERA">EN ESPERA</option>
+                                    <option value="NO ENTREGADO">NO ENTREGADO</option>
                                 </select>
                             </div>
                             <input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" placeholder="" autocomplete="off" style="display: none;">
@@ -404,28 +403,39 @@
                 const btn = e.target;
                 if (header.classList.contains('open')) {
                     header.classList.remove('open');
-                    btn.innerHTML = '&#9776;'; // ☰ Menu
+                    btn.innerHTML = '&#9776;';
                 } else {
                     header.classList.add('open');
-                    btn.innerHTML = '&#8593;'; // ↑ Flecha arriba
+                    btn.innerHTML = '&#8593;';
                 }
             }
         });
 
-        // FUNCIONALIDAD DE COLORES Y ESTADOS (Ahora acepta simular estado para coloreado retroactivo)
-        function aplicarColorFondo(wrapperId, faseVal, statusVal, statusSimulado = null) {
+        // NUEVA LÓGICA DE COLORES DIRECTA (Sin retroactividad)
+        function aplicarColorFondo(wrapperId, faseVal, statusVal) {
             const wrapper = document.getElementById(wrapperId);
             if (!wrapper) return;
 
             const idBase = wrapperId.replace('wrapper-', '');
+            const selectFase = document.getElementById(`fase-${idBase}`);
             const selectStatus = document.getElementById(`status-${idBase}`);
+            const inputProy = document.getElementById(idBase);
 
-            // Resetear el color de letra por defecto para Status
+            // Reseteo de colores de letra a default para que no queden blancos si cambian de estado
+            selectFase.style.color = '#333';
             selectStatus.style.color = '#333';
+            inputProy.style.color = '#000';
 
-            const estadoEvaluar = statusSimulado || statusVal;
-
-            if (estadoEvaluar === 'ENTREGADO') {
+            // Evaluar Status para Fondos
+            if (statusVal === 'NO ENTREGADO') {
+                wrapper.style.backgroundColor = 'rgb(255, 0, 0)'; // Rojo absoluto
+                // Letras a blanco en la celda
+                selectFase.style.color = '#FFFFFF';
+                selectStatus.style.color = '#FFFFFF';
+                inputProy.style.color = '#FFFFFF';
+            } else if (statusVal === 'EN PROCESO') {
+                wrapper.style.backgroundColor = '#FFF59D'; // Amarillo claro
+            } else if (statusVal === 'ENTREGADO') {
                 if (faseVal === 'MUESTRA' || faseVal === 'PRODUCCIÓN') {
                     wrapper.style.backgroundColor = '#00FF00'; // Verde chillón absoluto
                 } else {
@@ -435,58 +445,14 @@
                 wrapper.style.backgroundColor = '#ffffff'; // Blanco
             }
 
-            // El color del texto SIEMPRE respeta el estado real seleccionado
-            if (statusVal === 'EN ESPERA') {
-                selectStatus.style.color = '#F44336'; // Rojo
-            } else if (statusVal === 'EN PROCESO') {
-                selectStatus.style.color = '#FF9800'; // Naranja
+            // Excepción del color del texto de Status en estados específicos (si no es NO ENTREGADO)
+            if (statusVal !== 'NO ENTREGADO') {
+                if (statusVal === 'EN ESPERA') {
+                    selectStatus.style.color = '#F44336'; // Rojo
+                } else if (statusVal === 'EN PROCESO') {
+                    selectStatus.style.color = '#FF9800'; // Naranja
+                }
             }
-        }
-
-        // LÓGICA VERDE RETROACTIVO
-        function aplicarColoresRetroactivos() {
-            personas.forEach(persona => {
-                let proyectosEntregados = new Set();
-
-                // 1. Recolectar proyectos que esta persona haya ENTREGADO
-                dias.forEach(dia => {
-                    const diaId = dia.replace(/\s|\//g, '-');
-                    for (let i = 0; i < maxCamposPorCelda; i++) {
-                        const idUnico = `${persona}-${diaId}-${i}`;
-                        const elStatus = document.getElementById(`status-${idUnico}`);
-                        const elInput = document.getElementById(idUnico);
-                        
-                        if (elStatus && elInput) {
-                            if (elStatus.value === 'ENTREGADO' && elInput.value.trim() !== '') {
-                                proyectosEntregados.add(elInput.value.trim().toLowerCase());
-                            }
-                        }
-                    }
-                });
-
-                // 2. Aplicar colores según corresponda a TODAS las celdas de la persona
-                dias.forEach(dia => {
-                    const diaId = dia.replace(/\s|\//g, '-');
-                    for (let i = 0; i < maxCamposPorCelda; i++) {
-                        const idUnico = `${persona}-${diaId}-${i}`;
-                        const elInput = document.getElementById(idUnico);
-                        
-                        if (elInput && elInput.value.trim() !== '') {
-                            const textoVal = elInput.value.trim().toLowerCase();
-                            const elFase = document.getElementById(`fase-${idUnico}`);
-                            const elStatus = document.getElementById(`status-${idUnico}`);
-                            
-                            if (proyectosEntregados.has(textoVal)) {
-                                // Forzamos el fondo verde, aunque el status diga otra cosa
-                                aplicarColorFondo(`wrapper-${idUnico}`, elFase.value, elStatus.value, 'ENTREGADO');
-                            } else {
-                                // Asegura restaurar color normal si el proyecto deja de estar entregado
-                                aplicarColorFondo(`wrapper-${idUnico}`, elFase.value, elStatus.value);
-                            }
-                        }
-                    }
-                });
-            });
         }
 
         function actualizarVisibilidadInternaSlot(wrapperId) {
@@ -573,16 +539,61 @@
                 });
             }
 
+            // FUNCIÓN DE AUTOMATIZACIÓN NO ENTREGADO -> COMPROMISO
+            function automatizarSiguienteDia(persona, diaActualStr, idOrigen) {
+                // Buscamos en qué índice del arreglo general de 'dias' nos encontramos
+                const indexDiaActual = dias.findIndex(d => d.replace(/\s|\//g, '-') === diaActualStr);
+                
+                // Si no se encuentra, o si es el último día (índice 4 = viernes), no hacemos nada
+                if (indexDiaActual === -1 || indexDiaActual === dias.length - 1) return;
+
+                const nextDiaStr = dias[indexDiaActual + 1].replace(/\s|\//g, '-');
+                
+                // Buscar siguiente celda disponible en la columna del día siguiente para esa persona
+                let idDestino = null;
+                for (let i = 0; i < maxCamposPorCelda; i++) {
+                    const idTest = `${persona}-${nextDiaStr}-${i}`;
+                    const elFase = document.getElementById(`fase-${idTest}`);
+                    const elStatus = document.getElementById(`status-${idTest}`);
+                    const elInput = document.getElementById(idTest);
+                    
+                    // Comprobamos que todos los campos del slot estén limpios/vacíos
+                    if (elFase && elFase.value === "" && elStatus.value === "" && elInput.value.trim() === "") {
+                        idDestino = idTest;
+                        break;
+                    }
+                }
+
+                if (idDestino) {
+                    const faseOrigen = document.getElementById(`fase-${idOrigen}`).value;
+                    const textoOrigen = document.getElementById(idOrigen).value;
+
+                    // Asignamos la información en el slot del día siguiente
+                    document.getElementById(`fase-${idDestino}`).value = faseOrigen;
+                    document.getElementById(`status-${idDestino}`).value = "COMPROMISO";
+                    document.getElementById(idDestino).value = textoOrigen;
+
+                    // Enviamos inmediatamente a Firebase
+                    enviarAFirebase(idDestino);
+                    
+                    // Actualizamos visualmente el tablero local en vivo
+                    actualizarVisibilidadInternaSlot(`wrapper-${idDestino}`);
+                    aplicarColorFondo(`wrapper-${idDestino}`, faseOrigen, "COMPROMISO");
+                    
+                    const celdaContenedora = document.getElementById(`celda-${persona}-${nextDiaStr}`);
+                    if (celdaContenedora) {
+                        actualizarVisibilidadCelda(celdaContenedora);
+                    }
+                }
+            }
+
             todosLosInputs.forEach(input => {
-                // Al teclear, actualizamos el datalist y Firebase
                 input.addEventListener('input', (e) => {
                     actualizarDatalist(e.target.value);
                     enviarAFirebase(e.target.id);
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
-                    aplicarColoresRetroactivos();
                 });
 
-                // Al hacer clic/enfocar la celda, inicializa el filtro de sugerencias para esa celda
                 input.addEventListener('focus', (e) => {
                     actualizarDatalist(e.target.value);
                 });
@@ -598,7 +609,6 @@
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                     
                     enviarAFirebase(idBase);
-                    aplicarColoresRetroactivos();
                 });
             });
 
@@ -612,7 +622,16 @@
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                     
                     enviarAFirebase(idBase);
-                    aplicarColoresRetroactivos(); // Repasa la fila para propagar el verde si es necesario
+
+                    // AL DISPARARSE EL CAMBIO, EVALUAMOS SI HAY QUE AUTOMATIZAR
+                    if (e.target.value === 'NO ENTREGADO') {
+                        // Extraemos quién es y qué día es basándonos en el ID único (Ej: GUILLE-lunes-18-05-1)
+                        const personaMatch = personas.find(p => idBase.startsWith(p + '-'));
+                        const lastDashIndex = idBase.lastIndexOf('-');
+                        const diaIdStr = idBase.substring(personaMatch.length + 1, lastDashIndex);
+                        
+                        automatizarSiguienteDia(personaMatch, diaIdStr, idBase);
+                    }
                 });
             });
 
@@ -637,16 +656,12 @@
                     }
 
                     actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
-                    // Se aplica fondo inicial en base al propio servidor
                     aplicarColorFondo(`wrapper-${idBase}`, dataServidor.fase || "", dataServidor.status || "");
                 });
 
                 todasLasCeldas.forEach(celda => {
                     actualizarVisibilidadCelda(celda);
                 });
-
-                // Finalmente evaluamos y sobreescribimos los verdes retroactivos en todo el tablero 
-                aplicarColoresRetroactivos();
             });
         }
     </script>
