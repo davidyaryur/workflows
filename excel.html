@@ -118,8 +118,9 @@
         const spinner = document.getElementById('spinner');
         const statusMsg = document.getElementById('status-msg');
 
-        // Lista de diseñadores para validación
+        // Listas de validación para clasificación de columnas E, F y G
         const listaDisenadores = ["YARELLY", "ANGEL", "DAVID", "EIDER", "VIRLEY", "CARELIS", "ANDREA", "GUILLERMO", "ALESKA"];
+        const listaCheckList = ["ARTES", "MUESTRA APROBADA", "ORDEN DE COMPRA"];
 
         // --- FUNCIONES DE OBTENCIÓN DE DATOS ---
 
@@ -160,7 +161,7 @@
             }
         }
 
-        // B) Obtener del JSON, dejar solo la versión más reciente y expandir columnas (Modificado)
+        // B) Obtener del JSON, clasificar etiquetas y dejar solo versión reciente
         async function fetchJsonData() {
             try {
                 const res = await fetch('history_all.json');
@@ -214,21 +215,26 @@
                         }
                     }
 
-                    // Procesar la Fase: Si la lista es el nombre de un diseñador, cambiar a "DISEÑO"
+                    // Procesar la Fase
                     let nombreFase = listMap[card.idList] || "Desconocida";
                     if (listaDisenadores.includes(nombreFase.toUpperCase().trim())) {
                         nombreFase = "DISEÑO";
                     }
 
-                    // Separar etiquetas en Diseñador y Vendedor
+                    // Separar etiquetas en Diseñador, Vendedor y Check List
                     let disenadoresEtiqueta = [];
                     let vendedoresEtiqueta = [];
+                    let checklistEtiqueta = [];
                     
                     if (card.idLabels && Array.isArray(card.idLabels)) {
                         card.idLabels.forEach(id => {
                             let nombreEtiqueta = labelMap[id] || "Etiqueta oculta";
-                            if (listaDisenadores.includes(nombreEtiqueta.toUpperCase().trim())) {
+                            let nombreUpper = nombreEtiqueta.toUpperCase().trim();
+                            
+                            if (listaDisenadores.includes(nombreUpper)) {
                                 disenadoresEtiqueta.push(nombreEtiqueta);
+                            } else if (listaCheckList.includes(nombreUpper)) {
+                                checklistEtiqueta.push(nombreEtiqueta);
                             } else {
                                 vendedoresEtiqueta.push(nombreEtiqueta);
                             }
@@ -242,11 +248,12 @@
                         "Proyecto": descripcion,
                         "Fase": nombreFase,
                         "Diseñador": disenadoresEtiqueta.join(', '),
-                        "Vendedor": vendedoresEtiqueta.join(', ')
+                        "Vendedor": vendedoresEtiqueta.join(', '),
+                        "Check List": checklistEtiqueta.join(', ')
                     });
                 });
 
-                // Ordenar la lista por el número del proyecto (001, 002, 003...)
+                // Ordenar la lista por el número del proyecto
                 cardsList.sort((a, b) => a._numOrden - b._numOrden);
 
                 // Eliminar la propiedad temporal _numOrden
@@ -268,7 +275,6 @@
                 const data = snapshot.val();
                 let fbArray = [];
 
-                // Formato de llave: DAVID-lunes-18-05-0
                 for (let key in data) {
                     const info = data[key];
                     if (!info.texto || info.texto.trim() === "") continue;
@@ -334,10 +340,15 @@
                 // Ajustar ancho de columnas
                 ws1['!cols'] = [{wch: 15}, {wch: 25}, {wch: 40}, {wch: 20}];
                 
-                // Anchos para la nueva estructura de Trello (A: Trello, B: Cliente, C: Proyecto, D: Fase, E: Diseñador, F: Vendedor)
-                ws2['!cols'] = [{wch: 15}, {wch: 25}, {wch: 60}, {wch: 20}, {wch: 25}, {wch: 35}];
+                // Anchos para la nueva estructura de Trello (A: Trello, B: Cliente, C: Proyecto, D: Fase, E: Diseñador, F: Vendedor, G: Check List)
+                ws2['!cols'] = [{wch: 15}, {wch: 25}, {wch: 60}, {wch: 20}, {wch: 25}, {wch: 25}, {wch: 35}];
                 
                 ws3['!cols'] = [{wch: 15}, {wch: 15}, {wch: 60}, {wch: 15}, {wch: 25}];
+
+                // ACTIVAR LOS FILTROS AUTOMÁTICOS PARA CADA HOJA EN LA FILA DE ENCABEZADOS
+                if(ws1['!ref']) ws1['!autofilter'] = { ref: ws1['!ref'] };
+                if(ws2['!ref']) ws2['!autofilter'] = { ref: ws2['!ref'] };
+                if(ws3['!ref']) ws3['!autofilter'] = { ref: ws3['!ref'] };
 
                 // Añadir hojas al libro
                 XLSX.utils.book_append_sheet(workbook, ws1, "Google Sheet");
@@ -347,7 +358,7 @@
                 // Generar y descargar el archivo
                 XLSX.writeFile(workbook, "Datos_Consolidados_YarYur.xlsx");
 
-                statusMsg.innerText = "¡Descarga completada!";
+                statusMsg.innerText = "¡Descarga completada con filtros aplicados!";
                 statusMsg.style.color = "#4CAF50";
 
             } catch (error) {
@@ -359,7 +370,7 @@
                 spinner.style.display = 'none';
                 
                 setTimeout(() => {
-                    if (statusMsg.innerText === "¡Descarga completada!") {
+                    if (statusMsg.innerText.includes("completada")) {
                         statusMsg.innerText = "";
                         statusMsg.style.color = "#aaa";
                     }
