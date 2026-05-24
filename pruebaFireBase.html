@@ -116,16 +116,16 @@
         // Importamos los módulos de autenticación
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAPRAy9kHU8gxt3SYYXKuG9xGNtlbI18HQ",
-  authDomain: "seguimiento-proyectos-yar-yur.firebaseapp.com",
-  projectId: "seguimiento-proyectos-yar-yur",
-  storageBucket: "seguimiento-proyectos-yar-yur.firebasestorage.app",
-  messagingSenderId: "952890737656",
-  appId: "1:952890737656:web:486c9a7d2c9ed13060cc0d",
-  measurementId: "G-XMNDL0V5KQ"
-};
-
+        const firebaseConfig = {
+          apiKey: "AIzaSyAPRAy9kHU8gxt3SYYXKuG9xGNtlbI18HQ",
+          authDomain: "seguimiento-proyectos-yar-yur.firebaseapp.com",
+          databaseURL: "https://seguimiento-proyectos-yar-yur-default-rtdb.firebaseio.com", /* <-- ¡ESTA ES LA LÍNEA QUE FALTABA! */
+          projectId: "seguimiento-proyectos-yar-yur",
+          storageBucket: "seguimiento-proyectos-yar-yur.firebasestorage.app",
+          messagingSenderId: "952890737656",
+          appId: "1:952890737656:web:486c9a7d2c9ed13060cc0d",
+          measurementId: "G-XMNDL0V5KQ"
+        };
 
         // Inicializamos Firebase
         const app = initializeApp(firebaseConfig);
