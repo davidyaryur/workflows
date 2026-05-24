@@ -85,22 +85,55 @@
             width: 10%;
         }
 
-        .celda-inputs { display: flex; flex-direction: column; gap: 4px; }
+        .celda-inputs { display: flex; flex-direction: column; gap: 6px; }
 
+        /* NUEVO: ESTILOS PARA EL CONTENEDOR DOBLE (Estado + Proyecto) */
+        .slot-wrapper {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: #ffffff; /* Blanco por defecto */
+            transition: background-color 0.3s ease;
+        }
+        
+        /* Efecto focus simulado para el contenedor */
+        .slot-wrapper:focus-within {
+            outline: 2px solid #2196F3;
+            border-color: #2196F3;
+        }
+
+        /* Lista de Estados */
+        .select-estado {
+            border: none;
+            background: rgba(255, 255, 255, 0.4); /* Semitransparente para que tome el color de fondo */
+            font-size: 10px;
+            padding: 3px 5px;
+            outline: none;
+            color: #555;
+            font-weight: bold;
+            border-bottom: 1px dashed #ccc;
+            cursor: pointer;
+        }
+
+        /* Input de Texto (sin bordes porque el wrapper ya tiene borde) */
         .input-proyecto {
+            border: none;
             width: 100%;
             padding: 6px;
             box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 2px;
             font-size: 12px;
             font-weight: bold;
-            background-color: #fff;
+            background-color: transparent;
             color: #000;
-            transition: all 0.2s ease;
+            outline: none;
         }
-
-        .input-proyecto:focus { outline: 2px solid #2196F3; border-color: #2196F3; }
+        
+        .input-proyecto::placeholder {
+            color: #aaa;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
@@ -233,13 +266,11 @@
                     const mapaProyectos = new Map();
 
                     projectDatabase.forEach(p => {
-                        // 1. Ahora la clave incluye el año para evitar que se pisen entre ellos (Ej: 014/25)
                         const claveProyecto = `${p.code}/${p.year}`;
                         const textoFinal = `${claveProyecto} - ${p.client} - ${p.desc}`;
                         
                         if (mapaProyectos.has(claveProyecto)) {
                             const textoExistente = mapaProyectos.get(claveProyecto);
-                            // Mantenemos el criterio de quedarnos con el texto más corto/limpio
                             if (textoFinal.length < textoExistente.length) {
                                 mapaProyectos.set(claveProyecto, textoFinal);
                             }
@@ -248,31 +279,22 @@
                         }
                     });
 
-                    // 2. ORDENAMIENTO DE DOS NIVELES (Por año y luego por número)
                     const listaOrdenada = Array.from(mapaProyectos.values()).sort((a, b) => {
-                        // Extraemos la parte antes del primer guion (ej. "014/25")
                         const prefijoA = a.split('-')[0].trim();
                         const prefijoB = b.split('-')[0].trim();
                         
-                        // Separamos el número del proyecto y el año usando el slash (/)
                         const [codigoA, anioA] = prefijoA.split('/');
                         const [codigoB, anioB] = prefijoB.split('/');
 
-                        // Convertimos los textos a números reales matemáticos
                         const numAnioA = parseInt(anioA, 10) || 0;
                         const numAnioB = parseInt(anioB, 10) || 0;
                         const numCodigoA = parseInt(codigoA, 10) || 0;
                         const numCodigoB = parseInt(codigoB, 10) || 0;
 
-                        // Primero evaluamos el año. Si son distintos, ordenamos por año (24, luego 25...)
-                        if (numAnioA !== numAnioB) {
-                            return numAnioA - numAnioB;
-                        }
-                        // Si son del mismo año, entonces ordenamos por el número del proyecto
+                        if (numAnioA !== numAnioB) return numAnioA - numAnioB;
                         return numCodigoA - numCodigoB;
                     });
 
-                    // Insertamos la lista definitiva en el HTML
                     listaOrdenada.forEach(texto => {
                         const option = document.createElement('option');
                         option.value = texto;
@@ -289,7 +311,7 @@
             }
         }
 
-        // GENERACIÓN AUTOMÁTICA DE LA TABLA COLECTIVA
+        // GENERACIÓN AUTOMÁTICA DE LA TABLA (AHORA CON CONTENEDOR DOBLE)
         function generarTabla() {
             let html = '<table>';
             html += '<tr><th></th>';
@@ -305,8 +327,20 @@
                     
                     for (let i = 0; i < maxCamposPorCelda; i++) {
                         const idUnico = `${persona}-${dia}-${i}`.replace(/\s|\//g, '-');
-                        const estiloDisplay = i === 0 ? 'block' : 'none';
-                        html += `<input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" style="display: ${estiloDisplay};">`;
+                        const estiloDisplay = i === 0 ? 'flex' : 'none'; // Ahora es 'flex' porque es un wrapper
+                        
+                        html += `
+                        <div class="slot-wrapper" id="wrapper-${idUnico}" style="display: ${estiloDisplay};">
+                            <select class="select-estado" id="estado-${idUnico}">
+                                <option value="">- Seleccionar Fase -</option>
+                                <option value="RENDIMIENTO">RENDIMIENTO</option>
+                                <option value="VISUAL">VISUAL</option>
+                                <option value="PLANO">PLANO</option>
+                                <option value="MUESTRA">MUESTRA</option>
+                                <option value="PRODUCCIÓN">PRODUCCIÓN</option>
+                            </select>
+                            <input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" placeholder="Escribe el proyecto...">
+                        </div>`;
                     }
                     
                     html += `</div></td>`;
@@ -317,6 +351,21 @@
             
             html += '</table>';
             tablaContenedor.innerHTML = html;
+        }
+
+        // FUNCIÓN PARA APLICAR EL COLOR DE FONDO ULTRA-CLARO
+        function aplicarColorFondo(wrapperId, estadoVal) {
+            const wrapper = document.getElementById(wrapperId);
+            if (!wrapper) return;
+
+            switch(estadoVal) {
+                case 'RENDIMIENTO': wrapper.style.backgroundColor = '#e1f5fe'; break; // Azul ultra claro
+                case 'VISUAL': wrapper.style.backgroundColor = '#e0f2f1'; break;      // Aguamarina ultra claro
+                case 'PLANO': wrapper.style.backgroundColor = '#f3e5f5'; break;       // Morado ultra claro
+                case 'MUESTRA': wrapper.style.backgroundColor = '#fffde7'; break;     // Amarillo ultra claro
+                case 'PRODUCCIÓN': wrapper.style.backgroundColor = '#fff3e0'; break;  // Naranja ultra claro
+                default: wrapper.style.backgroundColor = '#ffffff';                   // Blanco por defecto
+            }
         }
 
         // CONTROL DE SESIÓN Y FLUJO DE PANTALLAS
@@ -340,46 +389,86 @@
             }
         });
 
-        // CONTROL DINÁMICO DE VISIBILIDAD (Añadir un campo extra vacío al escribir)
+        // CONTROL DINÁMICO DE VISIBILIDAD (Considera lleno si hay texto O si hay un estado seleccionado)
         function actualizarVisibilidadCelda(celdaDiv) {
-            const inputs = Array.from(celdaDiv.querySelectorAll('.input-proyecto'));
+            const wrappers = Array.from(celdaDiv.querySelectorAll('.slot-wrapper'));
             let ultimoLleno = -1;
 
-            inputs.forEach((input, index) => {
-                if (input.value.trim() !== '') ultimoLleno = index;
+            wrappers.forEach((wrapper, index) => {
+                const input = wrapper.querySelector('.input-proyecto');
+                const select = wrapper.querySelector('.select-estado');
+                // Si el input tiene texto, o si el select tiene una opción elegida, lo consideramos "en uso"
+                if (input.value.trim() !== '' || select.value !== '') {
+                    ultimoLleno = index;
+                }
             });
 
             const mostrarHasta = ultimoLleno + 1;
 
-            inputs.forEach((input, index) => {
+            wrappers.forEach((wrapper, index) => {
                 if (index <= mostrarHasta && index < maxCamposPorCelda) {
-                    input.style.display = 'block';
+                    wrapper.style.display = 'flex';
                 } else {
-                    input.style.display = 'none';
+                    wrapper.style.display = 'none';
                 }
             });
         }
 
-        // SINCRONIZACIÓN COOPERATIVA EN TIEMPO REAL CON FIREBASE
+        // SINCRONIZACIÓN DE AMBOS DATOS CON FIREBASE
         function iniciarSincronizacion() {
             const todosLosInputs = document.querySelectorAll('.input-proyecto');
+            const todosLosSelects = document.querySelectorAll('.select-estado');
             const todasLasCeldas = document.querySelectorAll('.celda-inputs');
 
+            // Función central para enviar datos a Firebase
+            function enviarAFirebase(idBase) {
+                const textoVal = document.getElementById(idBase).value;
+                const estadoVal = document.getElementById(`estado-${idBase}`).value;
+                
+                // Guardamos un pequeño objeto con ambas piezas de información
+                set(ref(db, `tableroProyectos/${idBase}`), {
+                    texto: textoVal,
+                    estado: estadoVal
+                });
+            }
+
+            // Listeners para los inputs de texto
             todosLosInputs.forEach(input => {
                 input.addEventListener('input', (e) => {
-                    set(ref(db, `tableroProyectos/${e.target.id}`), e.target.value);
+                    enviarAFirebase(e.target.id);
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                 });
             });
 
+            // Listeners para los selects de estado
+            todosLosSelects.forEach(select => {
+                select.addEventListener('change', (e) => {
+                    const idBase = e.target.id.replace('estado-', '');
+                    enviarAFirebase(idBase);
+                    aplicarColorFondo(`wrapper-${idBase}`, e.target.value);
+                    actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
+                });
+            });
+
+            // Recibiendo datos de Firebase
             onValue(tableroRef, (snapshot) => {
                 const datosTablero = snapshot.val() || {};
 
                 todosLosInputs.forEach(input => {
-                    const textoServidor = datosTablero[input.id] || "";
-                    // Previene reescrituras molestas y saltos de cursor mientras el usuario digita
-                    if (input.value !== textoServidor && document.activeElement !== input) {
-                        input.value = textoServidor;
+                    const idBase = input.id;
+                    const dataServidor = datosTablero[idBase] || { texto: "", estado: "" };
+                    
+                    const selectAsociado = document.getElementById(`estado-${idBase}`);
+
+                    // Actualizar texto si no estamos escribiendo en él
+                    if (input.value !== dataServidor.texto && document.activeElement !== input) {
+                        input.value = dataServidor.texto;
+                    }
+
+                    // Actualizar estado (y color) si no estamos eligiendo en él
+                    if (selectAsociado.value !== dataServidor.estado && document.activeElement !== selectAsociado) {
+                        selectAsociado.value = dataServidor.estado || "";
+                        aplicarColorFondo(`wrapper-${idBase}`, dataServidor.estado);
                     }
                 });
 
