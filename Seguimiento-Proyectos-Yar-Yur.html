@@ -178,12 +178,12 @@
     </div>
 
     <div id="app-container">
-        <!-- Encabezado oculto por defecto -->
         <div id="header-app">
             <div id="usuario-info">Conectado como: <span id="nombre-usuario" style="color: #1976D2;"></span></div>
             <button id="btn-logout">Cerrar sesión</button>
         </div>
         
+        <!-- Datalist global -->
         <datalist id="lista-proyectos"></datalist>
 
         <div id="tabla-contenedor"></div>
@@ -223,6 +223,7 @@
         const maxCamposPorCelda = 10; 
 
         let projectDatabase = [];
+        let listaCompletaProyectos = []; // Almacena la lista global de proyectos para la búsqueda inteligente
 
         function normalizeTrelloData(rawData) { 
             let data = { ...rawData }; 
@@ -282,10 +283,6 @@
                 
                 if (rawHistoryData && rawHistoryData.length > 0) {
                     processHistoryData(rawHistoryData);
-                    
-                    const datalist = document.getElementById('lista-proyectos');
-                    datalist.innerHTML = '';
-                    
                     const mapaProyectos = new Map();
 
                     projectDatabase.forEach(p => {
@@ -318,21 +315,41 @@
                         return numCodigoA - numCodigoB;
                     });
 
-                    listaOrdenada.forEach(texto => {
-                        const option = document.createElement('option');
-                        option.value = texto;
-                        datalist.appendChild(option);
-                    });
+                    // Guardamos la lista en nuestra variable global y generamos el datalist inicial
+                    listaCompletaProyectos = listaOrdenada;
+                    actualizarDatalist("");
                 }
             } catch (error) {
                 console.error("Error al procesar JSON:", error);
             }
         }
 
+        // MOTOR DE BÚSQUEDA INTELIGENTE
+        function actualizarDatalist(filtro) {
+            const datalist = document.getElementById('lista-proyectos');
+            datalist.innerHTML = '';
+            
+            // Separamos por espacios para buscar coincidencias no secuenciales (Ej: "PEP nav")
+            const terms = filtro.toLowerCase().split(' ').filter(t => t.trim() !== '');
+
+            const filtrados = listaCompletaProyectos.filter(texto => {
+                const textoLower = texto.toLowerCase();
+                // Verificamos que TODAS las palabras clave escritas estén en el texto
+                return terms.every(term => textoLower.includes(term));
+            });
+
+            // Limitamos los resultados a 50 para evitar lag de renderizado
+            const limit = 50; 
+            for (let i = 0; i < Math.min(filtrados.length, limit); i++) {
+                const option = document.createElement('option');
+                option.value = filtrados[i];
+                datalist.appendChild(option);
+            }
+        }
+
         // GENERACIÓN DE LA TABLA Y EL BOTÓN DE HAMBURGUESA
         function generarTabla() {
             let html = '<table>';
-            // Se inserta el botón en la primera esquina
             html += '<tr><th><button id="menu-toggle" title="Alternar Encabezado">&#9776;</button></th>';
             dias.forEach(dia => html += `<th>${dia}</th>`);
             html += '</tr>';
@@ -367,7 +384,7 @@
                                     <option value="EN ESPERA">EN ESPERA</option>
                                 </select>
                             </div>
-                            <input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" placeholder="" style="display: none;">
+                            <input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" placeholder="" autocomplete="off" style="display: none;">
                         </div>`;
                     }
                     
@@ -381,7 +398,6 @@
             tablaContenedor.innerHTML = html;
         }
 
-        // LÓGICA DE EVENTOS DINÁMICOS DE LA TABLA (Delegación)
         tablaContenedor.addEventListener('click', (e) => {
             if (e.target && e.target.id === 'menu-toggle') {
                 const header = document.getElementById('header-app');
@@ -396,8 +412,8 @@
             }
         });
 
-        // FUNCIÓN CENTRAL DE COLORES MINIMALISTA
-        function aplicarColorFondo(wrapperId, faseVal, statusVal) {
+        // FUNCIONALIDAD DE COLORES Y ESTADOS (Ahora acepta simular estado para coloreado retroactivo)
+        function aplicarColorFondo(wrapperId, faseVal, statusVal, statusSimulado = null) {
             const wrapper = document.getElementById(wrapperId);
             if (!wrapper) return;
 
@@ -407,26 +423,72 @@
             // Resetear el color de letra por defecto para Status
             selectStatus.style.color = '#333';
 
-            if (statusVal === 'ENTREGADO') {
+            const estadoEvaluar = statusSimulado || statusVal;
+
+            if (estadoEvaluar === 'ENTREGADO') {
                 if (faseVal === 'MUESTRA' || faseVal === 'PRODUCCIÓN') {
                     wrapper.style.backgroundColor = '#00FF00'; // Verde chillón absoluto
                 } else {
-                    wrapper.style.backgroundColor = '#C8E6C9'; // Verde clarito
+                    wrapper.style.backgroundColor = '#d4edda'; // Verde pastel más limpio
                 }
             } else {
-                // EN PROCESO, COMPROMISO, EN ESPERA o Sin seleccionar
                 wrapper.style.backgroundColor = '#ffffff'; // Blanco
-                
-                // Color de la tipografía dependiendo del estado
-                if (statusVal === 'EN ESPERA') {
-                    selectStatus.style.color = '#F44336'; // Rojo
-                } else if (statusVal === 'EN PROCESO') {
-                    selectStatus.style.color = '#FF9800'; // Naranja
-                }
+            }
+
+            // El color del texto SIEMPRE respeta el estado real seleccionado
+            if (statusVal === 'EN ESPERA') {
+                selectStatus.style.color = '#F44336'; // Rojo
+            } else if (statusVal === 'EN PROCESO') {
+                selectStatus.style.color = '#FF9800'; // Naranja
             }
         }
 
-        // LÓGICA DE APARICIÓN EN CASCADA INTERNA DEL SLOT
+        // LÓGICA VERDE RETROACTIVO
+        function aplicarColoresRetroactivos() {
+            personas.forEach(persona => {
+                let proyectosEntregados = new Set();
+
+                // 1. Recolectar proyectos que esta persona haya ENTREGADO
+                dias.forEach(dia => {
+                    const diaId = dia.replace(/\s|\//g, '-');
+                    for (let i = 0; i < maxCamposPorCelda; i++) {
+                        const idUnico = `${persona}-${diaId}-${i}`;
+                        const elStatus = document.getElementById(`status-${idUnico}`);
+                        const elInput = document.getElementById(idUnico);
+                        
+                        if (elStatus && elInput) {
+                            if (elStatus.value === 'ENTREGADO' && elInput.value.trim() !== '') {
+                                proyectosEntregados.add(elInput.value.trim().toLowerCase());
+                            }
+                        }
+                    }
+                });
+
+                // 2. Aplicar colores según corresponda a TODAS las celdas de la persona
+                dias.forEach(dia => {
+                    const diaId = dia.replace(/\s|\//g, '-');
+                    for (let i = 0; i < maxCamposPorCelda; i++) {
+                        const idUnico = `${persona}-${diaId}-${i}`;
+                        const elInput = document.getElementById(idUnico);
+                        
+                        if (elInput && elInput.value.trim() !== '') {
+                            const textoVal = elInput.value.trim().toLowerCase();
+                            const elFase = document.getElementById(`fase-${idUnico}`);
+                            const elStatus = document.getElementById(`status-${idUnico}`);
+                            
+                            if (proyectosEntregados.has(textoVal)) {
+                                // Forzamos el fondo verde, aunque el status diga otra cosa
+                                aplicarColorFondo(`wrapper-${idUnico}`, elFase.value, elStatus.value, 'ENTREGADO');
+                            } else {
+                                // Asegura restaurar color normal si el proyecto deja de estar entregado
+                                aplicarColorFondo(`wrapper-${idUnico}`, elFase.value, elStatus.value);
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
         function actualizarVisibilidadInternaSlot(wrapperId) {
             const wrapper = document.getElementById(wrapperId);
             if (!wrapper) return;
@@ -448,7 +510,6 @@
             }
         }
 
-        // LÓGICA DE EXPANSIÓN DINÁMICA DE LA CELDA
         function actualizarVisibilidadCelda(celdaDiv) {
             const wrappers = Array.from(celdaDiv.querySelectorAll('.slot-wrapper'));
             let ultimoLleno = -1;
@@ -474,7 +535,6 @@
             });
         }
 
-        // FLUJO DE INICIO DE SESIÓN
         btnLogin.addEventListener('click', () => signInWithPopup(auth, provider).catch(error => console.error(error)));
         btnLogout.addEventListener('click', () => signOut(auth));
 
@@ -495,7 +555,6 @@
             }
         });
 
-        // SINCRONIZACIÓN MAESTRA CON FIREBASE (Fase + Status + Texto)
         function iniciarSincronizacion() {
             const todosLosInputs = document.querySelectorAll('.input-proyecto');
             const todasLasFases = document.querySelectorAll('.select-fase');
@@ -515,9 +574,17 @@
             }
 
             todosLosInputs.forEach(input => {
+                // Al teclear, actualizamos el datalist y Firebase
                 input.addEventListener('input', (e) => {
+                    actualizarDatalist(e.target.value);
                     enviarAFirebase(e.target.id);
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
+                    aplicarColoresRetroactivos();
+                });
+
+                // Al hacer clic/enfocar la celda, inicializa el filtro de sugerencias para esa celda
+                input.addEventListener('focus', (e) => {
+                    actualizarDatalist(e.target.value);
                 });
             });
 
@@ -531,6 +598,7 @@
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                     
                     enviarAFirebase(idBase);
+                    aplicarColoresRetroactivos();
                 });
             });
 
@@ -544,6 +612,7 @@
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                     
                     enviarAFirebase(idBase);
+                    aplicarColoresRetroactivos(); // Repasa la fila para propagar el verde si es necesario
                 });
             });
 
@@ -568,12 +637,16 @@
                     }
 
                     actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
+                    // Se aplica fondo inicial en base al propio servidor
                     aplicarColorFondo(`wrapper-${idBase}`, dataServidor.fase || "", dataServidor.status || "");
                 });
 
                 todasLasCeldas.forEach(celda => {
                     actualizarVisibilidadCelda(celda);
                 });
+
+                // Finalmente evaluamos y sobreescribimos los verdes retroactivos en todo el tablero 
+                aplicarColoresRetroactivos();
             });
         }
     </script>
