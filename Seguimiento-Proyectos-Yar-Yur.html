@@ -37,14 +37,13 @@
             color: #333;
         }
 
-        /* ENCABEZADO OCULTO POR DEFECTO */
         #header-app {
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
             max-width: 1400px;
-            max-height: 0; /* Oculto */
+            max-height: 0;
             overflow: hidden;
             margin-bottom: 0;
             transition: max-height 0.4s ease, margin-bottom 0.4s ease;
@@ -71,7 +70,6 @@
         #btn-logout { background-color: #d32f2f; color: white; padding: 8px 15px; font-size: 14px; }
         #btn-logout:hover { background-color: #b71c1c; }
 
-        /* ESTILOS DE LA TABLA */
         #tabla-contenedor {
             width: 100%;
             max-width: 1400px;
@@ -96,7 +94,6 @@
 
         .celda-inputs { display: flex; flex-direction: column; gap: 6px; }
 
-        /* ESTILOS DEL CONTENEDOR TRIPLE - Minimalista */
         .slot-wrapper {
             display: flex;
             flex-direction: column;
@@ -117,7 +114,6 @@
             justify-content: space-between;
         }
 
-        /* Limpiamos estilos nativos de los selects para dejarlos en blanco */
         .select-fase, .select-status {
             border: none;
             background: transparent;
@@ -134,7 +130,6 @@
             transition: all 0.2s ease;
         }
         
-        /* Regla para evitar que los menús se vuelvan invisibles al cambiar texto a blanco */
         option { color: black; background: white; }
 
         .select-fase { text-align: left; }
@@ -147,14 +142,13 @@
             box-sizing: border-box;
             font-size: 12px;
             font-weight: bold;
-            background-color: transparent; /* Transparente para que herede el fondo */
+            background-color: transparent;
             color: #000;
             outline: none;
         }
         
         .input-proyecto::placeholder { color: #888; font-weight: normal; }
 
-        /* Botón hamburguesa */
         #menu-toggle {
             background: none;
             border: none;
@@ -186,9 +180,7 @@
             <button id="btn-logout">Cerrar sesión</button>
         </div>
         
-        <!-- Datalist global -->
         <datalist id="lista-proyectos"></datalist>
-
         <div id="tabla-contenedor"></div>
     </div>
 
@@ -345,6 +337,37 @@
             }
         }
 
+        // Lógica de opciones dinámicas
+        function renderStatusOptions(selectElement, currentValue) {
+            let options = [""];
+
+            if (currentValue === "" || currentValue === "EN PROCESO") {
+                options = ["", "EN PROCESO", "COMPROMISO"];
+            } else if (currentValue === "COMPROMISO" || currentValue === "ENTREGADO" ||
+                       currentValue === "ATRASADO" || currentValue === "EN ESPERA" || 
+                       currentValue === "ANULADO") {
+                options = ["", "COMPROMISO", "ENTREGADO", "ATRASADO", "EN ESPERA", "ANULADO"];
+            } else if (currentValue === "COMPROMISO ATRASADO") {
+                options = ["", "COMPROMISO ATRASADO", "ENTREGADO", "ATRASADO", "EN ESPERA", "ANULADO"];
+            } else {
+                // Fallback de seguridad
+                options = ["", "COMPROMISO", "ENTREGADO", "ATRASADO", "EN ESPERA", "ANULADO"];
+                if (currentValue && !options.includes(currentValue)) options.push(currentValue);
+            }
+
+            const currentOptions = Array.from(selectElement.options).map(o => o.value);
+            if (currentOptions.join(',') !== options.join(',')) {
+                selectElement.innerHTML = '';
+                options.forEach(val => {
+                    const opt = document.createElement('option');
+                    opt.value = val;
+                    opt.text = val;
+                    selectElement.appendChild(opt);
+                });
+                selectElement.value = currentValue;
+            }
+        }
+
         function generarTabla() {
             let html = '<table>';
             html += '<tr><th><button id="menu-toggle" title="Alternar Encabezado">&#9776;</button></th>';
@@ -362,7 +385,6 @@
                         const idUnico = `${persona}-${dia}-${i}`.replace(/\s|\//g, '-');
                         const estiloDisplay = i === 0 ? 'flex' : 'none'; 
                         
-                        // Añadida la opción NO ENTREGADO al Select Status
                         html += `
                         <div class="slot-wrapper" id="wrapper-${idUnico}" style="display: ${estiloDisplay};">
                             <div class="slot-header">
@@ -378,9 +400,6 @@
                                     <option value=""></option>
                                     <option value="EN PROCESO">EN PROCESO</option>
                                     <option value="COMPROMISO">COMPROMISO</option>
-                                    <option value="ENTREGADO">ENTREGADO</option>
-                                    <option value="EN ESPERA">EN ESPERA</option>
-                                    <option value="NO ENTREGADO">NO ENTREGADO</option>
                                 </select>
                             </div>
                             <input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" placeholder="" autocomplete="off" style="display: none;">
@@ -411,7 +430,7 @@
             }
         });
 
-        // NUEVA LÓGICA DE COLORES DIRECTA (Sin retroactividad)
+        // NUEVA LÓGICA DE COLORES DIRECTA
         function aplicarColorFondo(wrapperId, faseVal, statusVal) {
             const wrapper = document.getElementById(wrapperId);
             if (!wrapper) return;
@@ -421,13 +440,13 @@
             const selectStatus = document.getElementById(`status-${idBase}`);
             const inputProy = document.getElementById(idBase);
 
-            // Reseteo de colores de letra a default para que no queden blancos si cambian de estado
+            // Reseteo de colores de letra a default
             selectFase.style.color = '#333';
             selectStatus.style.color = '#333';
             inputProy.style.color = '#000';
 
             // Evaluar Status para Fondos
-            if (statusVal === 'NO ENTREGADO') {
+            if (statusVal === 'ATRASADO') {
                 wrapper.style.backgroundColor = 'rgb(255, 0, 0)'; // Rojo absoluto
                 // Letras a blanco en la celda
                 selectFase.style.color = '#FFFFFF';
@@ -439,17 +458,19 @@
                 if (faseVal === 'MUESTRA' || faseVal === 'PRODUCCIÓN') {
                     wrapper.style.backgroundColor = '#00FF00'; // Verde chillón absoluto
                 } else {
-                    wrapper.style.backgroundColor = '#d4edda'; // Verde pastel más limpio
+                    wrapper.style.backgroundColor = '#ceff89'; // Verde claro nuevo
                 }
             } else {
                 wrapper.style.backgroundColor = '#ffffff'; // Blanco
             }
 
-            // Excepción del color del texto de Status en estados específicos (si no es NO ENTREGADO)
-            if (statusVal !== 'NO ENTREGADO') {
-                if (statusVal === 'EN ESPERA') {
-                    selectStatus.style.color = '#F44336'; // Rojo
-                } else if (statusVal === 'EN PROCESO') {
+            // Excepción de letras rojas para estados en espera/anulado
+            if (statusVal === 'EN ESPERA' || statusVal === 'ANULADO') {
+                selectFase.style.color = '#F44336';
+                selectStatus.style.color = '#F44336'; 
+                inputProy.style.color = '#F44336';
+            } else if (statusVal !== 'ATRASADO') {
+                if (statusVal === 'EN PROCESO') {
                     selectStatus.style.color = '#FF9800'; // Naranja
                 }
             }
@@ -539,17 +560,35 @@
                 });
             }
 
-            // FUNCIÓN DE AUTOMATIZACIÓN NO ENTREGADO -> COMPROMISO
+            // FUNCIÓN DE AUTOMATIZACIÓN ATRASADO -> COMPROMISO ATRASADO
             function automatizarSiguienteDia(persona, diaActualStr, idOrigen) {
-                // Buscamos en qué índice del arreglo general de 'dias' nos encontramos
                 const indexDiaActual = dias.findIndex(d => d.replace(/\s|\//g, '-') === diaActualStr);
                 
-                // Si no se encuentra, o si es el último día (índice 4 = viernes), no hacemos nada
+                // Si no se encuentra, o si es el último día, no hacemos nada
                 if (indexDiaActual === -1 || indexDiaActual === dias.length - 1) return;
 
                 const nextDiaStr = dias[indexDiaActual + 1].replace(/\s|\//g, '-');
+                const textoOrigen = document.getElementById(idOrigen).value.trim();
                 
-                // Buscar siguiente celda disponible en la columna del día siguiente para esa persona
+                if (!textoOrigen) return; // No copiamos slots vacíos
+
+                // 1. Verificamos que el proyecto NO EXISTA ya en la columna del día siguiente
+                let existe = false;
+                for (let i = 0; i < maxCamposPorCelda; i++) {
+                    const idCheck = `${persona}-${nextDiaStr}-${i}`;
+                    const elInputCheck = document.getElementById(idCheck);
+                    if (elInputCheck && elInputCheck.value.trim() !== "" && elInputCheck.value.trim().toLowerCase() === textoOrigen.toLowerCase()) {
+                        existe = true;
+                        break;
+                    }
+                }
+
+                if (existe) {
+                    console.log("El proyecto ya existe en el día siguiente, cancelando duplicación automática.");
+                    return; // Abortamos la duplicación
+                }
+
+                // 2. Buscar siguiente celda disponible en la columna del día siguiente para esa persona
                 let idDestino = null;
                 for (let i = 0; i < maxCamposPorCelda; i++) {
                     const idTest = `${persona}-${nextDiaStr}-${i}`;
@@ -557,7 +596,6 @@
                     const elStatus = document.getElementById(`status-${idTest}`);
                     const elInput = document.getElementById(idTest);
                     
-                    // Comprobamos que todos los campos del slot estén limpios/vacíos
                     if (elFase && elFase.value === "" && elStatus.value === "" && elInput.value.trim() === "") {
                         idDestino = idTest;
                         break;
@@ -566,19 +604,22 @@
 
                 if (idDestino) {
                     const faseOrigen = document.getElementById(`fase-${idOrigen}`).value;
-                    const textoOrigen = document.getElementById(idOrigen).value;
+                    const selectDestino = document.getElementById(`status-${idDestino}`);
+
+                    // Aseguramos que exista la opción antes de insertarla
+                    renderStatusOptions(selectDestino, "COMPROMISO ATRASADO");
 
                     // Asignamos la información en el slot del día siguiente
                     document.getElementById(`fase-${idDestino}`).value = faseOrigen;
-                    document.getElementById(`status-${idDestino}`).value = "COMPROMISO";
+                    selectDestino.value = "COMPROMISO ATRASADO";
                     document.getElementById(idDestino).value = textoOrigen;
 
                     // Enviamos inmediatamente a Firebase
                     enviarAFirebase(idDestino);
                     
-                    // Actualizamos visualmente el tablero local en vivo
+                    // Actualizamos visualmente el tablero local
                     actualizarVisibilidadInternaSlot(`wrapper-${idDestino}`);
-                    aplicarColorFondo(`wrapper-${idDestino}`, faseOrigen, "COMPROMISO");
+                    aplicarColorFondo(`wrapper-${idDestino}`, faseOrigen, "COMPROMISO ATRASADO");
                     
                     const celdaContenedora = document.getElementById(`celda-${persona}-${nextDiaStr}`);
                     if (celdaContenedora) {
@@ -616,16 +657,19 @@
                 selectStatus.addEventListener('change', (e) => {
                     const idBase = e.target.id.replace('status-', '');
                     const faseVal = document.getElementById(`fase-${idBase}`).value;
+                    const statusVal = e.target.value;
                     
+                    // Modificar opciones dinámicas tras elegir un estado
+                    renderStatusOptions(e.target, statusVal);
+
                     actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
-                    aplicarColorFondo(`wrapper-${idBase}`, faseVal, e.target.value);
+                    aplicarColorFondo(`wrapper-${idBase}`, faseVal, statusVal);
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                     
                     enviarAFirebase(idBase);
 
-                    // AL DISPARARSE EL CAMBIO, EVALUAMOS SI HAY QUE AUTOMATIZAR
-                    if (e.target.value === 'NO ENTREGADO') {
-                        // Extraemos quién es y qué día es basándonos en el ID único (Ej: GUILLE-lunes-18-05-1)
+                    // EVALUAMOS AUTOMATIZACIÓN EN ATRASADO
+                    if (statusVal === 'ATRASADO') {
                         const personaMatch = personas.find(p => idBase.startsWith(p + '-'));
                         const lastDashIndex = idBase.lastIndexOf('-');
                         const diaIdStr = idBase.substring(personaMatch.length + 1, lastDashIndex);
@@ -644,6 +688,7 @@
                     
                     const selectFase = document.getElementById(`fase-${idBase}`);
                     const selectStatus = document.getElementById(`status-${idBase}`);
+                    const valServidorStatus = dataServidor.status || "";
 
                     if (input.value !== dataServidor.texto && document.activeElement !== input) {
                         input.value = dataServidor.texto || "";
@@ -651,12 +696,17 @@
                     if (selectFase.value !== dataServidor.fase && document.activeElement !== selectFase) {
                         selectFase.value = dataServidor.fase || "";
                     }
-                    if (selectStatus.value !== dataServidor.status && document.activeElement !== selectStatus) {
-                        selectStatus.value = dataServidor.status || "";
+                    
+                    // Solo recargar opciones si el usuario no tiene el desplegable abierto
+                    if (document.activeElement !== selectStatus) {
+                        renderStatusOptions(selectStatus, valServidorStatus);
+                        if (selectStatus.value !== valServidorStatus) {
+                            selectStatus.value = valServidorStatus;
+                        }
                     }
 
                     actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
-                    aplicarColorFondo(`wrapper-${idBase}`, dataServidor.fase || "", dataServidor.status || "");
+                    aplicarColorFondo(`wrapper-${idBase}`, dataServidor.fase || "", valServidorStatus);
                 });
 
                 todasLasCeldas.forEach(celda => {
