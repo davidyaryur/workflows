@@ -72,18 +72,8 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 5px;
-            text-align: center;
-            vertical-align: top;
-        }
-
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 5px; text-align: center; vertical-align: top; }
         th { background-color: #fff; color: black; font-size: 18px; padding: 15px; }
 
         .columna-nombre {
@@ -95,12 +85,7 @@
             width: 10%;
         }
 
-        /* Contenedor flexible para los inputs dentro de cada celda */
-        .celda-inputs {
-            display: flex;
-            flex-direction: column;
-            gap: 4px; /* Espacio entre los campos de texto */
-        }
+        .celda-inputs { display: flex; flex-direction: column; gap: 4px; }
 
         .input-proyecto {
             width: 100%;
@@ -115,10 +100,7 @@
             transition: all 0.2s ease;
         }
 
-        .input-proyecto:focus {
-            outline: 2px solid #2196F3;
-            border-color: #2196F3;
-        }
+        .input-proyecto:focus { outline: 2px solid #2196F3; border-color: #2196F3; }
     </style>
 </head>
 <body>
@@ -135,9 +117,12 @@
     <div id="app-container">
         <div id="header-app">
             <div id="usuario-info">Conectado como: <span id="nombre-usuario" style="color: #1976D2;"></span></div>
-            <div id="estado" style="color: #f57c00;">Sincronizando...</div>
+            <div id="estado" style="color: #f57c00;">Cargando base de datos...</div>
             <button id="btn-logout">Cerrar sesión</button>
         </div>
+        
+        <datalist id="lista-proyectos"></datalist>
+
         <div id="tabla-contenedor"></div>
     </div>
 
@@ -157,11 +142,13 @@
             measurementId: "G-XMNDL0V5KQ"
         };
 
+        // URL de tu base de datos de Google Sheets
+        const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbw63BAl3HVUE7GwWfn6Ir2R8zB1Leir6xPst7hTeNJq6ZBAzzir8NbhRLOUQXZKzLlQzw/exec";
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
-        
         const tableroRef = ref(db, 'tableroProyectos');
 
         const loginContainer = document.getElementById('login-container');
@@ -174,14 +161,60 @@
 
         const dias = ['lunes 18/05', 'martes 19/05', 'miércoles 20/05', 'jueves 21/05', 'viernes 22/05'];
         const personas = ['GUILLE', 'DAVID', 'YARELLY', 'EIDER', 'ANDREA', 'ANGEL', 'CARELIS', 'VIRLEY'];
-        
-        // El número máximo de proyectos que puede tener una persona por día. 
-        // 10 es un buen número, están ahí pero invisibles hasta que se necesiten.
         const maxCamposPorCelda = 10; 
 
+        // 1. FUNCIÓN PARA DESCARGAR Y ARMAR LA LISTA DESPLEGABLE
+        async function cargarProyectos() {
+            try {
+                estado.innerText = "Sincronizando con Google Sheets... ⏳";
+                estado.style.color = "#f57c00";
+
+                const res = await fetch(GOOGLE_SHEETS_API_URL);
+                const data = await res.json();
+                
+                const datalist = document.getElementById('lista-proyectos');
+                datalist.innerHTML = ''; // Limpiar por si acaso
+                
+                // Unimos Producción y Muestras
+                const todosLosProyectos = [...(data.produccion || []), ...(data.muestras || [])];
+                const unicos = new Set(); // Set evita que se repitan proyectos
+
+                todosLosProyectos.forEach(p => {
+                    // Ignoramos los terminados (estado "1") y los que no tengan datos básicos
+                    if (p.trello && p.cliente && p.desc && p.estado !== "1") {
+                        
+                        // Limpiamos el número de Trello tal como lo hace tu dashboard
+                        let numTrello = String(p.trello).trim();
+                        if (numTrello !== "" && !isNaN(numTrello)) {
+                            numTrello = String(parseInt(numTrello, 10)).padStart(3, '0');
+                        }
+
+                        // Formato: "053 - PEPSICO - MURALLA OP VINIL"
+                        const textoFinal = `${numTrello} - ${p.cliente} - ${p.desc}`;
+                        unicos.add(textoFinal);
+                    }
+                });
+
+                // Llenamos el <datalist> invisible en el HTML
+                unicos.forEach(texto => {
+                    const option = document.createElement('option');
+                    option.value = texto;
+                    datalist.appendChild(option);
+                });
+                
+                estado.innerText = "Base de datos cargada 🟢";
+                estado.style.color = "#4CAF50";
+
+            } catch (error) {
+                console.error("Error al cargar Google Sheets:", error);
+                estado.innerText = "Error cargando base de datos 🔴";
+                estado.style.color = "#d32f2f";
+            }
+        }
+
+        // 2. MODIFICAMOS LA TABLA PARA INCLUIR EL list="lista-proyectos"
         function generarTabla() {
             let html = '<table>';
-            
             html += '<tr><th></th>';
             dias.forEach(dia => html += `<th>${dia}</th>`);
             html += '</tr>';
@@ -195,9 +228,9 @@
                     
                     for (let i = 0; i < maxCamposPorCelda; i++) {
                         const idUnico = `${persona}-${dia}-${i}`.replace(/\s|\//g, '-');
-                        // Por defecto ocultamos todos los inputs que no sean el primero (index 0)
                         const estiloDisplay = i === 0 ? 'block' : 'none';
-                        html += `<input type="text" id="${idUnico}" class="input-proyecto" style="display: ${estiloDisplay};">`;
+                        // AÑADIDO: list="lista-proyectos"
+                        html += `<input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" style="display: ${estiloDisplay};">`;
                     }
                     
                     html += `</div></td>`;
@@ -210,7 +243,6 @@
             tablaContenedor.innerHTML = html;
         }
 
-        // Lógica de Autenticación
         btnLogin.addEventListener('click', () => signInWithPopup(auth, provider).catch(error => console.error(error)));
         btnLogout.addEventListener('click', () => signOut(auth));
 
@@ -221,8 +253,10 @@
                 document.body.style.backgroundColor = '#f5f5f5';
                 nombreUsuarioSpan.innerText = user.displayName;
                 
+                // Secuencia de inicio
                 generarTabla();
-                iniciarSincronizacion();
+                cargarProyectos(); // <--- Descarga la lista de Trello
+                iniciarSincronizacion(); // <--- Inicia la conexión con Firebase
             } else {
                 loginContainer.style.display = 'flex';
                 appContainer.style.display = 'none';
@@ -230,23 +264,17 @@
             }
         });
 
-        // NUEVA FUNCIÓN MÁGICA: Controla cuántos campos se muestran en una celda
         function actualizarVisibilidadCelda(celdaDiv) {
             const inputs = Array.from(celdaDiv.querySelectorAll('.input-proyecto'));
             let ultimoLleno = -1;
 
-            // Revisamos cuál es el último input que tiene texto escrito
             inputs.forEach((input, index) => {
-                if (input.value.trim() !== '') {
-                    ultimoLleno = index;
-                }
+                if (input.value.trim() !== '') ultimoLleno = index;
             });
 
-            // Queremos mostrar todos hasta el último lleno, MÁS UNO vacío
             const mostrarHasta = ultimoLleno + 1;
 
             inputs.forEach((input, index) => {
-                // Si el índice está dentro de los que debemos mostrar, lo mostramos
                 if (index <= mostrarHasta && index < maxCamposPorCelda) {
                     input.style.display = 'block';
                 } else {
@@ -259,25 +287,17 @@
             const todosLosInputs = document.querySelectorAll('.input-proyecto');
             const todasLasCeldas = document.querySelectorAll('.celda-inputs');
 
-            // Cuando tú escribes localmente
             todosLosInputs.forEach(input => {
+                // El evento 'input' se dispara tanto cuando escribes como cuando seleccionas de la lista
                 input.addEventListener('input', (e) => {
-                    // Guardamos en Firebase
                     set(ref(db, `tableroProyectos/${e.target.id}`), e.target.value);
-                    
-                    // Actualizamos la celda local inmediatamente para que aparezca el nuevo campo si es necesario
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                 });
             });
 
-            // Cuando llegan datos de Firebase (o al cargar la página)
             onValue(tableroRef, (snapshot) => {
-                estado.innerText = "Conectado en tiempo real 🟢";
-                estado.style.color = "#4CAF50";
-                
                 const datosTablero = snapshot.val() || {};
 
-                // 1. Llenamos los textos
                 todosLosInputs.forEach(input => {
                     const textoServidor = datosTablero[input.id] || "";
                     if (input.value !== textoServidor && document.activeElement !== input) {
@@ -285,7 +305,6 @@
                     }
                 });
 
-                // 2. Evaluamos la visibilidad de cada celda basándonos en los nuevos datos
                 todasLasCeldas.forEach(celda => {
                     actualizarVisibilidadCelda(celda);
                 });
