@@ -1,12 +1,3 @@
-Aquí tienes el código completo con las modificaciones solicitadas.
-
-He ajustado la función `aplicarColores` para que:
-
-1. **ENTREGADO:** Use un verde chillón (Lime `#00FF00`).
-2. **EN ESPERA:** Tenga fondo blanco y letras rojas.
-3. **EN PROCESO:** Tenga fondo blanco y letras anaranjadas (`#ff9800`).
-
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -45,7 +36,7 @@ He ajustado la función `aplicarColores` para que:
             overflow: hidden;
         }
 
-        /* Ocultar flechas de selectores */
+        /* Ocultar flechas de selectores y expandir el área clickeable */
         .select-fase, .select-status {
             border: none;
             background: transparent;
@@ -58,10 +49,13 @@ He ajustado la función `aplicarColores` para que:
             -webkit-appearance: none;
             appearance: none;
             text-align: center;
+            flex: 1; /* Permite que ocupen todo el ancho equitativamente */
+            min-height: 30px; /* Asegura que la celda vacía tenga altura para ser clickeable */
         }
 
         .input-proyecto {
             border: none;
+            border-top: 1px solid #eee; /* Pequeña línea divisoria */
             width: 100%;
             padding: 6px;
             box-sizing: border-box;
@@ -132,9 +126,22 @@ He ajustado la función `aplicarColores` para que:
                         const idUnico = `${persona}-${dia}-${i}`.replace(/\s|\//g, '-');
                         html += `
                         <div class="slot-wrapper" id="wrapper-${idUnico}" style="display: ${i === 0 ? 'flex' : 'none'};">
-                            <div style="display:flex;">
-                                <select class="select-fase" id="fase-${idUnico}"><option value="">Fase</option><option value="RENDIMIENTO">RENDIMIENTO</option><option value="VISUAL">VISUAL</option><option value="PLANO">PLANO</option><option value="MUESTRA">MUESTRA</option><option value="PRODUCCIÓN">PRODUCCIÓN</option></select>
-                                <select class="select-status" id="status-${idUnico}" style="display:none;"><option value="">Status</option><option value="EN PROCESO">EN PROCESO</option><option value="COMPROMISO">COMPROMISO</option><option value="ENTREGADO">ENTREGADO</option><option value="EN ESPERA">EN ESPERA</option></select>
+                            <div style="display:flex; width: 100%;">
+                                <select class="select-fase" id="fase-${idUnico}">
+                                    <option value=""></option>
+                                    <option value="RENDIMIENTO">RENDIMIENTO</option>
+                                    <option value="VISUAL">VISUAL</option>
+                                    <option value="PLANO">PLANO</option>
+                                    <option value="MUESTRA">MUESTRA</option>
+                                    <option value="PRODUCCIÓN">PRODUCCIÓN</option>
+                                </select>
+                                <select class="select-status" id="status-${idUnico}" style="display:none;">
+                                    <option value=""></option>
+                                    <option value="EN PROCESO">EN PROCESO</option>
+                                    <option value="COMPROMISO">COMPROMISO</option>
+                                    <option value="ENTREGADO">ENTREGADO</option>
+                                    <option value="EN ESPERA">EN ESPERA</option>
+                                </select>
                             </div>
                             <input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" placeholder="Proyecto..." style="display:none;">
                         </div>`;
@@ -154,7 +161,12 @@ He ajustado la función `aplicarColores` para que:
             el.style.color = '#333'; 
             
             if (status === 'ENTREGADO') {
-                el.style.backgroundColor = '#00FF00'; // Verde chillón solicitado
+                // Condición para el tono de verde
+                if (fase === 'MUESTRA' || fase === 'PRODUCCIÓN') {
+                    el.style.backgroundColor = '#00FF00'; // Verde original chillón
+                } else {
+                    el.style.backgroundColor = '#B2FFB2'; // Verde más clarito/pastel
+                }
                 el.style.color = '#000'; // Texto negro para contraste
             } else if (status === 'EN ESPERA') {
                 el.style.backgroundColor = '#ffffff'; // Fondo blanco
@@ -174,7 +186,7 @@ He ajustado la función `aplicarColores` para que:
             status.style.display = fase.value ? 'block' : 'none';
             input.style.display = (fase.value && status.value) ? 'block' : 'none';
             
-            // Expandir celda
+            // Expandir celda (Agregar más slots si el primero se usó)
             const celda = wrapper.closest('.celda-inputs');
             Array.from(celda.querySelectorAll('.slot-wrapper')).forEach((w, i) => {
                 const f = w.querySelector('.select-fase').value;
@@ -219,5 +231,3 @@ He ajustado la función `aplicarColores` para que:
     </script>
 </body>
 </html>
-
-```
