@@ -1,3 +1,12 @@
+Aquí tienes el código completo con las modificaciones solicitadas.
+
+He ajustado la función `aplicarColores` para que:
+
+1. **ENTREGADO:** Use un verde chillón (Lime `#00FF00`).
+2. **EN ESPERA:** Tenga fondo blanco y letras rojas.
+3. **EN PROCESO:** Tenga fondo blanco y letras anaranjadas (`#ff9800`).
+
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -43,7 +52,7 @@
             font-size: 11px;
             padding: 4px;
             outline: none;
-            color: #333;
+            color: inherit; /* Hereda el color del padre para cambiar según estado */
             font-weight: bold;
             cursor: pointer;
             -webkit-appearance: none;
@@ -59,7 +68,7 @@
             font-size: 12px;
             font-weight: bold;
             background-color: transparent;
-            color: #000;
+            color: inherit; /* Hereda el color del padre */
             outline: none;
         }
     </style>
@@ -139,21 +148,20 @@
 
         function aplicarColores(wrapperId, fase, status) {
             const el = document.getElementById(wrapperId);
-            const statusInput = el.querySelector('.select-status');
-            const inputTxt = el.querySelector('.input-proyecto');
+            
+            // Reset base (blanco)
+            el.style.backgroundColor = '#ffffff';
+            el.style.color = '#333'; 
             
             if (status === 'ENTREGADO') {
-                el.style.backgroundColor = (fase === 'MUESTRA' || fase === 'PRODUCCIÓN') ? '#28a745' : '#c8e6c9';
-                el.style.color = '#fff';
+                el.style.backgroundColor = '#00FF00'; // Verde chillón solicitado
+                el.style.color = '#000'; // Texto negro para contraste
             } else if (status === 'EN ESPERA') {
-                el.style.backgroundColor = '#fce4ec';
-                el.style.color = 'red'; /* Texto rojo para EN ESPERA */
+                el.style.backgroundColor = '#ffffff'; // Fondo blanco
+                el.style.color = 'red'; // Letras rojas
             } else if (status === 'EN PROCESO') {
-                el.style.backgroundColor = '#fff3e0'; /* Naranja pastel */
-                el.style.color = '#e65100';
-            } else {
-                el.style.backgroundColor = '#ffffff';
-                el.style.color = '#333';
+                el.style.backgroundColor = '#ffffff'; // Fondo blanco
+                el.style.color = '#ff9800'; // Letras anaranjadas
             }
         }
 
@@ -211,3 +219,5 @@
     </script>
 </body>
 </html>
+
+```
