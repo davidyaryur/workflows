@@ -1,233 +1,1105 @@
 <!DOCTYPE html>
+
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Tablero de Seguimiento Yar-Yur</title>
+
     <style>
-        body { margin: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; background-color: #212121; font-family: 'Segoe UI', sans-serif; color: #888; }
+
+        body {
+
+            margin: 0;
+
+            height: 100vh;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            background-color: #212121;
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+            color: #888;
+
+        }
+
         
-        #login-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
-        #app-container { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; padding: 20px; box-sizing: border-box; background-color: #f5f5f5; color: #333; }
-        #header-app { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1400px; margin-bottom: 20px; }
+
+        #login-container {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+
+            height: 100%;
+
+            text-align: center;
+
+        }
+
+        
+
+        #app-container {
+
+            display: none;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            width: 100%;
+
+            height: 100%;
+
+            padding: 20px;
+
+            box-sizing: border-box;
+
+            background-color: #f5f5f5;
+
+            color: #333;
+
+        }
+
+
+
+        #header-app {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            width: 100%;
+
+            max-width: 1400px;
+
+            margin-bottom: 20px;
+
+        }
+
+
+
         #usuario-info { font-size: 16px; font-weight: bold; color: #333; }
+
         #estado { font-size: 14px; font-weight: bold; }
+
         
-        button { padding: 10px 20px; font-size: 16px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; transition: background-color 0.2s; }
+
+        button {
+
+            padding: 10px 20px;
+
+            font-size: 16px;
+
+            border: none;
+
+            border-radius: 25px;
+
+            cursor: pointer;
+
+            font-weight: bold;
+
+            transition: background-color 0.2s;
+
+        }
+
         #btn-login { background-color: white; color: #444; display: flex; align-items: center; gap: 10px; margin-top: 20px; }
+
+        #btn-login:hover { background-color: #eee; }
+
         #btn-logout { background-color: #d32f2f; color: white; padding: 8px 15px; font-size: 14px; }
 
-        #tabla-contenedor { width: 100%; max-width: 1400px; overflow-x: auto; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        #btn-logout:hover { background-color: #b71c1c; }
+
+
+
+        /* ESTILOS DE LA TABLA */
+
+        #tabla-contenedor {
+
+            width: 100%;
+
+            max-width: 1400px;
+
+            overflow-x: auto;
+
+            background: white;
+
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+
+        }
+
+
+
         table { width: 100%; border-collapse: collapse; }
+
         th, td { border: 1px solid #ddd; padding: 5px; text-align: center; vertical-align: top; }
+
         th { background-color: #fff; color: black; font-size: 18px; padding: 15px; }
-        .columna-nombre { background-color: black; color: white; font-weight: bold; font-size: 16px; vertical-align: middle; width: 10%; }
 
-        .celda-inputs { display: flex; flex-direction: column; gap: 4px; }
 
-        /* Contenedor Minimalista */
-        .slot-wrapper {
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #ffffff;
-            transition: background-color 0.3s ease;
-            overflow: hidden;
-        }
 
-        /* Ocultar flechas de selectores y expandir el área clickeable */
-        .select-fase, .select-status {
-            border: none;
-            background: transparent;
-            font-size: 11px;
-            padding: 4px;
-            outline: none;
-            color: inherit; /* Hereda el color del padre para cambiar según estado */
+        .columna-nombre {
+
+            background-color: black;
+
+            color: white;
+
             font-weight: bold;
-            cursor: pointer;
-            -webkit-appearance: none;
-            appearance: none;
-            text-align: center;
-            flex: 1; /* Permite que ocupen todo el ancho equitativamente */
-            min-height: 30px; /* Asegura que la celda vacía tenga altura para ser clickeable */
+
+            font-size: 16px;
+
+            vertical-align: middle;
+
+            width: 10%;
+
         }
+
+
+
+        .celda-inputs { display: flex; flex-direction: column; gap: 6px; }
+
+
+
+        /* ESTILOS DEL CONTENEDOR TRIPLE (Fase + Status + Proyecto) */
+
+        .slot-wrapper {
+
+            display: flex;
+
+            flex-direction: column;
+
+            border: 1px solid #ccc;
+
+            border-radius: 4px;
+
+            overflow: hidden;
+
+            background-color: #ffffff; /* Blanco por defecto */
+
+            transition: background-color 0.3s ease;
+
+        }
+
+        
+
+        .slot-wrapper:focus-within {
+
+            outline: 2px solid #2196F3;
+
+            border-color: #2196F3;
+
+        }
+
+
+
+        .slot-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+        }
+
+
+
+        .select-fase, .select-status {
+
+            border: none;
+
+            background: transparent; /* Permite ver el color de fondo */
+
+            font-size: 10px;
+
+            padding: 4px 6px;
+
+            outline: none;
+
+            color: #333;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            flex: 1; /* Toman el 50% del ancho cada una cuando están visibles */
+
+            transition: all 0.2s ease;
+
+        }
+
+
+
+        .select-fase { text-align: left; }
+
+        
+
+        .select-status {
+
+            text-align: right;
+
+            border-left: 1px dashed rgba(0,0,0,0.15); /* Separador sutil */
+
+        }
+
+
 
         .input-proyecto {
+
             border: none;
-            border-top: 1px solid #eee; /* Pequeña línea divisoria */
+
+            border-top: 1px dashed rgba(0,0,0,0.15); /* Línea que separa de los botones */
+
             width: 100%;
+
             padding: 6px;
+
             box-sizing: border-box;
+
             font-size: 12px;
+
             font-weight: bold;
-            background-color: transparent;
-            color: inherit; /* Hereda el color del padre */
+
+            background-color: rgba(255, 255, 255, 0.4); /* Ligeramente translúcido para el color */
+
+            color: #000;
+
             outline: none;
+
         }
+
+        
+
+        .input-proyecto::placeholder { color: #888; font-weight: normal; }
+
     </style>
+
 </head>
+
 <body>
 
+
+
     <div id="login-container">
+
         <h2 style="color: white; margin-bottom: 5px;">Seguimiento Proyectos Yar-Yur</h2>
-        <button id="btn-login">Acceder con Google</button>
+
+        <p>Inicia sesión para acceder al tablero</p>
+
+        <button id="btn-login">
+
+            <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+
+            Acceder con Google
+
+        </button>
+
     </div>
+
+
 
     <div id="app-container">
+
         <div id="header-app">
-            <div id="usuario-info">Conectado como: <span id="nombre-usuario"></span></div>
-            <div id="estado">Cargando...</div>
+
+            <div id="usuario-info">Conectado como: <span id="nombre-usuario" style="color: #1976D2;"></span></div>
+
+            <div id="estado" style="color: #f57c00;">Cargando base de datos...</div>
+
             <button id="btn-logout">Cerrar sesión</button>
+
         </div>
+
+        
+
         <datalist id="lista-proyectos"></datalist>
+
+
+
         <div id="tabla-contenedor"></div>
+
     </div>
 
+
+
     <script type="module">
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
+
+
         const firebaseConfig = {
+
             apiKey: "AIzaSyAPRAy9kHU8gxt3SYYXKuG9xGNtlbI18HQ",
+
             authDomain: "seguimiento-proyectos-yar-yur.firebaseapp.com",
+
             databaseURL: "https://seguimiento-proyectos-yar-yur-default-rtdb.firebaseio.com",
+
             projectId: "seguimiento-proyectos-yar-yur",
+
             storageBucket: "seguimiento-proyectos-yar-yur.firebasestorage.app",
+
             messagingSenderId: "952890737656",
+
             appId: "1:952890737656:web:486c9a7d2c9ed13060cc0d",
+
             measurementId: "G-XMNDL0V5KQ"
+
         };
 
+
+
         const app = initializeApp(firebaseConfig);
+
         const db = getDatabase(app);
+
         const auth = getAuth(app);
+
         const provider = new GoogleAuthProvider();
+
         const tableroRef = ref(db, 'tableroProyectos');
 
+
+
         const loginContainer = document.getElementById('login-container');
+
         const appContainer = document.getElementById('app-container');
+
+        const btnLogin = document.getElementById('btn-login');
+
+        const btnLogout = document.getElementById('btn-logout');
+
+        const nombreUsuarioSpan = document.getElementById('nombre-usuario');
+
+        const estado = document.getElementById('estado');
+
         const tablaContenedor = document.getElementById('tabla-contenedor');
 
+
+
         const dias = ['lunes 18/05', 'martes 19/05', 'miércoles 20/05', 'jueves 21/05', 'viernes 22/05'];
+
         const personas = ['GUILLE', 'DAVID', 'YARELLY', 'EIDER', 'ANDREA', 'ANGEL', 'CARELIS', 'VIRLEY'];
+
         const maxCamposPorCelda = 10; 
 
+
+
+        let projectDatabase = [];
+
+
+
+        function normalizeTrelloData(rawData) { 
+
+            let data = { ...rawData }; 
+
+            if (!data.lists) data.lists = []; 
+
+            if (!data.labels || !Array.isArray(data.labels)) data.labels = []; 
+
+            if (!data.cards) data.cards = []; 
+
+            return data; 
+
+        }
+
+
+
+        function processHistoryData(dailyDataArray) {
+
+            let tempMap = {}; 
+
+            dailyDataArray.forEach(dayRecord => {
+
+                const date = dayRecord.fecha; 
+
+                const trelloData = normalizeTrelloData(dayRecord.data);
+
+                let listsMap = {}; 
+
+                let labelsMap = {};
+
+                if(trelloData.lists) trelloData.lists.forEach(l => { if (!l.closed) listsMap[l.id] = l.name; });
+
+                if(trelloData.labels) trelloData.labels.forEach(l => labelsMap[l.id] = l.name || ("Color " + l.color));
+
+                
+
+                let sortedCards = []; 
+
+                if(trelloData.cards) sortedCards = trelloData.cards.filter(c => !c.closed).sort((a, b) => a.pos - b.pos);
+
+                
+
+                let cardsByList = {}; 
+
+                sortedCards.forEach(c => { 
+
+                    const ln = listsMap[c.idList] || "Desconocido"; 
+
+                    if (!cardsByList[ln]) cardsByList[ln] = []; 
+
+                    cardsByList[ln].push(c); 
+
+                });
+
+
+
+                Object.keys(cardsByList).forEach(listName => {
+
+                    cardsByList[listName].forEach(card => {
+
+                        const match = card.name.match(/^(\d+)\s*\/\s*(\d+)\s*-\s*(.*?)\s*-\s*(.*)/);
+
+                        let base = match ? { code: String(parseInt(match[1], 10)).padStart(3, '0'), year: match[2], client: match[3].trim(), desc: match[4].trim() } : { code: "N/A", year: "-", client: "Varios / Otro", desc: card.name };
+
+                        
+
+                        const cardId = card.id; 
+
+                        if (!tempMap[cardId]) tempMap[cardId] = { metadata: base, history: [] }; 
+
+                        tempMap[cardId].metadata = base;
+
+                        tempMap[cardId].history.push({ date: date, listName: listName });
+
+                    });
+
+                });
+
+            });
+
+
+
+            projectDatabase = [];
+
+            Object.keys(tempMap).forEach(id => {
+
+                const item = tempMap[id]; 
+
+                const latest = item.history[item.history.length - 1]; 
+
+                if (item.metadata.year !== '-' && item.metadata.code !== 'N/A') { 
+
+                    projectDatabase.push({ id: id, ...item.metadata, listName: latest.listName }); 
+
+                }
+
+            });
+
+        }
+
+
+
+        async function cargarProyectosDesdeJSON() {
+
+            try {
+
+                estado.innerText = "Procesando historial JSON... ⏳";
+
+                estado.style.color = "#f57c00";
+
+
+
+                const res = await fetch('history_all.json');
+
+                const rawHistoryData = await res.json();
+
+                
+
+                if (rawHistoryData && rawHistoryData.length > 0) {
+
+                    processHistoryData(rawHistoryData);
+
+                    
+
+                    const datalist = document.getElementById('lista-proyectos');
+
+                    datalist.innerHTML = '';
+
+                    
+
+                    const mapaProyectos = new Map();
+
+
+
+                    projectDatabase.forEach(p => {
+
+                        const claveProyecto = `${p.code}/${p.year}`;
+
+                        const textoFinal = `${claveProyecto} - ${p.client} - ${p.desc}`;
+
+                        
+
+                        if (mapaProyectos.has(claveProyecto)) {
+
+                            const textoExistente = mapaProyectos.get(claveProyecto);
+
+                            if (textoFinal.length < textoExistente.length) {
+
+                                mapaProyectos.set(claveProyecto, textoFinal);
+
+                            }
+
+                        } else {
+
+                            mapaProyectos.set(claveProyecto, textoFinal);
+
+                        }
+
+                    });
+
+
+
+                    const listaOrdenada = Array.from(mapaProyectos.values()).sort((a, b) => {
+
+                        const prefijoA = a.split('-')[0].trim();
+
+                        const prefijoB = b.split('-')[0].trim();
+
+                        
+
+                        const [codigoA, anioA] = prefijoA.split('/');
+
+                        const [codigoB, anioB] = prefijoB.split('/');
+
+
+
+                        const numAnioA = parseInt(anioA, 10) || 0;
+
+                        const numAnioB = parseInt(anioB, 10) || 0;
+
+                        const numCodigoA = parseInt(codigoA, 10) || 0;
+
+                        const numCodigoB = parseInt(codigoB, 10) || 0;
+
+
+
+                        if (numAnioA !== numAnioB) return numAnioA - numAnioB;
+
+                        return numCodigoA - numCodigoB;
+
+                    });
+
+
+
+                    listaOrdenada.forEach(texto => {
+
+                        const option = document.createElement('option');
+
+                        option.value = texto;
+
+                        datalist.appendChild(option);
+
+                    });
+
+
+
+                    estado.innerText = "Base de datos cargada (JSON) 🟢";
+
+                    estado.style.color = "#4CAF50";
+
+                }
+
+            } catch (error) {
+
+                console.error("Error al procesar JSON:", error);
+
+                estado.innerText = "Error cargando archivo JSON 🔴";
+
+                estado.style.color = "#d32f2f";
+
+            }
+
+        }
+
+
+
+        // GENERACIÓN DE LA TABLA Y SUS ELEMENTOS EN CASCADA
+
         function generarTabla() {
-            let html = '<table><tr><th></th>';
-            dias.forEach(dia => html += `<th>${dia}</th>`); html += '</tr>';
+
+            let html = '<table>';
+
+            html += '<tr><th></th>';
+
+            dias.forEach(dia => html += `<th>${dia}</th>`);
+
+            html += '</tr>';
+
+
 
             personas.forEach(persona => {
-                html += `<tr><td class="columna-nombre">${persona}</td>`;
+
+                html += '<tr>';
+
+                html += `<td class="columna-nombre">${persona}</td>`;
+
+                
+
                 dias.forEach(dia => {
+
                     html += `<td><div class="celda-inputs" id="celda-${persona}-${dia.replace(/\s|\//g, '-')}">`;
+
+                    
+
                     for (let i = 0; i < maxCamposPorCelda; i++) {
+
                         const idUnico = `${persona}-${dia}-${i}`.replace(/\s|\//g, '-');
+
+                        const estiloDisplay = i === 0 ? 'flex' : 'none'; 
+
+                        
+
                         html += `
-                        <div class="slot-wrapper" id="wrapper-${idUnico}" style="display: ${i === 0 ? 'flex' : 'none'};">
-                            <div style="display:flex; width: 100%;">
+
+                        <div class="slot-wrapper" id="wrapper-${idUnico}" style="display: ${estiloDisplay};">
+
+                            <div class="slot-header">
+
                                 <select class="select-fase" id="fase-${idUnico}">
-                                    <option value=""></option>
+
+                                    <option value="">- Fase -</option>
+
                                     <option value="RENDIMIENTO">RENDIMIENTO</option>
+
                                     <option value="VISUAL">VISUAL</option>
+
                                     <option value="PLANO">PLANO</option>
+
                                     <option value="MUESTRA">MUESTRA</option>
+
                                     <option value="PRODUCCIÓN">PRODUCCIÓN</option>
+
                                 </select>
-                                <select class="select-status" id="status-${idUnico}" style="display:none;">
-                                    <option value=""></option>
+
+                                <select class="select-status" id="status-${idUnico}" style="display: none;">
+
+                                    <option value="">- Status -</option>
+
                                     <option value="EN PROCESO">EN PROCESO</option>
+
                                     <option value="COMPROMISO">COMPROMISO</option>
+
                                     <option value="ENTREGADO">ENTREGADO</option>
+
                                     <option value="EN ESPERA">EN ESPERA</option>
+
                                 </select>
+
                             </div>
-                            <input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" placeholder="Proyecto..." style="display:none;">
+
+                            <input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" placeholder="Escribe el proyecto..." style="display: none;">
+
                         </div>`;
+
                     }
+
+                    
+
                     html += `</div></td>`;
+
                 });
+
+                
+
                 html += '</tr>';
+
             });
+
+            
+
+            html += '</table>';
+
             tablaContenedor.innerHTML = html;
+
         }
 
-        function aplicarColores(wrapperId, fase, status) {
-            const el = document.getElementById(wrapperId);
-            
-            // Reset base (blanco)
-            el.style.backgroundColor = '#ffffff';
-            el.style.color = '#333'; 
-            
-            if (status === 'ENTREGADO') {
-                // Condición para el tono de verde
-                if (fase === 'MUESTRA' || fase === 'PRODUCCIÓN') {
-                    el.style.backgroundColor = '#00FF00'; // Verde original chillón
-                } else {
-                    el.style.backgroundColor = '#B2FFB2'; // Verde más clarito/pastel
-                }
-                el.style.color = '#000'; // Texto negro para contraste
-            } else if (status === 'EN ESPERA') {
-                el.style.backgroundColor = '#ffffff'; // Fondo blanco
-                el.style.color = 'red'; // Letras rojas
-            } else if (status === 'EN PROCESO') {
-                el.style.backgroundColor = '#ffffff'; // Fondo blanco
-                el.style.color = '#ff9800'; // Letras anaranjadas
-            }
-        }
 
-        function actualizarVisibilidad(wrapperId) {
+
+        // FUNCIÓN CENTRAL DE COLORES (Aplicada al Status)
+
+        function aplicarColorFondo(wrapperId, faseVal, statusVal) {
+
             const wrapper = document.getElementById(wrapperId);
-            const fase = wrapper.querySelector('.select-fase');
-            const status = wrapper.querySelector('.select-status');
-            const input = wrapper.querySelector('.input-proyecto');
-            
-            status.style.display = fase.value ? 'block' : 'none';
-            input.style.display = (fase.value && status.value) ? 'block' : 'none';
-            
-            // Expandir celda (Agregar más slots si el primero se usó)
-            const celda = wrapper.closest('.celda-inputs');
-            Array.from(celda.querySelectorAll('.slot-wrapper')).forEach((w, i) => {
-                const f = w.querySelector('.select-fase').value;
-                w.style.display = (i === 0 || f !== "") ? 'flex' : 'none';
-            });
+
+            if (!wrapper) return;
+
+
+
+            if (statusVal === 'ENTREGADO') {
+
+                if (faseVal === 'MUESTRA' || faseVal === 'PRODUCCIÓN') {
+
+                    wrapper.style.backgroundColor = '#4CAF50'; // Verde Intenso (Con buen contraste)
+
+                } else {
+
+                    wrapper.style.backgroundColor = '#C8E6C9'; // Verde Claro
+
+                }
+
+            } else if (statusVal === 'EN ESPERA') {
+
+                wrapper.style.backgroundColor = '#F8BBD0';     // Rosado
+
+            } else {
+
+                // EN PROCESO, COMPROMISO o Sin seleccionar
+
+                wrapper.style.backgroundColor = '#ffffff';     // Blanco
+
+            }
+
         }
+
+
+
+        // LÓGICA DE APARICIÓN EN CASCADA INTERNA DEL SLOT
+
+        function actualizarVisibilidadInternaSlot(wrapperId) {
+
+            const wrapper = document.getElementById(wrapperId);
+
+            if (!wrapper) return;
+
+            
+
+            const fase = wrapper.querySelector('.select-fase');
+
+            const status = wrapper.querySelector('.select-status');
+
+            const input = wrapper.querySelector('.input-proyecto');
+
+
+
+            if (fase.value !== "") {
+
+                status.style.display = 'block';
+
+                if (status.value !== "") {
+
+                    input.style.display = 'block';
+
+                } else {
+
+                    input.style.display = 'none';
+
+                }
+
+            } else {
+
+                status.style.display = 'none';
+
+                input.style.display = 'none';
+
+            }
+
+        }
+
+
+
+        // LÓGICA DE EXPANSIÓN DINÁMICA DE LA CELDA
+
+        function actualizarVisibilidadCelda(celdaDiv) {
+
+            const wrappers = Array.from(celdaDiv.querySelectorAll('.slot-wrapper'));
+
+            let ultimoLleno = -1;
+
+
+
+            wrappers.forEach((wrapper, index) => {
+
+                const fase = wrapper.querySelector('.select-fase');
+
+                const status = wrapper.querySelector('.select-status');
+
+                const input = wrapper.querySelector('.input-proyecto');
+
+                
+
+                // Si alguno de los 3 campos tiene datos, el espacio se considera en uso
+
+                if (fase.value !== '' || status.value !== '' || input.value.trim() !== '') {
+
+                    ultimoLleno = index;
+
+                }
+
+            });
+
+
+
+            const mostrarHasta = ultimoLleno + 1;
+
+
+
+            wrappers.forEach((wrapper, index) => {
+
+                if (index <= mostrarHasta && index < maxCamposPorCelda) {
+
+                    wrapper.style.display = 'flex';
+
+                } else {
+
+                    wrapper.style.display = 'none';
+
+                }
+
+            });
+
+        }
+
+
+
+        // FLUJO DE INICIO DE SESIÓN
+
+        btnLogin.addEventListener('click', () => signInWithPopup(auth, provider).catch(error => console.error(error)));
+
+        btnLogout.addEventListener('click', () => signOut(auth));
+
+
 
         onAuthStateChanged(auth, (user) => {
+
             if (user) {
-                loginContainer.style.display = 'none'; appContainer.style.display = 'flex';
-                generarTabla(); iniciarSincronizacion();
+
+                loginContainer.style.display = 'none';
+
+                appContainer.style.display = 'flex';
+
+                document.body.style.backgroundColor = '#f5f5f5';
+
+                nombreUsuarioSpan.innerText = user.displayName;
+
+                
+
+                generarTabla();
+
+                cargarProyectosDesdeJSON(); 
+
+                iniciarSincronizacion();
+
+            } else {
+
+                loginContainer.style.display = 'flex';
+
+                appContainer.style.display = 'none';
+
+                document.body.style.backgroundColor = '#212121';
+
             }
+
         });
 
+
+
+        // SINCRONIZACIÓN MAESTRA CON FIREBASE (Fase + Status + Texto)
+
         function iniciarSincronizacion() {
-            document.querySelectorAll('.select-fase, .select-status, .input-proyecto').forEach(el => {
-                el.addEventListener('change', (e) => {
-                    const idBase = e.target.id.split('-').slice(1).join('-');
-                    set(ref(db, `tableroProyectos/${idBase}`), {
-                        texto: document.getElementById(idBase).value,
-                        fase: document.getElementById(`fase-${idBase}`).value,
-                        status: document.getElementById(`status-${idBase}`).value
-                    });
-                    actualizarVisibilidad(`wrapper-${idBase}`);
-                    aplicarColores(`wrapper-${idBase}`, document.getElementById(`fase-${idBase}`).value, document.getElementById(`status-${idBase}`).value);
+
+            const todosLosInputs = document.querySelectorAll('.input-proyecto');
+
+            const todasLasFases = document.querySelectorAll('.select-fase');
+
+            const todosLosStatus = document.querySelectorAll('.select-status');
+
+            const todasLasCeldas = document.querySelectorAll('.celda-inputs');
+
+
+
+            function enviarAFirebase(idBase) {
+
+                const textoVal = document.getElementById(idBase).value;
+
+                const faseVal = document.getElementById(`fase-${idBase}`).value;
+
+                const statusVal = document.getElementById(`status-${idBase}`).value;
+
+                
+
+                set(ref(db, `tableroProyectos/${idBase}`), {
+
+                    texto: textoVal,
+
+                    fase: faseVal,
+
+                    status: statusVal
+
                 });
+
+            }
+
+
+
+            // Cuando escribimos texto
+
+            todosLosInputs.forEach(input => {
+
+                input.addEventListener('input', (e) => {
+
+                    enviarAFirebase(e.target.id);
+
+                    actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
+
+                });
+
             });
 
-            onValue(tableroRef, (snapshot) => {
-                const data = snapshot.val() || {};
-                Object.keys(data).forEach(id => {
-                    if (document.getElementById(id)) {
-                        document.getElementById(id).value = data[id].texto || "";
-                        document.getElementById(`fase-${id}`).value = data[id].fase || "";
-                        document.getElementById(`status-${id}`).value = data[id].status || "";
-                        actualizarVisibilidad(`wrapper-${id}`);
-                        aplicarColores(`wrapper-${id}`, data[id].fase, data[id].status);
-                    }
+
+
+            // Cuando cambiamos la Fase
+
+            todasLasFases.forEach(selectFase => {
+
+                selectFase.addEventListener('change', (e) => {
+
+                    const idBase = e.target.id.replace('fase-', '');
+
+                    
+
+                    // Lógica local visual inmediata
+
+                    actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
+
+                    const statusVal = document.getElementById(`status-${idBase}`).value;
+
+                    aplicarColorFondo(`wrapper-${idBase}`, e.target.value, statusVal);
+
+                    actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
+
+                    
+
+                    // Enviar al servidor
+
+                    enviarAFirebase(idBase);
+
                 });
+
             });
+
+
+
+            // Cuando cambiamos el Status
+
+            todosLosStatus.forEach(selectStatus => {
+
+                selectStatus.addEventListener('change', (e) => {
+
+                    const idBase = e.target.id.replace('status-', '');
+
+                    const faseVal = document.getElementById(`fase-${idBase}`).value;
+
+                    
+
+                    // Lógica local visual inmediata
+
+                    actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
+
+                    aplicarColorFondo(`wrapper-${idBase}`, faseVal, e.target.value);
+
+                    actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
+
+                    
+
+                    // Enviar al servidor
+
+                    enviarAFirebase(idBase);
+
+                });
+
+            });
+
+
+
+            // Cuando llegan datos de los demás
+
+            onValue(tableroRef, (snapshot) => {
+
+                const datosTablero = snapshot.val() || {};
+
+
+
+                todosLosInputs.forEach(input => {
+
+                    const idBase = input.id;
+
+                    const dataServidor = datosTablero[idBase] || { texto: "", fase: "", status: "" };
+
+                    
+
+                    const selectFase = document.getElementById(`fase-${idBase}`);
+
+                    const selectStatus = document.getElementById(`status-${idBase}`);
+
+
+
+                    // Actualizar si no estamos encima del elemento actual
+
+                    if (input.value !== dataServidor.texto && document.activeElement !== input) {
+
+                        input.value = dataServidor.texto || "";
+
+                    }
+
+                    if (selectFase.value !== dataServidor.fase && document.activeElement !== selectFase) {
+
+                        selectFase.value = dataServidor.fase || "";
+
+                    }
+
+                    if (selectStatus.value !== dataServidor.status && document.activeElement !== selectStatus) {
+
+                        selectStatus.value = dataServidor.status || "";
+
+                    }
+
+
+
+                    // Actualizamos lo visual basado en los datos recién llegados
+
+                    actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
+
+                    aplicarColorFondo(`wrapper-${idBase}`, dataServidor.fase || "", dataServidor.status || "");
+
+                });
+
+
+
+                // Finalmente expandimos la cuadrícula si alguien más usó un espacio extra
+
+                todasLasCeldas.forEach(celda => {
+
+                    actualizarVisibilidadCelda(celda);
+
+                });
+
+            });
+
         }
+
     </script>
+
 </body>
-</html>
+
+</html> 
