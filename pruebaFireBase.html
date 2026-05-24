@@ -131,6 +131,7 @@
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
+        // Credenciales oficiales de tu proyecto Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAPRAy9kHU8gxt3SYYXKuG9xGNtlbI18HQ",
             authDomain: "seguimiento-proyectos-yar-yur.firebaseapp.com",
@@ -162,6 +163,7 @@
 
         let projectDatabase = [];
 
+        // FUNCIONES DE NORMALIZACIÓN Y ESTRUCTURA DEL JSON
         function normalizeTrelloData(rawData) { 
             let data = { ...rawData }; 
             if (!data.lists) data.lists = []; 
@@ -213,6 +215,7 @@
             });
         }
 
+        // FUNCIÓN QUE EXTRAE, DE-DUPLICA Y ORDENA LOS PROYECTOS DEL JSON
         async function cargarProyectosDesdeJSON() {
             try {
                 estado.innerText = "Procesando historial JSON... ⏳";
@@ -227,21 +230,31 @@
                     const datalist = document.getElementById('lista-proyectos');
                     datalist.innerHTML = '';
                     
-                    const unicos = new Set();
+                    // Usamos un Map para agrupar las sugerencias por número de proyecto
+                    const mapaProyectos = new Map();
+
                     projectDatabase.forEach(p => {
                         const textoFinal = `${p.code} - ${p.client} - ${p.desc}`;
-                        unicos.add(textoFinal);
+                        
+                        if (mapaProyectos.has(p.code)) {
+                            const textoExistente = mapaProyectos.get(p.code);
+                            // CRITERIO DE DE-DUPLICACIÓN: Conservar siempre la cadena de texto más corta (más limpia)
+                            if (textoFinal.length < textoExistente.length) {
+                                mapaProyectos.set(p.code, textoFinal);
+                            }
+                        } else {
+                            mapaProyectos.set(p.code, textoFinal);
+                        }
                     });
 
-                    // ORDENAMIENTO NUMÉRICO ASCENDENTE
-                    const listaOrdenada = Array.from(unicos).sort((a, b) => {
-                        // Extraemos el primer fragmento antes del guion y lo pasamos a entero
+                    // ORDENAMIENTO NUMÉRICO REAL ASCENDENTE
+                    const listaOrdenada = Array.from(mapaProyectos.values()).sort((a, b) => {
                         const numA = parseInt(a.split('-')[0].trim(), 10) || 0;
                         const numB = parseInt(b.split('-')[0].trim(), 10) || 0;
                         return numA - numB;
                     });
 
-                    // Llenamos el HTML con la lista ya ordenada
+                    // Inyección de las opciones limpias y ordenadas en el datalist
                     listaOrdenada.forEach(texto => {
                         const option = document.createElement('option');
                         option.value = texto;
@@ -258,6 +271,7 @@
             }
         }
 
+        // GENERACIÓN AUTOMÁTICA DE LA TABLA COLECTIVA
         function generarTabla() {
             let html = '<table>';
             html += '<tr><th></th>';
@@ -287,6 +301,7 @@
             tablaContenedor.innerHTML = html;
         }
 
+        // CONTROL DE SESIÓN Y FLUJO DE PANTALLAS
         btnLogin.addEventListener('click', () => signInWithPopup(auth, provider).catch(error => console.error(error)));
         btnLogout.addEventListener('click', () => signOut(auth));
 
@@ -307,6 +322,7 @@
             }
         });
 
+        // CONTROL DINÁMICO DE VISIBILIDAD (Añadir un campo extra vacío al escribir)
         function actualizarVisibilidadCelda(celdaDiv) {
             const inputs = Array.from(celdaDiv.querySelectorAll('.input-proyecto'));
             let ultimoLleno = -1;
@@ -326,6 +342,7 @@
             });
         }
 
+        // SINCRONIZACIÓN COOPERATIVA EN TIEMPO REAL CON FIREBASE
         function iniciarSincronizacion() {
             const todosLosInputs = document.querySelectorAll('.input-proyecto');
             const todasLasCeldas = document.querySelectorAll('.celda-inputs');
@@ -342,6 +359,7 @@
 
                 todosLosInputs.forEach(input => {
                     const textoServidor = datosTablero[input.id] || "";
+                    // Previene reescrituras molestas y saltos de cursor mientras el usuario digita
                     if (input.value !== textoServidor && document.activeElement !== input) {
                         input.value = textoServidor;
                     }
