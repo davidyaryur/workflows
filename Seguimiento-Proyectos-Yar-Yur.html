@@ -231,7 +231,7 @@
                 <div class="leyenda-item" style="background-color: #00FF00; color: #333;">ENTREGADO A PRODUCCIÓN</div>
                 <div class="leyenda-item" style="background-color: #ceff89; color: #333;">ENTREGADO A VENTAS</div>
                 <div class="leyenda-item" style="background-color: #FFF59D; color: #333;">EN PROCESO DE DISEÑO</div>
-                <div class="leyenda-item" style="background-color: rgb(255, 0, 0); color: #FFFFFF;">COMPROMISO ATRASADO</div>
+                <div class="leyenda-item" style="background-color: rgb(255, 0, 0); color: #FFFFFF;">PROYECTO ATRASADO</div>
             </div>
         </div>
     </div>
@@ -389,7 +389,7 @@
             }
         }
 
-        // Lógica de opciones dinámicas flexible para soportar textos variables (X DÍAS)
+        // Lógica de opciones dinámicas
         function renderStatusOptions(selectElement, currentValue) {
             let options = [""];
 
@@ -484,7 +484,7 @@
             }
         });
 
-        // NUEVA LÓGICA DE COLORES DIRECTA (Ajustada para soportar textos variables)
+        // NUEVA LÓGICA DE COLORES DIRECTA
         function aplicarColorFondo(wrapperId, faseVal, statusVal) {
             const wrapper = document.getElementById(wrapperId);
             if (!wrapper) return;
@@ -510,9 +510,10 @@
                 }
             } else if (statusVal === 'EN PROCESO') {
                 wrapper.style.backgroundColor = '#FFF59D'; // Amarillo claro
-            } else if (statusVal.includes('ATRASADO')) {
-                // Aplica para "ATRASADO", "1 DÍA ATRASADO", "COMPROMISO ATRASADO", etc.
-                // Como 'ENTREGADO' se evaluó primero arriba, "ENTREGADO X DÍAS ATRASADO" no llega aquí.
+                
+            // SE EXCLUYE "COMPROMISO ATRASADO" PARA QUE SE MANTENGA BLANCO/NEGRO
+            } else if (statusVal.includes('ATRASADO') && statusVal !== 'COMPROMISO ATRASADO') {
+                // Aplica para "ATRASADO", "1 DÍA ATRASADO", "2 DÍAS ATRASADO", etc.
                 wrapper.style.backgroundColor = 'rgb(255, 0, 0)'; // Rojo absoluto
                 selectFase.style.color = '#FFFFFF';
                 selectStatus.style.color = '#FFFFFF';
@@ -629,7 +630,7 @@
                         if (elInput && elStatus && elInput.value.trim().toLowerCase() === textoProyecto.toLowerCase()) {
                             const statusVal = elStatus.value || "";
                             // Extrae el número si dice "X DÍA ATRASADO" o "X DÍAS ATRASADO"
-                            const match = statusVal.match(/(\d+)\s+DÍA/i);
+                            const match = statusVal.match(/(\d+)\s+DÍAS?/i);
                             if (match) {
                                 const atraso = parseInt(match[1], 10);
                                 if (atraso > maxAtraso) maxAtraso = atraso;
@@ -761,8 +762,8 @@
                     
                     enviarAFirebase(idBase);
 
-                    // SI TERMINÓ SIENDO ATRASADO, AUTOMATIZAR SIGUIENTE DÍA
-                    if (statusVal.includes('DÍA ATRASADO') && !statusVal.includes('ENTREGADO')) {
+                    // SI TERMINÓ SIENDO CUALQUIER VARIANTE DE ATRASO (Y NO ES COMPROMISO NI ENTREGADO), AUTOMATIZAR SIGUIENTE DÍA
+                    if (statusVal.includes('ATRASADO') && !statusVal.includes('ENTREGADO') && statusVal !== 'COMPROMISO ATRASADO') {
                         automatizarSiguienteDia(personaMatch, diaIdStr, idBase);
                     }
                 });
