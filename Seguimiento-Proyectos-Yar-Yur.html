@@ -152,7 +152,7 @@
             width: 100%;
             padding: 6px;
             box-sizing: border-box;
-            font-size: 10px; /* Tamaño reducido para igualar los selects */
+            font-size: 10px; 
             font-weight: bold;
             background-color: transparent;
             color: #000;
@@ -181,6 +181,7 @@
             border-radius: 8px;
             padding: 20px;
             box-sizing: border-box;
+            display: none; /* Inicia oculto hasta que haya datos */
         }
         .leyenda-titulo {
             margin-top: 0;
@@ -281,10 +282,9 @@
             <div id="leyenda-contenedor">
                 <h3 class="leyenda-titulo">LEYENDA</h3>
                 
-                <div class="leyenda-item" style="background-color: #00FF00; color: #333;">ENTREGA COMPLETA A PRODUCCIÓN</div>
-                <div class="leyenda-item" style="background-color: #ceff89; color: #333;">ENTREGA COMPLETA A VENTAS</div>
-                <div class="leyenda-item" style="background-color: #FFF59D; color: #333;">EN PROCESO DE DISEÑO</div>
-                
+                <div id="ley-comp-prod" class="leyenda-item" style="background-color: #00FF00; color: #333; display: none;">ENTREGA COMPLETA A PRODUCCIÓN</div>
+                <div id="ley-comp-ven" class="leyenda-item" style="background-color: #ceff89; color: #333; display: none;">ENTREGA COMPLETA A VENTAS</div>
+                <div id="ley-en-proceso" class="leyenda-item" style="background-color: #FFF59D; color: #333; display: none;">EN PROCESO DE DISEÑO</div>
                 <div id="ley-parcial-prod" class="leyenda-item" style="background-color: #00BFFF; color: #333; display: none;">ENTREGA PARCIAL A PRODUCCIÓN</div>
                 <div id="ley-parcial-ven" class="leyenda-item" style="background-color: #B3E5FC; color: #333; display: none;">ENTREGA PARCIAL A VENTAS</div>
                 <div id="ley-atrasado" class="leyenda-item" style="background-color: rgb(255, 0, 0); color: #FFFFFF; display: none;">PROYECTO ATRASADO</div>
@@ -329,7 +329,6 @@
         let projectDatabase = [];
         let listaCompletaProyectos = [];
         
-        // Memoria para no repetir el popup de confirmación por cada clic
         const compromisosConfirmados = new Set(); 
 
         function normalizeTrelloData(rawData) { 
@@ -449,30 +448,24 @@
             }
         }
 
-        // Lógica de opciones dinámicas flexible
+        // LÓGICA DE OPCIONES CORREGIDA PARA CUALQUIER TEXTO
         function renderStatusOptions(selectElement, currentValue) {
             let options = [""];
 
             if (currentValue === "" || currentValue === "EN PROCESO") {
                 options = ["", "EN PROCESO", "COMPROMISO"];
-            } else if (currentValue === "COMPROMISO" || currentValue.includes("ENTREGA") ||
-                       currentValue === "ATRASADO" || currentValue === "EN ESPERA" || 
-                       currentValue === "ANULADO" || currentValue === "REASIGNADO") {
-                options = ["", "COMPROMISO", "ENTREGA COMPLETA", "ENTREGA PARCIAL", "ATRASADO", "EN ESPERA", "ANULADO", "REASIGNADO"];
-            } else if (currentValue.includes("COMPROMISO ATRASADO")) {
-                options = ["", "COMPROMISO ATRASADO", "ENTREGA COMPLETA", "ENTREGA PARCIAL", "ATRASADO", "EN ESPERA", "ANULADO", "REASIGNADO"];
-            } else if (currentValue.includes("COMPROMISO REASIGNADO")) {
-                options = ["", "COMPROMISO REASIGNADO", "ENTREGA COMPLETA", "ENTREGA PARCIAL", "ATRASADO", "EN ESPERA", "ANULADO", "REASIGNADO"];
             } else {
-                // Fallback para los personalizados (EJ: "1 DÍA ATRASADO")
                 let baseMenu = "COMPROMISO";
                 if(currentValue.includes("COMPROMISO ATRASADO")) baseMenu = "COMPROMISO ATRASADO";
                 if(currentValue.includes("COMPROMISO REASIGNADO")) baseMenu = "COMPROMISO REASIGNADO";
 
                 options = ["", baseMenu, "ENTREGA COMPLETA", "ENTREGA PARCIAL", "ATRASADO", "EN ESPERA", "ANULADO", "REASIGNADO"];
-                if (currentValue && !options.includes(currentValue)) {
-                    options.push(currentValue);
-                }
+            }
+
+            // Aquí nos aseguramos de que el valor personalizado (EJ: ENTREGA PARCIAL 2 DÍAS ATRASADO) 
+            // SIEMPRE se añada a las opciones para que no desaparezca
+            if (currentValue && !options.includes(currentValue)) {
+                options.push(currentValue);
             }
 
             const currentOptions = Array.from(selectElement.options).map(o => o.value);
@@ -550,7 +543,7 @@
             }
         });
 
-        // LÓGICA DE COLORES AMPLIADA
+        // LÓGICA DE COLORES
         function aplicarColorFondo(wrapperId, faseVal, statusVal) {
             const wrapper = document.getElementById(wrapperId);
             if (!wrapper) return;
@@ -581,7 +574,7 @@
             } else if (statusVal === 'EN PROCESO') {
                 wrapper.style.backgroundColor = '#FFF59D'; // Amarillo claro
             } else if (statusVal.includes('REASIGNADO') && !statusVal.includes('COMPROMISO')) {
-                wrapper.style.backgroundColor = '#800020'; // Vinotinto absoluto
+                wrapper.style.backgroundColor = '#800020'; // Vinotinto
                 selectFase.style.color = '#FFFFFF';
                 selectStatus.style.color = '#FFFFFF';
                 inputProy.style.color = '#FFFFFF';
@@ -602,34 +595,48 @@
             }
         }
 
-        // CONTROL VISUAL LEYENDA DINÁMICA
+        // CONTROL VISUAL DE LEYENDA TOTALMENTE DINÁMICA
         function actualizarLeyendaDinamica(datosTablero) {
-            let hayParcialProd = false;
-            let hayParcialVen = false;
-            let hayAtrasado = false;
-            let hayReasignado = false;
+            let flags = {
+                compProd: false,
+                compVen: false,
+                proceso: false,
+                parcialProd: false,
+                parcialVen: false,
+                atrasado: false,
+                reasignado: false
+            };
 
             Object.keys(datosTablero).forEach(key => {
                 const info = datosTablero[key];
                 if (!info.status) return;
 
-                if (info.status.includes('ENTREGA PARCIAL')) {
-                    if (info.fase === 'MUESTRA' || info.fase === 'PRODUCCIÓN') {
-                        hayParcialProd = true;
-                    } else {
-                        hayParcialVen = true;
-                    }
-                } else if (info.status.includes('ATRASADO') && !info.status.includes('COMPROMISO')) {
-                    hayAtrasado = true;
+                if (info.status === 'EN PROCESO') {
+                    flags.proceso = true;
+                } else if (info.status.includes('ENTREGA COMPLETA')) {
+                    if (info.fase === 'MUESTRA' || info.fase === 'PRODUCCIÓN') flags.compProd = true;
+                    else flags.compVen = true;
+                } else if (info.status.includes('ENTREGA PARCIAL')) {
+                    if (info.fase === 'MUESTRA' || info.fase === 'PRODUCCIÓN') flags.parcialProd = true;
+                    else flags.parcialVen = true;
+                } else if (info.status.includes('ATRASADO') && !info.status.includes('COMPROMISO') && !info.status.includes('ENTREGA')) {
+                    flags.atrasado = true;
                 } else if (info.status.includes('REASIGNADO') && !info.status.includes('COMPROMISO')) {
-                    hayReasignado = true;
+                    flags.reasignado = true;
                 }
             });
 
-            document.getElementById('ley-parcial-prod').style.display = hayParcialProd ? 'block' : 'none';
-            document.getElementById('ley-parcial-ven').style.display = hayParcialVen ? 'block' : 'none';
-            document.getElementById('ley-atrasado').style.display = hayAtrasado ? 'block' : 'none';
-            document.getElementById('ley-reasignado').style.display = hayReasignado ? 'block' : 'none';
+            document.getElementById('ley-comp-prod').style.display = flags.compProd ? 'block' : 'none';
+            document.getElementById('ley-comp-ven').style.display = flags.compVen ? 'block' : 'none';
+            document.getElementById('ley-en-proceso').style.display = flags.proceso ? 'block' : 'none';
+            document.getElementById('ley-parcial-prod').style.display = flags.parcialProd ? 'block' : 'none';
+            document.getElementById('ley-parcial-ven').style.display = flags.parcialVen ? 'block' : 'none';
+            document.getElementById('ley-atrasado').style.display = flags.atrasado ? 'block' : 'none';
+            document.getElementById('ley-reasignado').style.display = flags.reasignado ? 'block' : 'none';
+
+            // Oculta el contenedor completo si no hay nada que mostrar
+            const algunaActiva = Object.values(flags).some(v => v);
+            document.getElementById('leyenda-contenedor').style.display = algunaActiva ? 'block' : 'none';
         }
 
         function actualizarVisibilidadInternaSlot(wrapperId) {
@@ -678,9 +685,7 @@
             });
         }
 
-        // ============================================
-        // LÓGICA DE VENTANAS MODALES (PROMESA ASYNC)
-        // ============================================
+        // VENTANAS MODALES
         function preguntarCompromiso(diseñador, proyecto, diaReal) {
             return new Promise(resolve => {
                 document.getElementById('modal-msg-compromiso').innerText = `${diseñador} se compromete a entregar ${proyecto} el día ${diaReal}.`;
@@ -700,7 +705,7 @@
         function preguntarReasignacion(diseñadorActual) {
             return new Promise(resolve => {
                 const contenedor = document.getElementById('contenedor-botones-disenadores');
-                contenedor.innerHTML = ''; // Limpiar botones
+                contenedor.innerHTML = ''; 
                 
                 personas.forEach(p => {
                     if (p !== diseñadorActual) {
@@ -721,11 +726,10 @@
 
                 document.getElementById('btn-cancelar-reasignar').onclick = () => {
                     document.getElementById('modal-reasignar').style.display = 'none';
-                    resolve(null); // Cancelado
+                    resolve(null); 
                 };
             });
         }
-
 
         btnLogin.addEventListener('click', () => signInWithPopup(auth, provider).catch(error => console.error(error)));
         btnLogout.addEventListener('click', () => signOut(auth));
@@ -765,20 +769,16 @@
                 });
             }
 
-            // Centralizamos el check de Confirmación Compromiso
             async function procesarCambio(idBase) {
                 const statusVal = document.getElementById(`status-${idBase}`).value;
                 const textoVal = document.getElementById(idBase).value.trim();
                 const keyUnica = `${idBase}-${textoVal}`;
 
-                // Solo dispara si es COMPROMISO puro, tiene texto, y no ha sido validado antes
                 if (statusVal === 'COMPROMISO' && textoVal !== '' && !compromisosConfirmados.has(keyUnica)) {
                     
                     const personaMatch = personas.find(p => idBase.startsWith(p + '-'));
                     const lastDashIndex = idBase.lastIndexOf('-');
                     const diaIdStr = idBase.substring(personaMatch.length + 1, lastDashIndex);
-                    
-                    // Buscar el string legible (ej: "lunes 18/05")
                     const diaReal = dias.find(d => d.replace(/\s|\//g, '-') === diaIdStr) || diaIdStr;
 
                     const respuesta = await preguntarCompromiso(personaMatch, textoVal, diaReal);
@@ -787,7 +787,6 @@
                         compromisosConfirmados.add(keyUnica);
                         enviarAFirebase(idBase);
                     } else {
-                        // Si dijo que NO -> Borrar
                         document.getElementById(`fase-${idBase}`).value = '';
                         document.getElementById(`status-${idBase}`).value = '';
                         document.getElementById(idBase).value = '';
@@ -801,7 +800,6 @@
                 }
             }
 
-            // FUNCIÓN PARA BUSCAR EL ATRASO EN DÍAS ANTERIORES EN TODAS LAS FILAS
             function obtenerAtrasoMaximo(indexDiaActual, textoProyecto) {
                 if (!textoProyecto || textoProyecto.trim() === "") return 0;
                 let maxAtraso = 0;
@@ -883,7 +881,6 @@
                 }
             }
 
-            // FUNCIÓN PARA COPIAR REASIGNACIÓN EN OTRO DISEÑADOR (MISMO DÍA)
             function automatizarReasignacion(personaDestino, diaIdStr, textoProyecto, faseOrigen) {
                 if (!textoProyecto) return;
 
@@ -897,7 +894,7 @@
                     }
                 }
 
-                if (existe) return; // Ya lo tiene anotado
+                if (existe) return;
 
                 let idDestino = null;
                 for (let i = 0; i < maxCamposPorCelda; i++) {
@@ -920,7 +917,6 @@
                     selectDestino.value = "COMPROMISO REASIGNADO";
                     document.getElementById(idDestino).value = textoProyecto;
 
-                    // Marcar como validado para que no salte el popup al editar en destino
                     compromisosConfirmados.add(`${idDestino}-${textoProyecto}`);
 
                     enviarAFirebase(idDestino);
@@ -967,7 +963,6 @@
                     const diaIdStr = idBase.substring(personaMatch.length + 1, lastDashIndex);
                     const indexDiaActual = dias.findIndex(d => d.replace(/\s|\//g, '-') === diaIdStr);
 
-                    // EVALUACIÓN DE ATRASOS Y ENTREGAS (Misma lógica previa, expandida)
                     if (statusVal === 'ATRASADO') {
                         let maxAtraso = obtenerAtrasoMaximo(indexDiaActual, textoProyecto);
                         let nuevoAtraso = maxAtraso + 1;
@@ -986,29 +981,22 @@
                         }
                     }
 
-                    // MODAL DE REASIGNACIÓN
                     if (statusVal === 'REASIGNADO') {
-                        // Antes de setear nada, preguntamos:
                         const nuevoDiseñador = await preguntarReasignacion(personaMatch);
                         if (nuevoDiseñador) {
-                            // Ejecutamos copia destino
                             automatizarReasignacion(nuevoDiseñador, diaIdStr, textoProyecto, faseVal);
                         } else {
-                            // Canceló, regresamos al anterior si es posible, o lo dejamos en blanco
                             statusVal = "";
                         }
                     }
 
-                    // Pre-registro visual
                     renderStatusOptions(e.target, statusVal);
                     actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
                     aplicarColorFondo(`wrapper-${idBase}`, faseVal, statusVal);
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                     
-                    // Solo guardamos o mostramos Modal COMPROMISO si no canceló la reasignación u otras cosas
                     procesarCambio(idBase);
 
-                    // AUTOMATIZAR SIGUIENTE DÍA POR ATRASO
                     if (statusVal.includes('ATRASADO') && !statusVal.includes('ENTREGA') && statusVal !== 'COMPROMISO ATRASADO') {
                         automatizarSiguienteDia(personaMatch, diaIdStr, idBase);
                     }
@@ -1043,7 +1031,6 @@
                     actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
                     aplicarColorFondo(`wrapper-${idBase}`, dataServidor.fase || "", valServidorStatus);
                     
-                    // Alimentar set de confirmados locales
                     if (valServidorStatus === 'COMPROMISO' && dataServidor.texto) {
                         compromisosConfirmados.add(`${idBase}-${dataServidor.texto}`);
                     }
