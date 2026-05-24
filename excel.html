@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exportar Datos Yar-Yur</title>
+    <!-- Librería SheetJS para generar Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #212121;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+        }
+        
+        .container {
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 30px;
+            color: #f5f5f5;
+        }
+
+        #btn-descargar {
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,255,0,0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 auto;
+        }
+
+        #btn-descargar:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,255,0,0.3);
+        }
+
+        #btn-descargar:disabled {
+            background-color: #888;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #status-msg {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #aaa;
+            min-height: 20px;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Reporte General de Proyectos</h2>
+        <button id="btn-descargar">
+            <div class="loader" id="spinner"></div>
+            Descargar Excel
+        </button>
+        <div id="status-msg"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+
+        // 1. Configuración de Firebase (Idéntica a tu tablero)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAPRAy9kHU8gxt3SYYXKuG9xGNtlbI18HQ",
+            authDomain: "seguimiento-proyectos-yar-yur.firebaseapp.com",
+            databaseURL: "https://seguimiento-proyectos-yar-yur-default-rtdb.firebaseio.com",
+            projectId: "seguimiento-proyectos-yar-yur",
+            storageBucket: "seguimiento-proyectos-yar-yur.firebasestorage.app",
+            messagingSenderId: "952890737656",
+            appId: "1:952890737656:web:486c9a7d2c9ed13060cc0d",
+            measurementId: "G-XMNDL0V5KQ"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // 2. Configuración de Google Sheets (REEMPLAZAR CON TUS DATOS REALES)
+        const GOOGLE_API_KEY = "PON_TU_API_KEY_AQUI"; 
+        const SPREADSHEET_ID = "PON_TU_SPREADSHEET_ID_AQUI"; 
+        const RANGE = "Hoja1!A:Z"; // Rango a leer
+
+        const btnDescargar = document.getElementById('btn-descargar');
+        const spinner = document.getElementById('spinner');
+        const statusMsg = document.getElementById('status-msg');
+
+        // --- FUNCIONES DE OBTENCIÓN DE DATOS ---
+
+        // A) Obtener de Google Sheets y ordenar por fecha
+        async function fetchGoogleSheetsData() {
+            if (GOOGLE_API_KEY === "PON_TU_API_KEY_AQUI") {
+                return [{ "Aviso": "Falta configurar API Key y Spreadsheet ID en el código fuente" }];
+            }
+
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${GOOGLE_API_KEY}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (!data.values || data.values.length === 0) return [{ "Info": "La hoja de cálculo está vacía o no se pudo acceder" }];
+
+                const headers = data.values[0];
+                let rows = data.values.slice(1).map(row => {
+                    let obj = {};
+                    headers.forEach((h, i) => obj[h] = row[i] || "");
+                    return obj;
+                });
+
+                // Intenta buscar una columna que se llame 'fecha' (sin importar mayúsculas) para ordenar
+                const fechaKey = headers.find(h => h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date'));
+                
+                if (fechaKey) {
+                    rows.sort((a, b) => {
+                        let dateA = new Date(a[fechaKey]);
+                        let dateB = new Date(b[fechaKey]);
+                        return dateA - dateB;
+                    });
+                }
+                return rows;
+            } catch (error) {
+                console.error("Error Google Sheets:", error);
+                return [{ "Error": "Hubo un problema al conectar con Google Sheets. Verifica permisos." }];
+            }
+        }
+
+        // B) Obtener del JSON y ordenar por número de Trello
+        async function fetchJsonData() {
+            try {
+                const res = await fetch('history_all.json');
+                const rawData = await res.json();
+                
+                let cardsList = [];
+
+                // Aplanar las tarjetas de los distintos días registrados en el JSON
+                rawData.forEach(day => {
+                    if (day.data && day.data.cards) {
+                        day.data.cards.forEach(card => {
+                            // Extraer el número de Trello usando regex (Ej: "001 / 25 - Cliente - Info")
+                            let trelloNum = 999999; // Número muy alto si no tiene formato
+                            const match = card.name.match(/^(\d+)\s*\//);
+                            if (match) {
+                                trelloNum = parseInt(match[1], 10);
+                            }
+
+                            cardsList.push({
+                                "Número Trello": trelloNum === 999999 ? "N/A" : trelloNum,
+                                "Fecha Registro": day.fecha,
+                                "Nombre Tarjeta": card.name,
+                                "Lista (ID)": card.idList
+                            });
+                        });
+                    }
+                });
+
+                // Ordenar por número de Trello
+                cardsList.sort((a, b) => {
+                    let numA = a["Número Trello"] === "N/A" ? 999999 : a["Número Trello"];
+                    let numB = b["Número Trello"] === "N/A" ? 999999 : b["Número Trello"];
+                    return numA - numB;
+                });
+
+                return cardsList.length > 0 ? cardsList : [{ "Info": "No se encontraron tarjetas en el JSON" }];
+            } catch (error) {
+                console.error("Error JSON:", error);
+                return [{ "Error": "No se encontró el archivo history_all.json o formato inválido" }];
+            }
+        }
+
+        // C) Obtener de Firebase y ordenar por fecha
+        async function fetchFirebaseData() {
+            try {
+                const snapshot = await get(ref(db, 'tableroProyectos'));
+                if (!snapshot.exists()) return [{ "Info": "No hay datos en Firebase en este momento" }];
+
+                const data = snapshot.val();
+                let fbArray = [];
+
+                // Formato de llave: DAVID-lunes-18-05-0
+                for (let key in data) {
+                    const info = data[key];
+                    if (!info.texto || info.texto.trim() === "") continue;
+
+                    const parts = key.split('-');
+                    let persona = parts[0] || "Desc";
+                    let diaSemana = parts[1] || "";
+                    let diaNum = parts[2] || "01";
+                    let mesNum = parts[3] || "01";
+                    
+                    // Aproximar una fecha para poder ordenar (Asumimos año actual para cálculos)
+                    let currentYear = new Date().getFullYear();
+                    let dateObj = new Date(`${currentYear}-${mesNum}-${diaNum}T00:00:00`);
+
+                    fbArray.push({
+                        "_dateObj": dateObj, // Se usa para el sort, se borrará luego
+                        "Fecha": `${diaSemana} ${diaNum}/${mesNum}`,
+                        "Persona": persona,
+                        "Proyecto": info.texto,
+                        "Fase": info.fase || "N/A",
+                        "Status": info.status || "N/A"
+                    });
+                }
+
+                // Ordenar por fecha cronológicamente
+                fbArray.sort((a, b) => a._dateObj - b._dateObj);
+
+                // Limpiar objeto Date usado internamente
+                fbArray.forEach(item => delete item._dateObj);
+
+                return fbArray.length > 0 ? fbArray : [{ "Info": "No hay proyectos registrados" }];
+            } catch (error) {
+                console.error("Error Firebase:", error);
+                return [{ "Error": "Fallo al conectar con la base de datos de Firebase" }];
+            }
+        }
+
+        // --- LÓGICA PRINCIPAL ---
+        btnDescargar.addEventListener('click', async () => {
+            btnDescargar.disabled = true;
+            spinner.style.display = 'block';
+            statusMsg.innerText = "Obteniendo datos...";
+
+            try {
+                statusMsg.innerText = "Obteniendo datos de Google Sheets...";
+                const dataSheet1 = await fetchGoogleSheetsData();
+
+                statusMsg.innerText = "Procesando JSON local...";
+                const dataSheet2 = await fetchJsonData();
+
+                statusMsg.innerText = "Descargando datos del Tablero Firebase...";
+                const dataSheet3 = await fetchFirebaseData();
+
+                statusMsg.innerText = "Construyendo archivo Excel...";
+
+                // Crear Libro de Excel
+                const workbook = XLSX.utils.book_new();
+
+                // Convertir JSON a Hojas
+                const ws1 = XLSX.utils.json_to_sheet(dataSheet1);
+                const ws2 = XLSX.utils.json_to_sheet(dataSheet2);
+                const ws3 = XLSX.utils.json_to_sheet(dataSheet3);
+
+                // Ajustar ancho de columnas para mejor legibilidad
+                const colWidths = [{wch: 15}, {wch: 25}, {wch: 40}, {wch: 20}];
+                ws1['!cols'] = colWidths;
+                ws2['!cols'] = [{wch: 15}, {wch: 20}, {wch: 60}, {wch: 25}];
+                ws3['!cols'] = [{wch: 15}, {wch: 15}, {wch: 60}, {wch: 15}, {wch: 25}];
+
+                // Añadir hojas al libro
+                XLSX.utils.book_append_sheet(workbook, ws1, "Google Sheet");
+                XLSX.utils.book_append_sheet(workbook, ws2, "Trello (JSON)");
+                XLSX.utils.book_append_sheet(workbook, ws3, "Tablero Firebase");
+
+                // Generar y descargar el archivo
+                XLSX.writeFile(workbook, "Datos_Consolidados_YarYur.xlsx");
+
+                statusMsg.innerText = "¡Descarga completada!";
+                statusMsg.style.color = "#4CAF50";
+
+            } catch (error) {
+                console.error(error);
+                statusMsg.innerText = "Ocurrió un error al generar el archivo.";
+                statusMsg.style.color = "#F44336";
+            } finally {
+                btnDescargar.disabled = false;
+                spinner.style.display = 'none';
+                
+                // Limpiar mensaje tras unos segundos
+                setTimeout(() => {
+                    if (statusMsg.innerText === "¡Descarga completada!") {
+                        statusMsg.innerText = "";
+                        statusMsg.style.color = "#aaa";
+                    }
+                }, 4000);
+            }
+        });
+    </script>
+</body>
+</html>
