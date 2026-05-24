@@ -42,7 +42,7 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            max-width: 1400px;
+            max-width: 1600px;
             max-height: 0;
             overflow: hidden;
             margin-bottom: 0;
@@ -70,13 +70,25 @@
         #btn-logout { background-color: #d32f2f; color: white; padding: 8px 15px; font-size: 14px; }
         #btn-logout:hover { background-color: #b71c1c; }
 
-        #tabla-contenedor {
+        /* CONTENEDOR PRINCIPAL TABLA + LEYENDA */
+        #main-wrapper {
+            display: flex;
+            flex-direction: row;
             width: 100%;
-            max-width: 1400px;
+            max-width: 1600px;
+            gap: 20px;
+            align-items: flex-start;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        #tabla-contenedor {
+            flex: 1;
+            min-width: 800px;
             overflow-x: auto;
             background: white;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.4s ease;
+            border-radius: 4px;
         }
 
         table { width: 100%; border-collapse: collapse; }
@@ -161,6 +173,34 @@
         }
         #menu-toggle:hover { color: #1976D2; }
 
+        /* ESTILOS DE LEYENDA */
+        #leyenda-contenedor {
+            width: 250px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .leyenda-titulo {
+            margin-top: 0;
+            text-align: center;
+            color: black;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .leyenda-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
     </style>
 </head>
 <body>
@@ -181,7 +221,19 @@
         </div>
         
         <datalist id="lista-proyectos"></datalist>
-        <div id="tabla-contenedor"></div>
+        
+        <div id="main-wrapper">
+            <div id="tabla-contenedor"></div>
+            
+            <!-- LEYENDA -->
+            <div id="leyenda-contenedor">
+                <h3 class="leyenda-titulo">LEYENDA</h3>
+                <div class="leyenda-item" style="background-color: #00FF00; color: #333;">ENTREGADO A PRODUCCIÓN</div>
+                <div class="leyenda-item" style="background-color: #ceff89; color: #333;">ENTREGADO A VENTAS</div>
+                <div class="leyenda-item" style="background-color: #FFF59D; color: #333;">EN PROCESO DE DISEÑO</div>
+                <div class="leyenda-item" style="background-color: rgb(255, 0, 0); color: #FFFFFF;">COMPROMISO ATRASADO</div>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -337,7 +389,7 @@
             }
         }
 
-        // Lógica de opciones dinámicas
+        // Lógica de opciones dinámicas flexible para soportar textos variables (X DÍAS)
         function renderStatusOptions(selectElement, currentValue) {
             let options = [""];
 
@@ -350,9 +402,11 @@
             } else if (currentValue === "COMPROMISO ATRASADO") {
                 options = ["", "COMPROMISO ATRASADO", "ENTREGADO", "ATRASADO", "EN ESPERA", "ANULADO"];
             } else {
-                // Fallback de seguridad
+                // Fallback para los personalizados ("1 DÍA ATRASADO", "ENTREGADO 2 DÍAS ATRASADO", etc)
                 options = ["", "COMPROMISO", "ENTREGADO", "ATRASADO", "EN ESPERA", "ANULADO"];
-                if (currentValue && !options.includes(currentValue)) options.push(currentValue);
+                if (currentValue && !options.includes(currentValue)) {
+                    options.push(currentValue); // Se anexa para que no se pierda al desplegar
+                }
             }
 
             const currentOptions = Array.from(selectElement.options).map(o => o.value);
@@ -364,8 +418,8 @@
                     opt.text = val;
                     selectElement.appendChild(opt);
                 });
-                selectElement.value = currentValue;
             }
+            selectElement.value = currentValue;
         }
 
         function generarTabla() {
@@ -430,7 +484,7 @@
             }
         });
 
-        // NUEVA LÓGICA DE COLORES DIRECTA
+        // NUEVA LÓGICA DE COLORES DIRECTA (Ajustada para soportar textos variables)
         function aplicarColorFondo(wrapperId, faseVal, statusVal) {
             const wrapper = document.getElementById(wrapperId);
             if (!wrapper) return;
@@ -444,24 +498,25 @@
             selectFase.style.color = '#333';
             selectStatus.style.color = '#333';
             inputProy.style.color = '#000';
+            wrapper.style.backgroundColor = '#ffffff'; // Blanco default
 
-            // Evaluar Status para Fondos
-            if (statusVal === 'ATRASADO') {
+            // Evaluar Status para Fondos (Orden importante)
+            if (statusVal.includes('ENTREGADO')) {
+                // Aplica para "ENTREGADO" normal y "ENTREGADO X DÍAS ATRASADO"
+                if (faseVal === 'MUESTRA' || faseVal === 'PRODUCCIÓN') {
+                    wrapper.style.backgroundColor = '#00FF00'; // Verde chillón
+                } else {
+                    wrapper.style.backgroundColor = '#ceff89'; // Verde claro ventas
+                }
+            } else if (statusVal === 'EN PROCESO') {
+                wrapper.style.backgroundColor = '#FFF59D'; // Amarillo claro
+            } else if (statusVal.includes('ATRASADO')) {
+                // Aplica para "ATRASADO", "1 DÍA ATRASADO", "COMPROMISO ATRASADO", etc.
+                // Como 'ENTREGADO' se evaluó primero arriba, "ENTREGADO X DÍAS ATRASADO" no llega aquí.
                 wrapper.style.backgroundColor = 'rgb(255, 0, 0)'; // Rojo absoluto
-                // Letras a blanco en la celda
                 selectFase.style.color = '#FFFFFF';
                 selectStatus.style.color = '#FFFFFF';
                 inputProy.style.color = '#FFFFFF';
-            } else if (statusVal === 'EN PROCESO') {
-                wrapper.style.backgroundColor = '#FFF59D'; // Amarillo claro
-            } else if (statusVal === 'ENTREGADO') {
-                if (faseVal === 'MUESTRA' || faseVal === 'PRODUCCIÓN') {
-                    wrapper.style.backgroundColor = '#00FF00'; // Verde chillón absoluto
-                } else {
-                    wrapper.style.backgroundColor = '#ceff89'; // Verde claro nuevo
-                }
-            } else {
-                wrapper.style.backgroundColor = '#ffffff'; // Blanco
             }
 
             // Excepción de letras rojas para estados en espera/anulado
@@ -469,10 +524,8 @@
                 selectFase.style.color = '#F44336';
                 selectStatus.style.color = '#F44336'; 
                 inputProy.style.color = '#F44336';
-            } else if (statusVal !== 'ATRASADO') {
-                if (statusVal === 'EN PROCESO') {
-                    selectStatus.style.color = '#FF9800'; // Naranja
-                }
+            } else if (statusVal === 'EN PROCESO') {
+                selectStatus.style.color = '#FF9800'; // Naranja
             }
         }
 
@@ -560,19 +613,46 @@
                 });
             }
 
-            // FUNCIÓN DE AUTOMATIZACIÓN ATRASADO -> COMPROMISO ATRASADO
+            // FUNCIÓN PARA BUSCAR EL ATRASO EN DÍAS ANTERIORES
+            function obtenerAtrasoMaximo(persona, indexDiaActual, textoProyecto) {
+                if (!textoProyecto || textoProyecto.trim() === "") return 0;
+                let maxAtraso = 0;
+                
+                // Recorremos los días anteriores
+                for (let d = indexDiaActual - 1; d >= 0; d--) {
+                    const diaStr = dias[d].replace(/\s|\//g, '-');
+                    for (let i = 0; i < maxCamposPorCelda; i++) {
+                        const idCheck = `${persona}-${diaStr}-${i}`;
+                        const elInput = document.getElementById(idCheck);
+                        const elStatus = document.getElementById(`status-${idCheck}`);
+                        
+                        if (elInput && elStatus && elInput.value.trim().toLowerCase() === textoProyecto.toLowerCase()) {
+                            const statusVal = elStatus.value || "";
+                            // Extrae el número si dice "X DÍA ATRASADO" o "X DÍAS ATRASADO"
+                            const match = statusVal.match(/(\d+)\s+DÍA/i);
+                            if (match) {
+                                const atraso = parseInt(match[1], 10);
+                                if (atraso > maxAtraso) maxAtraso = atraso;
+                            }
+                        }
+                    }
+                }
+                return maxAtraso;
+            }
+
+            // FUNCIÓN DE AUTOMATIZACIÓN (Copia para el día siguiente si es Atrasado)
             function automatizarSiguienteDia(persona, diaActualStr, idOrigen) {
                 const indexDiaActual = dias.findIndex(d => d.replace(/\s|\//g, '-') === diaActualStr);
                 
-                // Si no se encuentra, o si es el último día, no hacemos nada
+                // Si es el último día o no se encuentra, abortamos
                 if (indexDiaActual === -1 || indexDiaActual === dias.length - 1) return;
 
                 const nextDiaStr = dias[indexDiaActual + 1].replace(/\s|\//g, '-');
                 const textoOrigen = document.getElementById(idOrigen).value.trim();
                 
-                if (!textoOrigen) return; // No copiamos slots vacíos
+                if (!textoOrigen) return; // No copiamos slots sin nombre de proyecto
 
-                // 1. Verificamos que el proyecto NO EXISTA ya en la columna del día siguiente
+                // Verificar que el proyecto NO EXISTA ya en el día siguiente
                 let existe = false;
                 for (let i = 0; i < maxCamposPorCelda; i++) {
                     const idCheck = `${persona}-${nextDiaStr}-${i}`;
@@ -583,12 +663,9 @@
                     }
                 }
 
-                if (existe) {
-                    console.log("El proyecto ya existe en el día siguiente, cancelando duplicación automática.");
-                    return; // Abortamos la duplicación
-                }
+                if (existe) return; // Abortamos la duplicación si ya está anotado
 
-                // 2. Buscar siguiente celda disponible en la columna del día siguiente para esa persona
+                // Buscar celda vacía para el día siguiente
                 let idDestino = null;
                 for (let i = 0; i < maxCamposPorCelda; i++) {
                     const idTest = `${persona}-${nextDiaStr}-${i}`;
@@ -606,18 +683,15 @@
                     const faseOrigen = document.getElementById(`fase-${idOrigen}`).value;
                     const selectDestino = document.getElementById(`status-${idDestino}`);
 
-                    // Aseguramos que exista la opción antes de insertarla
                     renderStatusOptions(selectDestino, "COMPROMISO ATRASADO");
 
-                    // Asignamos la información en el slot del día siguiente
+                    // Asignar en slot destino
                     document.getElementById(`fase-${idDestino}`).value = faseOrigen;
                     selectDestino.value = "COMPROMISO ATRASADO";
                     document.getElementById(idDestino).value = textoOrigen;
 
-                    // Enviamos inmediatamente a Firebase
+                    // Enviar a Firebase y actualizar visualmente
                     enviarAFirebase(idDestino);
-                    
-                    // Actualizamos visualmente el tablero local
                     actualizarVisibilidadInternaSlot(`wrapper-${idDestino}`);
                     aplicarColorFondo(`wrapper-${idDestino}`, faseOrigen, "COMPROMISO ATRASADO");
                     
@@ -657,23 +731,38 @@
                 selectStatus.addEventListener('change', (e) => {
                     const idBase = e.target.id.replace('status-', '');
                     const faseVal = document.getElementById(`fase-${idBase}`).value;
-                    const statusVal = e.target.value;
+                    let statusVal = e.target.value;
+                    const textoProyecto = document.getElementById(idBase).value.trim();
                     
-                    // Modificar opciones dinámicas tras elegir un estado
-                    renderStatusOptions(e.target, statusVal);
+                    const personaMatch = personas.find(p => idBase.startsWith(p + '-'));
+                    const lastDashIndex = idBase.lastIndexOf('-');
+                    const diaIdStr = idBase.substring(personaMatch.length + 1, lastDashIndex);
+                    const indexDiaActual = dias.findIndex(d => d.replace(/\s|\//g, '-') === diaIdStr);
 
+                    // INTERCEPTAR "ATRASADO" PARA CONTADOR
+                    if (statusVal === 'ATRASADO') {
+                        let maxAtraso = obtenerAtrasoMaximo(personaMatch, indexDiaActual, textoProyecto);
+                        let nuevoAtraso = maxAtraso + 1;
+                        statusVal = nuevoAtraso === 1 ? "1 DÍA ATRASADO" : `${nuevoAtraso} DÍAS ATRASADO`;
+                    } 
+                    // INTERCEPTAR "ENTREGADO" PARA CONTADOR
+                    else if (statusVal === 'ENTREGADO') {
+                        let maxAtraso = obtenerAtrasoMaximo(personaMatch, indexDiaActual, textoProyecto);
+                        if (maxAtraso > 0) {
+                            let diasTarde = maxAtraso + 1;
+                            statusVal = diasTarde === 1 ? "ENTREGADO 1 DÍA ATRASADO" : `ENTREGADO ${diasTarde} DÍAS ATRASADO`;
+                        }
+                    }
+                    
+                    renderStatusOptions(e.target, statusVal);
                     actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
                     aplicarColorFondo(`wrapper-${idBase}`, faseVal, statusVal);
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                     
                     enviarAFirebase(idBase);
 
-                    // EVALUAMOS AUTOMATIZACIÓN EN ATRASADO
-                    if (statusVal === 'ATRASADO') {
-                        const personaMatch = personas.find(p => idBase.startsWith(p + '-'));
-                        const lastDashIndex = idBase.lastIndexOf('-');
-                        const diaIdStr = idBase.substring(personaMatch.length + 1, lastDashIndex);
-                        
+                    // SI TERMINÓ SIENDO ATRASADO, AUTOMATIZAR SIGUIENTE DÍA
+                    if (statusVal.includes('DÍA ATRASADO') && !statusVal.includes('ENTREGADO')) {
                         automatizarSiguienteDia(personaMatch, diaIdStr, idBase);
                     }
                 });
@@ -697,7 +786,6 @@
                         selectFase.value = dataServidor.fase || "";
                     }
                     
-                    // Solo recargar opciones si el usuario no tiene el desplegable abierto
                     if (document.activeElement !== selectStatus) {
                         renderStatusOptions(selectStatus, valServidorStatus);
                         if (selectStatus.value !== valServidorStatus) {
