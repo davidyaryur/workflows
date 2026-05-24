@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorpresa de Confeti</title>
+    <!-- Importamos la librería de confeti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* Reseteamos el margen y hacemos que el body ocupe toda la pantalla */
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center; /* Centra horizontalmente */
+            align-items: center;     /* Centra verticalmente */
+            background-color: #212121; /* Color oscuro inicial */
+            transition: background-color 1s ease; /* Transición suave del color */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Clase que se añadirá cuando se escriba "hola" */
+        body.exito {
+            background-color: #2e7d32; /* Color verde victoria */
+        }
+
+        /* Estilos para el campo de texto */
+        input {
+            padding: 15px 30px;
+            font-size: 24px;
+            border: 2px solid #555;
+            border-radius: 50px; /* Bordes redondeados */
+            outline: none;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Efecto cuando hacemos clic en el input */
+        input:focus {
+            border-color: #4CAF50;
+            background-color: #444;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Placeholder personalizado */
+        input::placeholder {
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <input type="text" id="campoMagico" placeholder="Escribe la palabra mágica..." autocomplete="off">
+
+    <script>
+        const input = document.getElementById('campoMagico');
+        let yaCelebro = false; // Variable para no repetir la animación miles de veces
+
+        input.addEventListener('input', function(e) {
+            // Convertimos el texto a minúsculas y quitamos espacios a los lados
+            const texto = e.target.value.trim().toLowerCase();
+
+            if (texto === 'hola' && !yaCelebro) {
+                yaCelebro = true;
+                
+                // 1. Cambiar el color de fondo a verde
+                document.body.classList.add('exito');
+                
+                // 2. Ejecutar la animación de victoria (duración: 3 segundos)
+                const duracion = 3000;
+                const fin = Date.now() + duracion;
+
+                (function frame() {
+                    // Confeti desde la izquierda
+                    confetti({
+                        particleCount: 7,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+                    });
+                    
+                    // Confeti desde la derecha
+                    confetti({
+                        particleCount: 7,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+                    });
+
+                    // Si aún no termina el tiempo, seguimos lanzando confeti
+                    if (Date.now() < fin) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+
+            } else if (texto !== 'hola' && yaCelebro) {
+                // Si el usuario borra la palabra, revertimos el color para que pueda intentarlo de nuevo
+                yaCelebro = false;
+                document.body.classList.remove('exito');
+            }
+        });
+    </script>
+</body>
+</html>
