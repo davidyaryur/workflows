@@ -152,7 +152,7 @@
             width: 100%;
             padding: 6px;
             box-sizing: border-box;
-            font-size: 12px;
+            font-size: 10px; /* Reducido a 10px para que quepa más texto */
             font-weight: bold;
             background-color: transparent;
             color: #000;
@@ -614,26 +614,32 @@
                 });
             }
 
-            // FUNCIÓN PARA BUSCAR EL ATRASO EN DÍAS ANTERIORES
-            function obtenerAtrasoMaximo(persona, indexDiaActual, textoProyecto) {
+            // FUNCIÓN PARA BUSCAR EL ATRASO EN DÍAS ANTERIORES EN TODAS LAS FILAS
+            function obtenerAtrasoMaximo(indexDiaActual, textoProyecto) {
                 if (!textoProyecto || textoProyecto.trim() === "") return 0;
                 let maxAtraso = 0;
                 
                 // Recorremos los días anteriores
                 for (let d = indexDiaActual - 1; d >= 0; d--) {
                     const diaStr = dias[d].replace(/\s|\//g, '-');
-                    for (let i = 0; i < maxCamposPorCelda; i++) {
-                        const idCheck = `${persona}-${diaStr}-${i}`;
-                        const elInput = document.getElementById(idCheck);
-                        const elStatus = document.getElementById(`status-${idCheck}`);
+                    
+                    // Recorremos a TODAS las personas (filas)
+                    for (let p = 0; p < personas.length; p++) {
+                        const personaActual = personas[p];
                         
-                        if (elInput && elStatus && elInput.value.trim().toLowerCase() === textoProyecto.toLowerCase()) {
-                            const statusVal = elStatus.value || "";
-                            // Extrae el número si dice "X DÍA ATRASADO" o "X DÍAS ATRASADO"
-                            const match = statusVal.match(/(\d+)\s+DÍAS?/i);
-                            if (match) {
-                                const atraso = parseInt(match[1], 10);
-                                if (atraso > maxAtraso) maxAtraso = atraso;
+                        for (let i = 0; i < maxCamposPorCelda; i++) {
+                            const idCheck = `${personaActual}-${diaStr}-${i}`;
+                            const elInput = document.getElementById(idCheck);
+                            const elStatus = document.getElementById(`status-${idCheck}`);
+                            
+                            if (elInput && elStatus && elInput.value.trim().toLowerCase() === textoProyecto.toLowerCase()) {
+                                const statusVal = elStatus.value || "";
+                                // Extrae el número si dice "X DÍA ATRASADO" o "X DÍAS ATRASADO"
+                                const match = statusVal.match(/(\d+)\s+DÍAS?/i);
+                                if (match) {
+                                    const atraso = parseInt(match[1], 10);
+                                    if (atraso > maxAtraso) maxAtraso = atraso;
+                                }
                             }
                         }
                     }
@@ -742,13 +748,13 @@
 
                     // INTERCEPTAR "ATRASADO" PARA CONTADOR
                     if (statusVal === 'ATRASADO') {
-                        let maxAtraso = obtenerAtrasoMaximo(personaMatch, indexDiaActual, textoProyecto);
+                        let maxAtraso = obtenerAtrasoMaximo(indexDiaActual, textoProyecto);
                         let nuevoAtraso = maxAtraso + 1;
                         statusVal = nuevoAtraso === 1 ? "1 DÍA ATRASADO" : `${nuevoAtraso} DÍAS ATRASADO`;
                     } 
                     // INTERCEPTAR "ENTREGADO" PARA CONTADOR
                     else if (statusVal === 'ENTREGADO') {
-                        let maxAtraso = obtenerAtrasoMaximo(personaMatch, indexDiaActual, textoProyecto);
+                        let maxAtraso = obtenerAtrasoMaximo(indexDiaActual, textoProyecto);
                         if (maxAtraso > 0) {
                             let diasTarde = maxAtraso + 1;
                             statusVal = diasTarde === 1 ? "ENTREGADO 1 DÍA ATRASADO" : `ENTREGADO ${diasTarde} DÍAS ATRASADO`;
