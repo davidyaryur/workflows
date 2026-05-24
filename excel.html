@@ -118,6 +118,9 @@
         const spinner = document.getElementById('spinner');
         const statusMsg = document.getElementById('status-msg');
 
+        // Lista de diseñadores para validación
+        const listaDisenadores = ["YARELLY", "ANGEL", "DAVID", "EIDER", "VIRLEY", "CARELIS", "ANDREA", "GUILLERMO", "ALESKA"];
+
         // --- FUNCIONES DE OBTENCIÓN DE DATOS ---
 
         // A) Obtener de Google Sheets y ordenar por fecha
@@ -157,7 +160,7 @@
             }
         }
 
-        // B) Obtener del JSON, dejar solo la versión más reciente y expandir columnas
+        // B) Obtener del JSON, dejar solo la versión más reciente y expandir columnas (Modificado)
         async function fetchJsonData() {
             try {
                 const res = await fetch('history_all.json');
@@ -170,17 +173,12 @@
                 // Iterar sobre todos los días para acumular diccionarios y actualizar tarjetas
                 rawData.forEach(day => {
                     if (day.data) {
-                        // 1. Guardar nombres de las Listas
                         if (day.data.lists) {
                             day.data.lists.forEach(l => listMap[l.id] = l.name);
                         }
-                        
-                        // 2. Guardar nombres de las Etiquetas
                         if (day.data.labels) {
                             day.data.labels.forEach(l => labelMap[l.id] = l.name || `Color: ${l.color}`);
                         }
-
-                        // 3. Actualizar tarjetas (Al usar el ID como llave, se sobreescribe con la info más reciente)
                         if (day.data.cards) {
                             day.data.cards.forEach(card => {
                                 latestCards[card.id] = card;
@@ -199,7 +197,7 @@
                     let codigoCompleto = "S/C";
                     let cliente = "Varios / Otro";
                     let descripcion = card.name;
-                    let numOrden = 999999; // Número alto para mandar los "Sin código" al final
+                    let numOrden = 999999; 
 
                     if (match) {
                         let numero = String(parseInt(match[1], 10)).padStart(3, '0');
@@ -216,23 +214,35 @@
                         }
                     }
 
-                    // Traducir el ID de la lista a su nombre real
-                    const nombreLista = listMap[card.idList] || "Desconocida";
+                    // Procesar la Fase: Si la lista es el nombre de un diseñador, cambiar a "DISEÑO"
+                    let nombreFase = listMap[card.idList] || "Desconocida";
+                    if (listaDisenadores.includes(nombreFase.toUpperCase().trim())) {
+                        nombreFase = "DISEÑO";
+                    }
 
-                    // Traducir los IDs de las etiquetas a texto
-                    let nombresEtiquetas = [];
+                    // Separar etiquetas en Diseñador y Vendedor
+                    let disenadoresEtiqueta = [];
+                    let vendedoresEtiqueta = [];
+                    
                     if (card.idLabels && Array.isArray(card.idLabels)) {
-                        nombresEtiquetas = card.idLabels.map(id => labelMap[id] || "Etiqueta oculta");
+                        card.idLabels.forEach(id => {
+                            let nombreEtiqueta = labelMap[id] || "Etiqueta oculta";
+                            if (listaDisenadores.includes(nombreEtiqueta.toUpperCase().trim())) {
+                                disenadoresEtiqueta.push(nombreEtiqueta);
+                            } else {
+                                vendedoresEtiqueta.push(nombreEtiqueta);
+                            }
+                        });
                     }
 
                     cardsList.push({
-                        "_numOrden": numOrden, // Columna oculta para ordenar
-                        "Código Proyecto": codigoCompleto,
+                        "_numOrden": numOrden, 
+                        "Trello": codigoCompleto,
                         "Cliente": cliente,
-                        "Descripción Tarea": descripcion,
-                        "Fase / Asignación": nombreLista,
-                        "Etiquetas": nombresEtiquetas.join(', '),
-                        "Archivado en Trello": card.closed ? "Sí" : "No"
+                        "Proyecto": descripcion,
+                        "Fase": nombreFase,
+                        "Diseñador": disenadoresEtiqueta.join(', '),
+                        "Vendedor": vendedoresEtiqueta.join(', ')
                     });
                 });
 
@@ -321,11 +331,11 @@
                 const ws2 = XLSX.utils.json_to_sheet(dataSheet2);
                 const ws3 = XLSX.utils.json_to_sheet(dataSheet3);
 
-                // Ajustar ancho de columnas para mejor legibilidad
+                // Ajustar ancho de columnas
                 ws1['!cols'] = [{wch: 15}, {wch: 25}, {wch: 40}, {wch: 20}];
                 
-                // Anchos para la nueva estructura de Trello (Código, Cliente, Desc, Fase, Etiquetas, Archivado)
-                ws2['!cols'] = [{wch: 15}, {wch: 25}, {wch: 60}, {wch: 20}, {wch: 35}, {wch: 15}];
+                // Anchos para la nueva estructura de Trello (A: Trello, B: Cliente, C: Proyecto, D: Fase, E: Diseñador, F: Vendedor)
+                ws2['!cols'] = [{wch: 15}, {wch: 25}, {wch: 60}, {wch: 20}, {wch: 25}, {wch: 35}];
                 
                 ws3['!cols'] = [{wch: 15}, {wch: 15}, {wch: 60}, {wch: 15}, {wch: 25}];
 
@@ -348,7 +358,6 @@
                 btnDescargar.disabled = false;
                 spinner.style.display = 'none';
                 
-                // Limpiar mensaje tras unos segundos
                 setTimeout(() => {
                     if (statusMsg.innerText === "¡Descarga completada!") {
                         statusMsg.innerText = "";
