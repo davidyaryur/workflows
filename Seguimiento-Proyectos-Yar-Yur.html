@@ -152,7 +152,7 @@
             width: 100%;
             padding: 6px;
             box-sizing: border-box;
-            font-size: 10px; /* Reducido a 10px para que quepa más texto */
+            font-size: 10px; /* Tamaño reducido para igualar los selects */
             font-weight: bold;
             background-color: transparent;
             color: #000;
@@ -201,6 +201,42 @@
             border: 1px solid rgba(0,0,0,0.1);
         }
 
+        /* ESTILOS MODALES */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            color: #333;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .modal-msg {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        .modal-btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
     </style>
 </head>
 <body>
@@ -214,6 +250,23 @@
         </button>
     </div>
 
+    <div id="modal-compromiso" class="modal-overlay">
+        <div class="modal-box">
+            <div id="modal-msg-compromiso" class="modal-msg"></div>
+            <button id="btn-si-compromiso" class="modal-btn" style="background-color: #4CAF50; color: white;">Sí, registrar</button>
+            <button id="btn-no-compromiso" class="modal-btn" style="background-color: #d32f2f; color: white;">No, cancelar</button>
+        </div>
+    </div>
+
+    <div id="modal-reasignar" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-msg">¿A qué diseñador se está reasignando el proyecto?</div>
+            <div id="contenedor-botones-disenadores" style="display: flex; flex-wrap: wrap; justify-content: center;">
+                </div>
+            <button id="btn-cancelar-reasignar" class="modal-btn" style="background-color: #888; color: white; margin-top: 15px; width: 100%;">Cancelar Operación</button>
+        </div>
+    </div>
+
     <div id="app-container">
         <div id="header-app">
             <div id="usuario-info">Conectado como: <span id="nombre-usuario" style="color: #1976D2;"></span></div>
@@ -225,13 +278,17 @@
         <div id="main-wrapper">
             <div id="tabla-contenedor"></div>
             
-            <!-- LEYENDA -->
             <div id="leyenda-contenedor">
                 <h3 class="leyenda-titulo">LEYENDA</h3>
-                <div class="leyenda-item" style="background-color: #00FF00; color: #333;">ENTREGADO A PRODUCCIÓN</div>
-                <div class="leyenda-item" style="background-color: #ceff89; color: #333;">ENTREGADO A VENTAS</div>
+                
+                <div class="leyenda-item" style="background-color: #00FF00; color: #333;">ENTREGA COMPLETA A PRODUCCIÓN</div>
+                <div class="leyenda-item" style="background-color: #ceff89; color: #333;">ENTREGA COMPLETA A VENTAS</div>
                 <div class="leyenda-item" style="background-color: #FFF59D; color: #333;">EN PROCESO DE DISEÑO</div>
-                <div class="leyenda-item" style="background-color: rgb(255, 0, 0); color: #FFFFFF;">PROYECTO ATRASADO</div>
+                
+                <div id="ley-parcial-prod" class="leyenda-item" style="background-color: #00BFFF; color: #333; display: none;">ENTREGA PARCIAL A PRODUCCIÓN</div>
+                <div id="ley-parcial-ven" class="leyenda-item" style="background-color: #B3E5FC; color: #333; display: none;">ENTREGA PARCIAL A VENTAS</div>
+                <div id="ley-atrasado" class="leyenda-item" style="background-color: rgb(255, 0, 0); color: #FFFFFF; display: none;">PROYECTO ATRASADO</div>
+                <div id="ley-reasignado" class="leyenda-item" style="background-color: #800020; color: #FFFFFF; display: none;">PROYECTO REASIGNADO</div>
             </div>
         </div>
     </div>
@@ -271,6 +328,9 @@
 
         let projectDatabase = [];
         let listaCompletaProyectos = [];
+        
+        // Memoria para no repetir el popup de confirmación por cada clic
+        const compromisosConfirmados = new Set(); 
 
         function normalizeTrelloData(rawData) { 
             let data = { ...rawData }; 
@@ -389,23 +449,29 @@
             }
         }
 
-        // Lógica de opciones dinámicas
+        // Lógica de opciones dinámicas flexible
         function renderStatusOptions(selectElement, currentValue) {
             let options = [""];
 
             if (currentValue === "" || currentValue === "EN PROCESO") {
                 options = ["", "EN PROCESO", "COMPROMISO"];
-            } else if (currentValue === "COMPROMISO" || currentValue === "ENTREGADO" ||
+            } else if (currentValue === "COMPROMISO" || currentValue.includes("ENTREGA") ||
                        currentValue === "ATRASADO" || currentValue === "EN ESPERA" || 
-                       currentValue === "ANULADO") {
-                options = ["", "COMPROMISO", "ENTREGADO", "ATRASADO", "EN ESPERA", "ANULADO"];
-            } else if (currentValue === "COMPROMISO ATRASADO") {
-                options = ["", "COMPROMISO ATRASADO", "ENTREGADO", "ATRASADO", "EN ESPERA", "ANULADO"];
+                       currentValue === "ANULADO" || currentValue === "REASIGNADO") {
+                options = ["", "COMPROMISO", "ENTREGA COMPLETA", "ENTREGA PARCIAL", "ATRASADO", "EN ESPERA", "ANULADO", "REASIGNADO"];
+            } else if (currentValue.includes("COMPROMISO ATRASADO")) {
+                options = ["", "COMPROMISO ATRASADO", "ENTREGA COMPLETA", "ENTREGA PARCIAL", "ATRASADO", "EN ESPERA", "ANULADO", "REASIGNADO"];
+            } else if (currentValue.includes("COMPROMISO REASIGNADO")) {
+                options = ["", "COMPROMISO REASIGNADO", "ENTREGA COMPLETA", "ENTREGA PARCIAL", "ATRASADO", "EN ESPERA", "ANULADO", "REASIGNADO"];
             } else {
-                // Fallback para los personalizados ("1 DÍA ATRASADO", "ENTREGADO 2 DÍAS ATRASADO", etc)
-                options = ["", "COMPROMISO", "ENTREGADO", "ATRASADO", "EN ESPERA", "ANULADO"];
+                // Fallback para los personalizados (EJ: "1 DÍA ATRASADO")
+                let baseMenu = "COMPROMISO";
+                if(currentValue.includes("COMPROMISO ATRASADO")) baseMenu = "COMPROMISO ATRASADO";
+                if(currentValue.includes("COMPROMISO REASIGNADO")) baseMenu = "COMPROMISO REASIGNADO";
+
+                options = ["", baseMenu, "ENTREGA COMPLETA", "ENTREGA PARCIAL", "ATRASADO", "EN ESPERA", "ANULADO", "REASIGNADO"];
                 if (currentValue && !options.includes(currentValue)) {
-                    options.push(currentValue); // Se anexa para que no se pierda al desplegar
+                    options.push(currentValue);
                 }
             }
 
@@ -484,7 +550,7 @@
             }
         });
 
-        // NUEVA LÓGICA DE COLORES DIRECTA
+        // LÓGICA DE COLORES AMPLIADA
         function aplicarColorFondo(wrapperId, faseVal, statusVal) {
             const wrapper = document.getElementById(wrapperId);
             if (!wrapper) return;
@@ -494,33 +560,39 @@
             const selectStatus = document.getElementById(`status-${idBase}`);
             const inputProy = document.getElementById(idBase);
 
-            // Reseteo de colores de letra a default
+            // Reseteo por defecto
             selectFase.style.color = '#333';
             selectStatus.style.color = '#333';
             inputProy.style.color = '#000';
-            wrapper.style.backgroundColor = '#ffffff'; // Blanco default
+            wrapper.style.backgroundColor = '#ffffff'; 
 
-            // Evaluar Status para Fondos (Orden importante)
-            if (statusVal.includes('ENTREGADO')) {
-                // Aplica para "ENTREGADO" normal y "ENTREGADO X DÍAS ATRASADO"
+            if (statusVal.includes('ENTREGA COMPLETA')) {
                 if (faseVal === 'MUESTRA' || faseVal === 'PRODUCCIÓN') {
                     wrapper.style.backgroundColor = '#00FF00'; // Verde chillón
                 } else {
                     wrapper.style.backgroundColor = '#ceff89'; // Verde claro ventas
                 }
+            } else if (statusVal.includes('ENTREGA PARCIAL')) {
+                if (faseVal === 'MUESTRA' || faseVal === 'PRODUCCIÓN') {
+                    wrapper.style.backgroundColor = '#00BFFF'; // Azul chillón
+                } else {
+                    wrapper.style.backgroundColor = '#B3E5FC'; // Azul claro ventas
+                }
             } else if (statusVal === 'EN PROCESO') {
                 wrapper.style.backgroundColor = '#FFF59D'; // Amarillo claro
-                
-            // SE EXCLUYE "COMPROMISO ATRASADO" PARA QUE SE MANTENGA BLANCO/NEGRO
-            } else if (statusVal.includes('ATRASADO') && statusVal !== 'COMPROMISO ATRASADO') {
-                // Aplica para "ATRASADO", "1 DÍA ATRASADO", "2 DÍAS ATRASADO", etc.
+            } else if (statusVal.includes('REASIGNADO') && !statusVal.includes('COMPROMISO')) {
+                wrapper.style.backgroundColor = '#800020'; // Vinotinto absoluto
+                selectFase.style.color = '#FFFFFF';
+                selectStatus.style.color = '#FFFFFF';
+                inputProy.style.color = '#FFFFFF';
+            } else if (statusVal.includes('ATRASADO') && !statusVal.includes('COMPROMISO')) {
                 wrapper.style.backgroundColor = 'rgb(255, 0, 0)'; // Rojo absoluto
                 selectFase.style.color = '#FFFFFF';
                 selectStatus.style.color = '#FFFFFF';
                 inputProy.style.color = '#FFFFFF';
             }
 
-            // Excepción de letras rojas para estados en espera/anulado
+            // Excepciones de fuentes de color
             if (statusVal === 'EN ESPERA' || statusVal === 'ANULADO') {
                 selectFase.style.color = '#F44336';
                 selectStatus.style.color = '#F44336'; 
@@ -528,6 +600,36 @@
             } else if (statusVal === 'EN PROCESO') {
                 selectStatus.style.color = '#FF9800'; // Naranja
             }
+        }
+
+        // CONTROL VISUAL LEYENDA DINÁMICA
+        function actualizarLeyendaDinamica(datosTablero) {
+            let hayParcialProd = false;
+            let hayParcialVen = false;
+            let hayAtrasado = false;
+            let hayReasignado = false;
+
+            Object.keys(datosTablero).forEach(key => {
+                const info = datosTablero[key];
+                if (!info.status) return;
+
+                if (info.status.includes('ENTREGA PARCIAL')) {
+                    if (info.fase === 'MUESTRA' || info.fase === 'PRODUCCIÓN') {
+                        hayParcialProd = true;
+                    } else {
+                        hayParcialVen = true;
+                    }
+                } else if (info.status.includes('ATRASADO') && !info.status.includes('COMPROMISO')) {
+                    hayAtrasado = true;
+                } else if (info.status.includes('REASIGNADO') && !info.status.includes('COMPROMISO')) {
+                    hayReasignado = true;
+                }
+            });
+
+            document.getElementById('ley-parcial-prod').style.display = hayParcialProd ? 'block' : 'none';
+            document.getElementById('ley-parcial-ven').style.display = hayParcialVen ? 'block' : 'none';
+            document.getElementById('ley-atrasado').style.display = hayAtrasado ? 'block' : 'none';
+            document.getElementById('ley-reasignado').style.display = hayReasignado ? 'block' : 'none';
         }
 
         function actualizarVisibilidadInternaSlot(wrapperId) {
@@ -576,6 +678,55 @@
             });
         }
 
+        // ============================================
+        // LÓGICA DE VENTANAS MODALES (PROMESA ASYNC)
+        // ============================================
+        function preguntarCompromiso(diseñador, proyecto, diaReal) {
+            return new Promise(resolve => {
+                document.getElementById('modal-msg-compromiso').innerText = `${diseñador} se compromete a entregar ${proyecto} el día ${diaReal}.`;
+                document.getElementById('modal-compromiso').style.display = 'flex';
+
+                document.getElementById('btn-si-compromiso').onclick = () => {
+                    document.getElementById('modal-compromiso').style.display = 'none';
+                    resolve(true);
+                };
+                document.getElementById('btn-no-compromiso').onclick = () => {
+                    document.getElementById('modal-compromiso').style.display = 'none';
+                    resolve(false);
+                };
+            });
+        }
+
+        function preguntarReasignacion(diseñadorActual) {
+            return new Promise(resolve => {
+                const contenedor = document.getElementById('contenedor-botones-disenadores');
+                contenedor.innerHTML = ''; // Limpiar botones
+                
+                personas.forEach(p => {
+                    if (p !== diseñadorActual) {
+                        const btn = document.createElement('button');
+                        btn.className = 'modal-btn';
+                        btn.style.backgroundColor = '#1976D2';
+                        btn.style.color = 'white';
+                        btn.innerText = p;
+                        btn.onclick = () => {
+                            document.getElementById('modal-reasignar').style.display = 'none';
+                            resolve(p);
+                        };
+                        contenedor.appendChild(btn);
+                    }
+                });
+
+                document.getElementById('modal-reasignar').style.display = 'flex';
+
+                document.getElementById('btn-cancelar-reasignar').onclick = () => {
+                    document.getElementById('modal-reasignar').style.display = 'none';
+                    resolve(null); // Cancelado
+                };
+            });
+        }
+
+
         btnLogin.addEventListener('click', () => signInWithPopup(auth, provider).catch(error => console.error(error)));
         btnLogout.addEventListener('click', () => signOut(auth));
 
@@ -614,16 +765,50 @@
                 });
             }
 
+            // Centralizamos el check de Confirmación Compromiso
+            async function procesarCambio(idBase) {
+                const statusVal = document.getElementById(`status-${idBase}`).value;
+                const textoVal = document.getElementById(idBase).value.trim();
+                const keyUnica = `${idBase}-${textoVal}`;
+
+                // Solo dispara si es COMPROMISO puro, tiene texto, y no ha sido validado antes
+                if (statusVal === 'COMPROMISO' && textoVal !== '' && !compromisosConfirmados.has(keyUnica)) {
+                    
+                    const personaMatch = personas.find(p => idBase.startsWith(p + '-'));
+                    const lastDashIndex = idBase.lastIndexOf('-');
+                    const diaIdStr = idBase.substring(personaMatch.length + 1, lastDashIndex);
+                    
+                    // Buscar el string legible (ej: "lunes 18/05")
+                    const diaReal = dias.find(d => d.replace(/\s|\//g, '-') === diaIdStr) || diaIdStr;
+
+                    const respuesta = await preguntarCompromiso(personaMatch, textoVal, diaReal);
+                    
+                    if (respuesta) {
+                        compromisosConfirmados.add(keyUnica);
+                        enviarAFirebase(idBase);
+                    } else {
+                        // Si dijo que NO -> Borrar
+                        document.getElementById(`fase-${idBase}`).value = '';
+                        document.getElementById(`status-${idBase}`).value = '';
+                        document.getElementById(idBase).value = '';
+                        
+                        actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
+                        aplicarColorFondo(`wrapper-${idBase}`, '', '');
+                        enviarAFirebase(idBase);
+                    }
+                } else {
+                    enviarAFirebase(idBase);
+                }
+            }
+
             // FUNCIÓN PARA BUSCAR EL ATRASO EN DÍAS ANTERIORES EN TODAS LAS FILAS
             function obtenerAtrasoMaximo(indexDiaActual, textoProyecto) {
                 if (!textoProyecto || textoProyecto.trim() === "") return 0;
                 let maxAtraso = 0;
                 
-                // Recorremos los días anteriores
                 for (let d = indexDiaActual - 1; d >= 0; d--) {
                     const diaStr = dias[d].replace(/\s|\//g, '-');
                     
-                    // Recorremos a TODAS las personas (filas)
                     for (let p = 0; p < personas.length; p++) {
                         const personaActual = personas[p];
                         
@@ -634,7 +819,6 @@
                             
                             if (elInput && elStatus && elInput.value.trim().toLowerCase() === textoProyecto.toLowerCase()) {
                                 const statusVal = elStatus.value || "";
-                                // Extrae el número si dice "X DÍA ATRASADO" o "X DÍAS ATRASADO"
                                 const match = statusVal.match(/(\d+)\s+DÍAS?/i);
                                 if (match) {
                                     const atraso = parseInt(match[1], 10);
@@ -647,19 +831,14 @@
                 return maxAtraso;
             }
 
-            // FUNCIÓN DE AUTOMATIZACIÓN (Copia para el día siguiente si es Atrasado)
             function automatizarSiguienteDia(persona, diaActualStr, idOrigen) {
                 const indexDiaActual = dias.findIndex(d => d.replace(/\s|\//g, '-') === diaActualStr);
-                
-                // Si es el último día o no se encuentra, abortamos
                 if (indexDiaActual === -1 || indexDiaActual === dias.length - 1) return;
 
                 const nextDiaStr = dias[indexDiaActual + 1].replace(/\s|\//g, '-');
                 const textoOrigen = document.getElementById(idOrigen).value.trim();
-                
-                if (!textoOrigen) return; // No copiamos slots sin nombre de proyecto
+                if (!textoOrigen) return; 
 
-                // Verificar que el proyecto NO EXISTA ya en el día siguiente
                 let existe = false;
                 for (let i = 0; i < maxCamposPorCelda; i++) {
                     const idCheck = `${persona}-${nextDiaStr}-${i}`;
@@ -670,9 +849,8 @@
                     }
                 }
 
-                if (existe) return; // Abortamos la duplicación si ya está anotado
+                if (existe) return;
 
-                // Buscar celda vacía para el día siguiente
                 let idDestino = null;
                 for (let i = 0; i < maxCamposPorCelda; i++) {
                     const idTest = `${persona}-${nextDiaStr}-${i}`;
@@ -692,28 +870,73 @@
 
                     renderStatusOptions(selectDestino, "COMPROMISO ATRASADO");
 
-                    // Asignar en slot destino
                     document.getElementById(`fase-${idDestino}`).value = faseOrigen;
                     selectDestino.value = "COMPROMISO ATRASADO";
                     document.getElementById(idDestino).value = textoOrigen;
 
-                    // Enviar a Firebase y actualizar visualmente
                     enviarAFirebase(idDestino);
                     actualizarVisibilidadInternaSlot(`wrapper-${idDestino}`);
                     aplicarColorFondo(`wrapper-${idDestino}`, faseOrigen, "COMPROMISO ATRASADO");
                     
                     const celdaContenedora = document.getElementById(`celda-${persona}-${nextDiaStr}`);
-                    if (celdaContenedora) {
-                        actualizarVisibilidadCelda(celdaContenedora);
+                    if (celdaContenedora) actualizarVisibilidadCelda(celdaContenedora);
+                }
+            }
+
+            // FUNCIÓN PARA COPIAR REASIGNACIÓN EN OTRO DISEÑADOR (MISMO DÍA)
+            function automatizarReasignacion(personaDestino, diaIdStr, textoProyecto, faseOrigen) {
+                if (!textoProyecto) return;
+
+                let existe = false;
+                for (let i = 0; i < maxCamposPorCelda; i++) {
+                    const idCheck = `${personaDestino}-${diaIdStr}-${i}`;
+                    const elInputCheck = document.getElementById(idCheck);
+                    if (elInputCheck && elInputCheck.value.trim() !== "" && elInputCheck.value.trim().toLowerCase() === textoProyecto.toLowerCase()) {
+                        existe = true;
+                        break;
                     }
+                }
+
+                if (existe) return; // Ya lo tiene anotado
+
+                let idDestino = null;
+                for (let i = 0; i < maxCamposPorCelda; i++) {
+                    const idTest = `${personaDestino}-${diaIdStr}-${i}`;
+                    const elFase = document.getElementById(`fase-${idTest}`);
+                    const elStatus = document.getElementById(`status-${idTest}`);
+                    const elInput = document.getElementById(idTest);
+                    
+                    if (elFase && elFase.value === "" && elStatus.value === "" && elInput.value.trim() === "") {
+                        idDestino = idTest;
+                        break;
+                    }
+                }
+
+                if (idDestino) {
+                    const selectDestino = document.getElementById(`status-${idDestino}`);
+                    renderStatusOptions(selectDestino, "COMPROMISO REASIGNADO");
+
+                    document.getElementById(`fase-${idDestino}`).value = faseOrigen;
+                    selectDestino.value = "COMPROMISO REASIGNADO";
+                    document.getElementById(idDestino).value = textoProyecto;
+
+                    // Marcar como validado para que no salte el popup al editar en destino
+                    compromisosConfirmados.add(`${idDestino}-${textoProyecto}`);
+
+                    enviarAFirebase(idDestino);
+                    actualizarVisibilidadInternaSlot(`wrapper-${idDestino}`);
+                    aplicarColorFondo(`wrapper-${idDestino}`, faseOrigen, "COMPROMISO REASIGNADO");
+                    
+                    const celdaContenedora = document.getElementById(`celda-${personaDestino}-${diaIdStr}`);
+                    if (celdaContenedora) actualizarVisibilidadCelda(celdaContenedora);
                 }
             }
 
             todosLosInputs.forEach(input => {
-                input.addEventListener('input', (e) => {
+                input.addEventListener('change', (e) => {
                     actualizarDatalist(e.target.value);
-                    enviarAFirebase(e.target.id);
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
+                    procesarCambio(e.target.id);
                 });
 
                 input.addEventListener('focus', (e) => {
@@ -724,18 +947,16 @@
             todasLasFases.forEach(selectFase => {
                 selectFase.addEventListener('change', (e) => {
                     const idBase = e.target.id.replace('fase-', '');
-                    
                     actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
                     const statusVal = document.getElementById(`status-${idBase}`).value;
                     aplicarColorFondo(`wrapper-${idBase}`, e.target.value, statusVal);
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
-                    
-                    enviarAFirebase(idBase);
+                    procesarCambio(idBase);
                 });
             });
 
             todosLosStatus.forEach(selectStatus => {
-                selectStatus.addEventListener('change', (e) => {
+                selectStatus.addEventListener('change', async (e) => {
                     const idBase = e.target.id.replace('status-', '');
                     const faseVal = document.getElementById(`fase-${idBase}`).value;
                     let statusVal = e.target.value;
@@ -746,30 +967,49 @@
                     const diaIdStr = idBase.substring(personaMatch.length + 1, lastDashIndex);
                     const indexDiaActual = dias.findIndex(d => d.replace(/\s|\//g, '-') === diaIdStr);
 
-                    // INTERCEPTAR "ATRASADO" PARA CONTADOR
+                    // EVALUACIÓN DE ATRASOS Y ENTREGAS (Misma lógica previa, expandida)
                     if (statusVal === 'ATRASADO') {
                         let maxAtraso = obtenerAtrasoMaximo(indexDiaActual, textoProyecto);
                         let nuevoAtraso = maxAtraso + 1;
                         statusVal = nuevoAtraso === 1 ? "1 DÍA ATRASADO" : `${nuevoAtraso} DÍAS ATRASADO`;
-                    } 
-                    // INTERCEPTAR "ENTREGADO" PARA CONTADOR
-                    else if (statusVal === 'ENTREGADO') {
+                    } else if (statusVal === 'ENTREGA COMPLETA') {
                         let maxAtraso = obtenerAtrasoMaximo(indexDiaActual, textoProyecto);
                         if (maxAtraso > 0) {
                             let diasTarde = maxAtraso + 1;
-                            statusVal = diasTarde === 1 ? "ENTREGADO 1 DÍA ATRASADO" : `ENTREGADO ${diasTarde} DÍAS ATRASADO`;
+                            statusVal = diasTarde === 1 ? "ENTREGA COMPLETA 1 DÍA ATRASADO" : `ENTREGA COMPLETA ${diasTarde} DÍAS ATRASADO`;
+                        }
+                    } else if (statusVal === 'ENTREGA PARCIAL') {
+                        let maxAtraso = obtenerAtrasoMaximo(indexDiaActual, textoProyecto);
+                        if (maxAtraso > 0) {
+                            let diasTarde = maxAtraso + 1;
+                            statusVal = diasTarde === 1 ? "ENTREGA PARCIAL 1 DÍA ATRASADO" : `ENTREGA PARCIAL ${diasTarde} DÍAS ATRASADO`;
                         }
                     }
-                    
+
+                    // MODAL DE REASIGNACIÓN
+                    if (statusVal === 'REASIGNADO') {
+                        // Antes de setear nada, preguntamos:
+                        const nuevoDiseñador = await preguntarReasignacion(personaMatch);
+                        if (nuevoDiseñador) {
+                            // Ejecutamos copia destino
+                            automatizarReasignacion(nuevoDiseñador, diaIdStr, textoProyecto, faseVal);
+                        } else {
+                            // Canceló, regresamos al anterior si es posible, o lo dejamos en blanco
+                            statusVal = "";
+                        }
+                    }
+
+                    // Pre-registro visual
                     renderStatusOptions(e.target, statusVal);
                     actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
                     aplicarColorFondo(`wrapper-${idBase}`, faseVal, statusVal);
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                     
-                    enviarAFirebase(idBase);
+                    // Solo guardamos o mostramos Modal COMPROMISO si no canceló la reasignación u otras cosas
+                    procesarCambio(idBase);
 
-                    // SI TERMINÓ SIENDO CUALQUIER VARIANTE DE ATRASO (Y NO ES COMPROMISO NI ENTREGADO), AUTOMATIZAR SIGUIENTE DÍA
-                    if (statusVal.includes('ATRASADO') && !statusVal.includes('ENTREGADO') && statusVal !== 'COMPROMISO ATRASADO') {
+                    // AUTOMATIZAR SIGUIENTE DÍA POR ATRASO
+                    if (statusVal.includes('ATRASADO') && !statusVal.includes('ENTREGA') && statusVal !== 'COMPROMISO ATRASADO') {
                         automatizarSiguienteDia(personaMatch, diaIdStr, idBase);
                     }
                 });
@@ -802,11 +1042,18 @@
 
                     actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
                     aplicarColorFondo(`wrapper-${idBase}`, dataServidor.fase || "", valServidorStatus);
+                    
+                    // Alimentar set de confirmados locales
+                    if (valServidorStatus === 'COMPROMISO' && dataServidor.texto) {
+                        compromisosConfirmados.add(`${idBase}-${dataServidor.texto}`);
+                    }
                 });
 
                 todasLasCeldas.forEach(celda => {
                     actualizarVisibilidadCelda(celda);
                 });
+
+                actualizarLeyendaDinamica(datosTablero);
             });
         }
     </script>
