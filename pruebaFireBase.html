@@ -87,7 +87,7 @@
 
         .celda-inputs { display: flex; flex-direction: column; gap: 6px; }
 
-        /* NUEVO: ESTILOS PARA EL CONTENEDOR DOBLE (Estado + Proyecto) */
+        /* ESTILOS DEL CONTENEDOR TRIPLE (Fase + Status + Proyecto) */
         .slot-wrapper {
             display: flex;
             flex-direction: column;
@@ -98,42 +98,50 @@
             transition: background-color 0.3s ease;
         }
         
-        /* Efecto focus simulado para el contenedor */
         .slot-wrapper:focus-within {
             outline: 2px solid #2196F3;
             border-color: #2196F3;
         }
 
-        /* Lista de Estados */
-        .select-estado {
-            border: none;
-            background: rgba(255, 255, 255, 0.4); /* Semitransparente para que tome el color de fondo */
-            font-size: 10px;
-            padding: 3px 5px;
-            outline: none;
-            color: #555;
-            font-weight: bold;
-            border-bottom: 1px dashed #ccc;
-            cursor: pointer;
+        .slot-header {
+            display: flex;
+            justify-content: space-between;
         }
 
-        /* Input de Texto (sin bordes porque el wrapper ya tiene borde) */
+        .select-fase, .select-status {
+            border: none;
+            background: transparent; /* Permite ver el color de fondo */
+            font-size: 10px;
+            padding: 4px 6px;
+            outline: none;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1; /* Toman el 50% del ancho cada una cuando están visibles */
+            transition: all 0.2s ease;
+        }
+
+        .select-fase { text-align: left; }
+        
+        .select-status {
+            text-align: right;
+            border-left: 1px dashed rgba(0,0,0,0.15); /* Separador sutil */
+        }
+
         .input-proyecto {
             border: none;
+            border-top: 1px dashed rgba(0,0,0,0.15); /* Línea que separa de los botones */
             width: 100%;
             padding: 6px;
             box-sizing: border-box;
             font-size: 12px;
             font-weight: bold;
-            background-color: transparent;
+            background-color: rgba(255, 255, 255, 0.4); /* Ligeramente translúcido para el color */
             color: #000;
             outline: none;
         }
         
-        .input-proyecto::placeholder {
-            color: #aaa;
-            font-weight: normal;
-        }
+        .input-proyecto::placeholder { color: #888; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -164,7 +172,6 @@
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
-        // Credenciales oficiales de tu proyecto Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAPRAy9kHU8gxt3SYYXKuG9xGNtlbI18HQ",
             authDomain: "seguimiento-proyectos-yar-yur.firebaseapp.com",
@@ -196,7 +203,6 @@
 
         let projectDatabase = [];
 
-        // FUNCIONES DE NORMALIZACIÓN Y ESTRUCTURA DEL JSON
         function normalizeTrelloData(rawData) { 
             let data = { ...rawData }; 
             if (!data.lists) data.lists = []; 
@@ -248,7 +254,6 @@
             });
         }
 
-        // FUNCIÓN QUE EXTRAE, DE-DUPLICA Y ORDENA LOS PROYECTOS DEL JSON (Incluyendo el Año)
         async function cargarProyectosDesdeJSON() {
             try {
                 estado.innerText = "Procesando historial JSON... ⏳";
@@ -305,13 +310,13 @@
                     estado.style.color = "#4CAF50";
                 }
             } catch (error) {
-                console.error("Error al procesar el archivo history_all.json:", error);
+                console.error("Error al procesar JSON:", error);
                 estado.innerText = "Error cargando archivo JSON 🔴";
                 estado.style.color = "#d32f2f";
             }
         }
 
-        // GENERACIÓN AUTOMÁTICA DE LA TABLA (AHORA CON CONTENEDOR DOBLE)
+        // GENERACIÓN DE LA TABLA Y SUS ELEMENTOS EN CASCADA
         function generarTabla() {
             let html = '<table>';
             html += '<tr><th></th>';
@@ -327,19 +332,28 @@
                     
                     for (let i = 0; i < maxCamposPorCelda; i++) {
                         const idUnico = `${persona}-${dia}-${i}`.replace(/\s|\//g, '-');
-                        const estiloDisplay = i === 0 ? 'flex' : 'none'; // Ahora es 'flex' porque es un wrapper
+                        const estiloDisplay = i === 0 ? 'flex' : 'none'; 
                         
                         html += `
                         <div class="slot-wrapper" id="wrapper-${idUnico}" style="display: ${estiloDisplay};">
-                            <select class="select-estado" id="estado-${idUnico}">
-                                <option value="">- Seleccionar Fase -</option>
-                                <option value="RENDIMIENTO">RENDIMIENTO</option>
-                                <option value="VISUAL">VISUAL</option>
-                                <option value="PLANO">PLANO</option>
-                                <option value="MUESTRA">MUESTRA</option>
-                                <option value="PRODUCCIÓN">PRODUCCIÓN</option>
-                            </select>
-                            <input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" placeholder="Escribe el proyecto...">
+                            <div class="slot-header">
+                                <select class="select-fase" id="fase-${idUnico}">
+                                    <option value="">- Fase -</option>
+                                    <option value="RENDIMIENTO">RENDIMIENTO</option>
+                                    <option value="VISUAL">VISUAL</option>
+                                    <option value="PLANO">PLANO</option>
+                                    <option value="MUESTRA">MUESTRA</option>
+                                    <option value="PRODUCCIÓN">PRODUCCIÓN</option>
+                                </select>
+                                <select class="select-status" id="status-${idUnico}" style="display: none;">
+                                    <option value="">- Status -</option>
+                                    <option value="EN PROCESO">EN PROCESO</option>
+                                    <option value="COMPROMISO">COMPROMISO</option>
+                                    <option value="ENTREGADO">ENTREGADO</option>
+                                    <option value="EN ESPERA">EN ESPERA</option>
+                                </select>
+                            </div>
+                            <input type="text" id="${idUnico}" class="input-proyecto" list="lista-proyectos" placeholder="Escribe el proyecto..." style="display: none;">
                         </div>`;
                     }
                     
@@ -353,22 +367,75 @@
             tablaContenedor.innerHTML = html;
         }
 
-        // FUNCIÓN PARA APLICAR EL COLOR DE FONDO ULTRA-CLARO
-        function aplicarColorFondo(wrapperId, estadoVal) {
+        // FUNCIÓN CENTRAL DE COLORES (Aplicada al Status)
+        function aplicarColorFondo(wrapperId, faseVal, statusVal) {
             const wrapper = document.getElementById(wrapperId);
             if (!wrapper) return;
 
-            switch(estadoVal) {
-                case 'RENDIMIENTO': wrapper.style.backgroundColor = '#e1f5fe'; break; // Azul ultra claro
-                case 'VISUAL': wrapper.style.backgroundColor = '#e0f2f1'; break;      // Aguamarina ultra claro
-                case 'PLANO': wrapper.style.backgroundColor = '#f3e5f5'; break;       // Morado ultra claro
-                case 'MUESTRA': wrapper.style.backgroundColor = '#fffde7'; break;     // Amarillo ultra claro
-                case 'PRODUCCIÓN': wrapper.style.backgroundColor = '#fff3e0'; break;  // Naranja ultra claro
-                default: wrapper.style.backgroundColor = '#ffffff';                   // Blanco por defecto
+            if (statusVal === 'ENTREGADO') {
+                if (faseVal === 'MUESTRA' || faseVal === 'PRODUCCIÓN') {
+                    wrapper.style.backgroundColor = '#4CAF50'; // Verde Intenso (Con buen contraste)
+                } else {
+                    wrapper.style.backgroundColor = '#C8E6C9'; // Verde Claro
+                }
+            } else if (statusVal === 'EN ESPERA') {
+                wrapper.style.backgroundColor = '#F8BBD0';     // Rosado
+            } else {
+                // EN PROCESO, COMPROMISO o Sin seleccionar
+                wrapper.style.backgroundColor = '#ffffff';     // Blanco
             }
         }
 
-        // CONTROL DE SESIÓN Y FLUJO DE PANTALLAS
+        // LÓGICA DE APARICIÓN EN CASCADA INTERNA DEL SLOT
+        function actualizarVisibilidadInternaSlot(wrapperId) {
+            const wrapper = document.getElementById(wrapperId);
+            if (!wrapper) return;
+            
+            const fase = wrapper.querySelector('.select-fase');
+            const status = wrapper.querySelector('.select-status');
+            const input = wrapper.querySelector('.input-proyecto');
+
+            if (fase.value !== "") {
+                status.style.display = 'block';
+                if (status.value !== "") {
+                    input.style.display = 'block';
+                } else {
+                    input.style.display = 'none';
+                }
+            } else {
+                status.style.display = 'none';
+                input.style.display = 'none';
+            }
+        }
+
+        // LÓGICA DE EXPANSIÓN DINÁMICA DE LA CELDA
+        function actualizarVisibilidadCelda(celdaDiv) {
+            const wrappers = Array.from(celdaDiv.querySelectorAll('.slot-wrapper'));
+            let ultimoLleno = -1;
+
+            wrappers.forEach((wrapper, index) => {
+                const fase = wrapper.querySelector('.select-fase');
+                const status = wrapper.querySelector('.select-status');
+                const input = wrapper.querySelector('.input-proyecto');
+                
+                // Si alguno de los 3 campos tiene datos, el espacio se considera en uso
+                if (fase.value !== '' || status.value !== '' || input.value.trim() !== '') {
+                    ultimoLleno = index;
+                }
+            });
+
+            const mostrarHasta = ultimoLleno + 1;
+
+            wrappers.forEach((wrapper, index) => {
+                if (index <= mostrarHasta && index < maxCamposPorCelda) {
+                    wrapper.style.display = 'flex';
+                } else {
+                    wrapper.style.display = 'none';
+                }
+            });
+        }
+
+        // FLUJO DE INICIO DE SESIÓN
         btnLogin.addEventListener('click', () => signInWithPopup(auth, provider).catch(error => console.error(error)));
         btnLogout.addEventListener('click', () => signOut(auth));
 
@@ -389,50 +456,26 @@
             }
         });
 
-        // CONTROL DINÁMICO DE VISIBILIDAD (Considera lleno si hay texto O si hay un estado seleccionado)
-        function actualizarVisibilidadCelda(celdaDiv) {
-            const wrappers = Array.from(celdaDiv.querySelectorAll('.slot-wrapper'));
-            let ultimoLleno = -1;
-
-            wrappers.forEach((wrapper, index) => {
-                const input = wrapper.querySelector('.input-proyecto');
-                const select = wrapper.querySelector('.select-estado');
-                // Si el input tiene texto, o si el select tiene una opción elegida, lo consideramos "en uso"
-                if (input.value.trim() !== '' || select.value !== '') {
-                    ultimoLleno = index;
-                }
-            });
-
-            const mostrarHasta = ultimoLleno + 1;
-
-            wrappers.forEach((wrapper, index) => {
-                if (index <= mostrarHasta && index < maxCamposPorCelda) {
-                    wrapper.style.display = 'flex';
-                } else {
-                    wrapper.style.display = 'none';
-                }
-            });
-        }
-
-        // SINCRONIZACIÓN DE AMBOS DATOS CON FIREBASE
+        // SINCRONIZACIÓN MAESTRA CON FIREBASE (Fase + Status + Texto)
         function iniciarSincronizacion() {
             const todosLosInputs = document.querySelectorAll('.input-proyecto');
-            const todosLosSelects = document.querySelectorAll('.select-estado');
+            const todasLasFases = document.querySelectorAll('.select-fase');
+            const todosLosStatus = document.querySelectorAll('.select-status');
             const todasLasCeldas = document.querySelectorAll('.celda-inputs');
 
-            // Función central para enviar datos a Firebase
             function enviarAFirebase(idBase) {
                 const textoVal = document.getElementById(idBase).value;
-                const estadoVal = document.getElementById(`estado-${idBase}`).value;
+                const faseVal = document.getElementById(`fase-${idBase}`).value;
+                const statusVal = document.getElementById(`status-${idBase}`).value;
                 
-                // Guardamos un pequeño objeto con ambas piezas de información
                 set(ref(db, `tableroProyectos/${idBase}`), {
                     texto: textoVal,
-                    estado: estadoVal
+                    fase: faseVal,
+                    status: statusVal
                 });
             }
 
-            // Listeners para los inputs de texto
+            // Cuando escribimos texto
             todosLosInputs.forEach(input => {
                 input.addEventListener('input', (e) => {
                     enviarAFirebase(e.target.id);
@@ -440,38 +483,66 @@
                 });
             });
 
-            // Listeners para los selects de estado
-            todosLosSelects.forEach(select => {
-                select.addEventListener('change', (e) => {
-                    const idBase = e.target.id.replace('estado-', '');
-                    enviarAFirebase(idBase);
-                    aplicarColorFondo(`wrapper-${idBase}`, e.target.value);
+            // Cuando cambiamos la Fase
+            todasLasFases.forEach(selectFase => {
+                selectFase.addEventListener('change', (e) => {
+                    const idBase = e.target.id.replace('fase-', '');
+                    
+                    // Lógica local visual inmediata
+                    actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
+                    const statusVal = document.getElementById(`status-${idBase}`).value;
+                    aplicarColorFondo(`wrapper-${idBase}`, e.target.value, statusVal);
                     actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
+                    
+                    // Enviar al servidor
+                    enviarAFirebase(idBase);
                 });
             });
 
-            // Recibiendo datos de Firebase
+            // Cuando cambiamos el Status
+            todosLosStatus.forEach(selectStatus => {
+                selectStatus.addEventListener('change', (e) => {
+                    const idBase = e.target.id.replace('status-', '');
+                    const faseVal = document.getElementById(`fase-${idBase}`).value;
+                    
+                    // Lógica local visual inmediata
+                    actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
+                    aplicarColorFondo(`wrapper-${idBase}`, faseVal, e.target.value);
+                    actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
+                    
+                    // Enviar al servidor
+                    enviarAFirebase(idBase);
+                });
+            });
+
+            // Cuando llegan datos de los demás
             onValue(tableroRef, (snapshot) => {
                 const datosTablero = snapshot.val() || {};
 
                 todosLosInputs.forEach(input => {
                     const idBase = input.id;
-                    const dataServidor = datosTablero[idBase] || { texto: "", estado: "" };
+                    const dataServidor = datosTablero[idBase] || { texto: "", fase: "", status: "" };
                     
-                    const selectAsociado = document.getElementById(`estado-${idBase}`);
+                    const selectFase = document.getElementById(`fase-${idBase}`);
+                    const selectStatus = document.getElementById(`status-${idBase}`);
 
-                    // Actualizar texto si no estamos escribiendo en él
+                    // Actualizar si no estamos encima del elemento actual
                     if (input.value !== dataServidor.texto && document.activeElement !== input) {
-                        input.value = dataServidor.texto;
+                        input.value = dataServidor.texto || "";
+                    }
+                    if (selectFase.value !== dataServidor.fase && document.activeElement !== selectFase) {
+                        selectFase.value = dataServidor.fase || "";
+                    }
+                    if (selectStatus.value !== dataServidor.status && document.activeElement !== selectStatus) {
+                        selectStatus.value = dataServidor.status || "";
                     }
 
-                    // Actualizar estado (y color) si no estamos eligiendo en él
-                    if (selectAsociado.value !== dataServidor.estado && document.activeElement !== selectAsociado) {
-                        selectAsociado.value = dataServidor.estado || "";
-                        aplicarColorFondo(`wrapper-${idBase}`, dataServidor.estado);
-                    }
+                    // Actualizamos lo visual basado en los datos recién llegados
+                    actualizarVisibilidadInternaSlot(`wrapper-${idBase}`);
+                    aplicarColorFondo(`wrapper-${idBase}`, dataServidor.fase || "", dataServidor.status || "");
                 });
 
+                // Finalmente expandimos la cuadrícula si alguien más usó un espacio extra
                 todasLasCeldas.forEach(celda => {
                     actualizarVisibilidadCelda(celda);
                 });
