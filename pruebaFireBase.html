@@ -16,7 +16,6 @@
             color: #888;
         }
         
-        /* Contenedor de Login */
         #login-container {
             display: flex;
             flex-direction: column;
@@ -26,20 +25,18 @@
             text-align: center;
         }
         
-        /* Contenedor Principal de la App */
         #app-container {
-            display: none; /* Oculto hasta iniciar sesión */
+            display: none;
             flex-direction: column;
             align-items: center;
             width: 100%;
             height: 100%;
             padding: 20px;
             box-sizing: border-box;
-            background-color: #f5f5f5; /* Fondo claro para la tabla */
+            background-color: #f5f5f5;
             color: #333;
         }
 
-        /* Barra superior de info de usuario */
         #header-app {
             display: flex;
             justify-content: space-between;
@@ -52,7 +49,6 @@
         #usuario-info { font-size: 16px; font-weight: bold; color: #333; }
         #estado { font-size: 14px; font-weight: bold; }
         
-        /* Estilos de botones */
         button {
             padding: 10px 20px;
             font-size: 16px;
@@ -62,21 +58,9 @@
             font-weight: bold;
             transition: background-color 0.2s;
         }
-        #btn-login {
-            background-color: white;
-            color: #444;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
+        #btn-login { background-color: white; color: #444; display: flex; align-items: center; gap: 10px; margin-top: 20px; }
         #btn-login:hover { background-color: #eee; }
-        #btn-logout {
-            background-color: #d32f2f;
-            color: white;
-            padding: 8px 15px;
-            font-size: 14px;
-        }
+        #btn-logout { background-color: #d32f2f; color: white; padding: 8px 15px; font-size: 14px; }
         #btn-logout:hover { background-color: #b71c1c; }
 
         /* ESTILOS DE LA TABLA */
@@ -97,17 +81,11 @@
             border: 1px solid #ddd;
             padding: 5px;
             text-align: center;
-            vertical-align: top; /* Alinea los inputs hacia arriba */
+            vertical-align: top;
         }
 
-        th {
-            background-color: #fff;
-            color: black;
-            font-size: 18px;
-            padding: 15px;
-        }
+        th { background-color: #fff; color: black; font-size: 18px; padding: 15px; }
 
-        /* Columna de nombres a la izquierda */
         .columna-nombre {
             background-color: black;
             color: white;
@@ -117,11 +95,16 @@
             width: 10%;
         }
 
-        /* Inputs de la cuadrícula */
+        /* Contenedor flexible para los inputs dentro de cada celda */
+        .celda-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 4px; /* Espacio entre los campos de texto */
+        }
+
         .input-proyecto {
             width: 100%;
             padding: 6px;
-            margin-bottom: 4px;
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 2px;
@@ -129,16 +112,12 @@
             font-weight: bold;
             background-color: #fff;
             color: #000;
+            transition: all 0.2s ease;
         }
 
         .input-proyecto:focus {
             outline: 2px solid #2196F3;
             border-color: #2196F3;
-        }
-        
-        /* Ocultar el último margen del input de cada celda */
-        .input-proyecto:last-child {
-            margin-bottom: 0;
         }
     </style>
 </head>
@@ -159,7 +138,6 @@
             <div id="estado" style="color: #f57c00;">Sincronizando...</div>
             <button id="btn-logout">Cerrar sesión</button>
         </div>
-        
         <div id="tabla-contenedor"></div>
     </div>
 
@@ -168,7 +146,6 @@
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
-        // Tus credenciales intactas
         const firebaseConfig = {
             apiKey: "AIzaSyAPRAy9kHU8gxt3SYYXKuG9xGNtlbI18HQ",
             authDomain: "seguimiento-proyectos-yar-yur.firebaseapp.com",
@@ -185,7 +162,6 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
         
-        // Referencia principal donde se guardará todo el tablero
         const tableroRef = ref(db, 'tableroProyectos');
 
         const loginContainer = document.getElementById('login-container');
@@ -196,37 +172,35 @@
         const estado = document.getElementById('estado');
         const tablaContenedor = document.getElementById('tabla-contenedor');
 
-        // DATOS PARA GENERAR LA TABLA
         const dias = ['lunes 18/05', 'martes 19/05', 'miércoles 20/05', 'jueves 21/05', 'viernes 22/05'];
         const personas = ['GUILLE', 'DAVID', 'YARELLY', 'EIDER', 'ANDREA', 'ANGEL', 'CARELIS', 'VIRLEY'];
-        const numCamposPorCelda = 4;
+        
+        // El número máximo de proyectos que puede tener una persona por día. 
+        // 10 es un buen número, están ahí pero invisibles hasta que se necesiten.
+        const maxCamposPorCelda = 10; 
 
-        // FUNCIÓN PARA CREAR LA TABLA DINÁMICAMENTE
         function generarTabla() {
             let html = '<table>';
             
-            // Fila de encabezados (Días)
-            html += '<tr><th></th>'; // Espacio vacío arriba de los nombres
-            dias.forEach(dia => {
-                html += `<th>${dia}</th>`;
-            });
+            html += '<tr><th></th>';
+            dias.forEach(dia => html += `<th>${dia}</th>`);
             html += '</tr>';
 
-            // Filas de personas
             personas.forEach(persona => {
                 html += '<tr>';
                 html += `<td class="columna-nombre">${persona}</td>`;
                 
-                // Celdas de los días
                 dias.forEach(dia => {
-                    html += `<td>`;
-                    // Crear 4 inputs por cada celda
-                    for (let i = 0; i < numCamposPorCelda; i++) {
-                        // Creamos un ID único, ej: DAVID-lunes 18/05-2
-                        const idUnico = `${persona}-${dia}-${i}`.replace(/\s|\//g, '-'); // Reemplaza espacios y barras para evitar errores
-                        html += `<input type="text" id="${idUnico}" class="input-proyecto">`;
+                    html += `<td><div class="celda-inputs" id="celda-${persona}-${dia.replace(/\s|\//g, '-')}">`;
+                    
+                    for (let i = 0; i < maxCamposPorCelda; i++) {
+                        const idUnico = `${persona}-${dia}-${i}`.replace(/\s|\//g, '-');
+                        // Por defecto ocultamos todos los inputs que no sean el primero (index 0)
+                        const estiloDisplay = i === 0 ? 'block' : 'none';
+                        html += `<input type="text" id="${idUnico}" class="input-proyecto" style="display: ${estiloDisplay};">`;
                     }
-                    html += `</td>`;
+                    
+                    html += `</div></td>`;
                 });
                 
                 html += '</tr>';
@@ -236,23 +210,18 @@
             tablaContenedor.innerHTML = html;
         }
 
-        // ACCIONES DE SESIÓN
-        btnLogin.addEventListener('click', () => {
-            signInWithPopup(auth, provider).catch(error => console.error(error));
-        });
-
+        // Lógica de Autenticación
+        btnLogin.addEventListener('click', () => signInWithPopup(auth, provider).catch(error => console.error(error)));
         btnLogout.addEventListener('click', () => signOut(auth));
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loginContainer.style.display = 'none';
                 appContainer.style.display = 'flex';
-                document.body.style.backgroundColor = '#f5f5f5'; // Cambia fondo general
+                document.body.style.backgroundColor = '#f5f5f5';
                 nombreUsuarioSpan.innerText = user.displayName;
                 
-                // 1. Generamos la tabla en la interfaz
                 generarTabla();
-                // 2. Iniciamos la sincronización con Firebase
                 iniciarSincronizacion();
             } else {
                 loginContainer.style.display = 'flex';
@@ -261,38 +230,65 @@
             }
         });
 
-        // LÓGICA DE SINCRONIZACIÓN (160 CAMPOS)
+        // NUEVA FUNCIÓN MÁGICA: Controla cuántos campos se muestran en una celda
+        function actualizarVisibilidadCelda(celdaDiv) {
+            const inputs = Array.from(celdaDiv.querySelectorAll('.input-proyecto'));
+            let ultimoLleno = -1;
+
+            // Revisamos cuál es el último input que tiene texto escrito
+            inputs.forEach((input, index) => {
+                if (input.value.trim() !== '') {
+                    ultimoLleno = index;
+                }
+            });
+
+            // Queremos mostrar todos hasta el último lleno, MÁS UNO vacío
+            const mostrarHasta = ultimoLleno + 1;
+
+            inputs.forEach((input, index) => {
+                // Si el índice está dentro de los que debemos mostrar, lo mostramos
+                if (index <= mostrarHasta && index < maxCamposPorCelda) {
+                    input.style.display = 'block';
+                } else {
+                    input.style.display = 'none';
+                }
+            });
+        }
+
         function iniciarSincronizacion() {
             const todosLosInputs = document.querySelectorAll('.input-proyecto');
+            const todasLasCeldas = document.querySelectorAll('.celda-inputs');
 
-            // CUANDO TÚ ESCRIBES EN CUALQUIER CAMPO
+            // Cuando tú escribes localmente
             todosLosInputs.forEach(input => {
                 input.addEventListener('input', (e) => {
-                    // Guardamos específicamente en el ID de ese input dentro de 'tableroProyectos'
+                    // Guardamos en Firebase
                     set(ref(db, `tableroProyectos/${e.target.id}`), e.target.value);
+                    
+                    // Actualizamos la celda local inmediatamente para que aparezca el nuevo campo si es necesario
+                    actualizarVisibilidadCelda(e.target.closest('.celda-inputs'));
                 });
             });
 
-            // CUANDO ALGUIEN MÁS ESCRIBE (O AL ENTRAR A LA PÁGINA)
+            // Cuando llegan datos de Firebase (o al cargar la página)
             onValue(tableroRef, (snapshot) => {
                 estado.innerText = "Conectado en tiempo real 🟢";
                 estado.style.color = "#4CAF50";
                 
                 const datosTablero = snapshot.val() || {};
 
+                // 1. Llenamos los textos
                 todosLosInputs.forEach(input => {
                     const textoServidor = datosTablero[input.id] || "";
-                    
-                    // Solo actualizamos el input si el texto es distinto al servidor 
-                    // Y si el usuario NO está escribiendo en él en este momento (evita saltos del cursor)
                     if (input.value !== textoServidor && document.activeElement !== input) {
                         input.value = textoServidor;
                     }
                 });
-            }, (error) => {
-                console.error("Error:", error);
-                estado.innerText = "Error de conexión 🔴";
-                estado.style.color = "#d32f2f";
+
+                // 2. Evaluamos la visibilidad de cada celda basándonos en los nuevos datos
+                todasLasCeldas.forEach(celda => {
+                    actualizarVisibilidadCelda(celda);
+                });
             });
         }
     </script>
