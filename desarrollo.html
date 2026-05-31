@@ -1,2185 +1,1179 @@
 <!DOCTYPE html>
-
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Workflows Yar-Yur</title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
     
-
     <style>
-
         /* --- DEFINICIÓN DE VARIABLES DE COLOR (DINÁMICAS) --- */
-
         :root {
-
             /* Vendedores (Fondo Pastel / Texto Intenso) */
-
             --bg-andrea: #fff5f9; --tx-andrea: #c41d7f;
-
             --bg-milka: #fff1f0;  --tx-milka: #cf1322;
-
             --bg-zaida: #fff7e6;  --tx-zaida: #d46b08;
-
             --bg-lorena: #e6fffb; --tx-lorena: #006d75;
-
             --bg-enmary: #f9f0ff; --tx-enmary: #531dab;
-
             --bg-richard: #feffe6; --tx-richard: #ad8b00;
-
             --bg-mario: #f6ffed;  --tx-mario: #389e0d;
-
             --bg-veronica: #e6f7ff; --tx-veronica: #096dd9; /* Azul claro pastel */
-
             --bg-jose: #b5d5ff; --tx-jose: #003a8c; /* Azul oscuro pastel */
-
             --bg-default: #ffffff; --tx-default: #333333;
 
-
-
             /* Diseñadores - Badges en Tablas */
-
             --bg-guillermo: #f3e5f5; --tx-guillermo: #6f42c1;
-
             --bg-david: #d4edda;     --tx-david: #28a745;
-
             --bg-angel: #f8d7da;     --tx-angel: #800020;
-
             --bg-yarelly: #fcc2d7;   --tx-yarelly: #e83e8c; /* El antiguo color de Carelis */
-
             --bg-virley: #fff3cd;    --tx-virley: #d4ac0d;
-
             --bg-eider: #ffe5d0;     --tx-eider: #fd7e14;
-
             --bg-aleska: #fff9db;    --tx-aleska: #997b00;
-
             --bg-andreat: #d0ebff;   --tx-andreat: #084298; /* Azul claro */
-
             --bg-carelis: #ffe8f0;   --tx-carelis: #d6336c; /* Rosado más claro y pastel */
 
-
-
             /* Fases Intensas */
-
             --bg-produccion: #cf4500; --bg-muestras: #fd7e14; --bg-diseno: #0d6efd; --bg-espera: #d0bfff;
-
             --bg-compras: #20c997; --bg-retirar: #d9a406; --bg-rectificaciones: #495057; --bg-instalaciones: #d63384;
-
             --bg-despacho: #6f42c1; --bg-facturar: #6610f2; --bg-ventas: #198754; --bg-externos: #adb5bd;
-
             --bg-terminado: #212529; --bg-anulado: #e9ecef;
-
             
-
             /* UI General */
-
             --bg-body: #f0f2f5;
-
             --chrome-inactive: #dfe1e5;
-
         }
-
-
 
         body { background-color: var(--bg-body); padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.8rem; overflow-x: hidden; }
-
         
-
         /* Contenedor principal que recibe el zoom */
-
         #app-wrapper { transition: zoom 0.2s ease; }
 
-
-
         /* --- LOADER PANTALLA COMPLETA --- */
-
         #startup-overlay { position: fixed; inset: 0; background-color: #ffffff; z-index: 10500; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
-
         .bouncing-dots { display: flex; gap: 8px; justify-content: center; }
-
         .bouncing-dots span { width: 14px; height: 14px; background-color: #ffc107; border-radius: 50%; animation: bounce 0.5s infinite alternate; }
-
         .bouncing-dots span:nth-child(2) { animation-delay: 0.15s; }
-
         .bouncing-dots span:nth-child(3) { animation-delay: 0.3s; }
-
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
-
         
-
         #enter-btn-container { display: none; animation: fadeIn 0.8s ease-in-out; }
-
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-
         
-
         /* --- ANIMACIÓN PULSO/REBOTE PARA EL BOTÓN --- */
-
         @keyframes pulse-bounce {
-
             0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3); }
-
             50% { transform: translateY(-8px) scale(1.05); box-shadow: 0 15px 30px rgba(255, 193, 7, 0.6); }
-
         }
-
-
 
         .btn-workflows { 
-
             padding: 15px 50px; font-size: 1.4rem; font-weight: 900; letter-spacing: 2px; line-height: 1.2; 
-
             text-align: center; border-radius: 50px; background-color: #ffc107; color: #111; border: none; 
-
             box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3); transition: all 0.2s ease;
-
             animation: pulse-bounce 1.5s infinite ease-in-out; 
-
         }
-
         .btn-workflows:hover { 
-
             animation-play-state: paused; 
-
             transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 193, 7, 0.5); 
-
             background-color: #e0a800; color: #000; 
-
         }
-
-
 
         /* --- PANTALLA INTERMEDIA DE ORIENTACIÓN --- */
-
         #orientation-overlay { position: fixed; inset: 0; background-color: #f8f9fa; z-index: 11000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
-
         .phone-icon { width: 60px; height: 100px; border: 4px solid #343a40; border-radius: 10px; position: relative; animation: rotatePhone 2s infinite ease-in-out; }
-
         .phone-icon::after { content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 20px; height: 4px; background: #343a40; border-radius: 2px; }
-
         @keyframes rotatePhone { 0%, 20% { transform: rotate(0deg); } 80%, 100% { transform: rotate(-90deg); } }
 
-
-
         /* --- NUEVO HEADER UNIFICADO --- */
-
         .top-bar-container { background-color: white; border-bottom: 1px solid #ccc; display: flex; align-items: flex-end; padding: 8px 15px 0 15px; height: 55px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; gap: 15px; }
-
         .logo-box img { height: 35px; margin-bottom: 8px; }
 
-
-
         /* --- CONTROLES DE ZOOM --- */
-
         .zoom-controls { margin-bottom: 8px; }
-
         .btn-zoom { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; font-size: 1.2rem; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; padding: 0; }
-
         .btn-zoom:hover { background-color: #e9ecef; color: #212529; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-
         .btn-zoom:active { transform: scale(0.95); }
 
-
-
         /* --- PESTAÑAS ESTILO CHROME --- */
-
         .chrome-tabs { display: flex; align-items: flex-end; list-style: none; margin: 0; padding: 0; flex-grow: 1; overflow-x: auto; scrollbar-width: none; }
-
         .chrome-tabs::-webkit-scrollbar { display: none; }
-
         .nav-item { margin-right: -10px; position: relative; z-index: 1; }
-
         .chrome-link { display: block; padding: 8px 25px; background-color: var(--chrome-inactive); color: #5f6368; font-weight: 600; font-size: 0.8rem; text-decoration: none; border-radius: 12px 12px 0 0; border: 1px solid #ccc; border-bottom: none; position: relative; transition: all 0.2s ease; white-space: nowrap; box-shadow: inset 0 -5px 10px rgba(0,0,0,0.02); transform: perspective(100px) rotateX(2deg); margin-bottom: 0px; }
-
         .chrome-link:hover { background-color: #e8eaed; z-index: 5; }
-
         .chrome-link.active { background-color: var(--bg-body); color: #202124; font-weight: 800; z-index: 10; padding-top: 10px; border-bottom: 1px solid var(--bg-body); box-shadow: 0 -2px 5px rgba(0,0,0,0.1); }
-
         .nav-item::after { content: absolute; right: 12px; top: 25%; height: 50%; width: 1px; background: #9aa0a6; z-index: 11; }
-
         .nav-item:hover::after, .nav-item:has(.active)::after, .nav-item:last-child::after { display: none; }
-
         
-
         .btn-tab-plus { font-size: 1rem; padding: 5px 20px; color: #495057; }
-
         .btn-tab-plus:hover { color: #ffc107; background-color: #343a40; }
 
-
-
         /* --- BARRA DE FILTROS INFERIOR --- */
-
         .bottom-filter-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background-color: white; border-top: 1px solid #dee2e6; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; gap: 20px; z-index: 1000; padding: 0 20px; }
-
         .search-client-input { border-radius: 30px; padding: 8px 20px; border: 1px solid #ced4da; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); width: 250px; font-size: 0.9rem; }
-
         .search-client-input:focus { outline: none; border-color: #86b7fe; box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25); }
-
         .dropdown-filter-btn { border-radius: 30px; padding: 6px 20px; background-color: white; border: 1px solid #ced4da; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; min-width: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-
         .dropdown-menu-filter { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: none; padding: 8px; max-height: 300px; overflow-y: auto; }
-
         .dropdown-item-filter { border-radius: 8px; padding: 6px 12px; transition: background-color: 0.2s; cursor: pointer; display: flex; align-items: center; }
-
         .dropdown-item-filter:hover { background-color: #f8f9fa; }
-
         .update-info-bottom { font-size: 0.75rem; color: #6c757d; line-height: 1.2; border-left: 2px solid #e9ecef; padding-left: 15px; margin-left: 10px; }
 
-
-
         /* --- CONTENIDO PRINCIPAL --- */
-
         .main-content-wrapper { padding: 15px; padding-bottom: 80px; overflow-x: auto; } 
-
         .fixed-grid-container { min-width: 950px; }
-
         
-
         .dashboard-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow: hidden; height: 100%; }
-
         .card-header-large { background-color: white; color: #1a1a1a; padding: 12px 15px; font-size: 1.3rem; font-weight: 900; text-transform: uppercase; text-align: center; border-bottom: 3px solid #eaeff5; display: flex; justify-content: center; align-items: center; position: relative; letter-spacing: 0.5px; }
-
         .header-counter { position: absolute; right: 20px; color: #adb5bd; background-color: transparent; font-size: 1.4rem; font-weight: 800; border: none; }
 
-
-
         /* --- TABLAS --- */
-
         .table-sticky-header thead th { position: sticky; top: 55px; background-color: #ffffff; color: #6c757d; border-bottom: 2px solid #dee2e6; z-index: 2; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 10px 4px !important; }
-
         .table-full-height { min-height: calc(100vh - 200px); height: auto; background-color: white; padding-bottom: 10px; }
-
         .table-quadrant-height { min-height: 400px; height: auto; background-color: white; padding-bottom: 10px; }
-
         .table-limit-15 { max-height: 500px; overflow-y: auto; }
-
         .table-limit-15 thead th { top: 0 !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-
-
         tr.project-row { cursor: pointer; transition: background-color 0.1s; }
-
         tr.project-row:hover td { filter: brightness(0.97); }
-
         .row-andrea td { background-color: var(--bg-andrea) !important; color: var(--tx-andrea); }
-
         .row-milka td { background-color: var(--bg-milka) !important; color: var(--tx-milka); }
-
         .row-zaida td { background-color: var(--bg-zaida) !important; color: var(--tx-zaida); }
-
         .row-lorena td { background-color: var(--bg-lorena) !important; color: var(--tx-lorena); }
-
         .row-enmary td { background-color: var(--bg-enmary) !important; color: var(--tx-enmary); }
-
         .row-richard td { background-color: var(--bg-richard) !important; color: var(--tx-richard); }
-
         .row-mario td { background-color: var(--bg-mario) !important; color: var(--tx-mario); }
-
         .row-veronica td { background-color: var(--bg-veronica) !important; color: var(--tx-veronica); }
-
         .row-jose td { background-color: var(--bg-jose) !important; color: var(--tx-jose); }
-
         .row-default td { background-color: var(--bg-default); color: var(--tx-default); }
-
-
 
         tr.bg-blink-active td { background-color: #ffcccc !important; color: #cc0000 !important; transition: all 0.2s ease-in-out; }
 
-
-
         .badge-pill { padding: 4px 10px; font-size: 0.75rem; font-weight: bold; margin-right: 2px; }
 
-
-
         .badge-seller-base { border: 1px solid transparent; letter-spacing: 0.5px; }
-
         .badge-andrea { background-color: var(--bg-andrea); color: var(--tx-andrea); } 
-
         .badge-milka { background-color: var(--bg-milka); color: var(--tx-milka); } 
-
         .badge-zaida { background-color: var(--bg-zaida); color: var(--tx-zaida); }
-
         .badge-lorena { background-color: var(--bg-lorena); color: var(--tx-lorena); } 
-
         .badge-enmary { background-color: var(--bg-enmary); color: var(--tx-enmary); } 
-
         .badge-richard { background-color: var(--bg-richard); color: var(--tx-richard); }
-
         .badge-mario { background-color: var(--bg-mario); color: var(--tx-mario); } 
-
         .badge-veronica { background-color: var(--bg-veronica); color: var(--tx-veronica); } 
-
         .badge-jose { background-color: var(--bg-jose); color: var(--tx-jose); } 
-
         .badge-default { background-color: var(--bg-default); color: var(--tx-default); border: 1px solid #ccc; }
 
-
-
         .badge-designer-base { border: 1px solid transparent; letter-spacing: 0.5px; }
-
         .badge-des-guillermo { background-color: var(--bg-guillermo); color: var(--tx-guillermo); border-color: var(--tx-guillermo); }
-
         .badge-des-david { background-color: var(--bg-david); color: var(--tx-david); border-color: var(--tx-david); }
-
         .badge-des-angel { background-color: var(--bg-angel); color: var(--tx-angel); border-color: var(--tx-angel); }
-
         .badge-des-yarelly { background-color: var(--bg-yarelly); color: var(--tx-yarelly); border-color: var(--tx-yarelly); }
-
         .badge-des-virley { background-color: var(--bg-virley); color: var(--tx-virley); border-color: var(--tx-virley); }
-
         .badge-des-eider { background-color: var(--bg-eider); color: var(--tx-eider); border-color: var(--tx-eider); }
-
         .badge-des-aleska { background-color: var(--bg-aleska); color: var(--tx-aleska); border-color: var(--tx-aleska); }
-
         .badge-des-andreat { background-color: var(--bg-andreat); color: var(--tx-andreat); border-color: var(--tx-andreat); }
-
         .badge-des-carelis { background-color: var(--bg-carelis); color: var(--tx-carelis); border-color: var(--tx-carelis); }
-
         .badge-des-default { background-color: #f0f0f0; color: #666; border-color: #ccc; }
 
-
-
         th, td { vertical-align: middle !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-color: #f0f0f0; }
-
         .col-desc { white-space: normal; line-height: 1.2; }
-
         
-
         td.check-cell-active { background-color: #8ad19c !important; color: white !important; cursor: pointer; transition: transform 0.1s; }
-
         td.check-cell-active .check-icon { color: white !important; font-size: 1.2em; font-weight: bold; }
-
         td.check-cell-inactive { cursor: pointer; transition: background-color 0.1s; }
-
         td.check-cell-inactive .check-icon { color: #8ad19c; font-size: 1.2em; font-weight: bold; }
-
         td.check-cell-active:hover, td.check-cell-inactive:hover { filter: brightness(0.85); transform: scale(1.05); }
 
-
-
         /* --- ESTILOS DEL CALENDARIO, TOOLTIPS Y CINTAS IZQUIERDAS --- */
-
         .calendar-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; padding-bottom: 20px; }
-
         .calendar-month { width: 100%; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; min-height: 240px; }
-
         .calendar-header { background-color: #ffffff; color: #adb5bd; text-align: center; padding: 10px; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(0,0,0,0.05); }
-
         .calendar-days-name { display: grid; grid-template-columns: repeat(7, 1fr); background: rgba(255,255,255,0.8); border-bottom: 1px solid rgba(0,0,0,0.05); text-align: center; font-size: 0.8rem; font-weight: 800; color: #ced4da; padding: 8px 0; }
-
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 10px; gap: 5px; }
-
         
-
         .day-cell { height: 40px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; border-radius: 8px; color: #999; font-weight: 500; cursor: default; transition: all 0.2s ease; border: 1px solid transparent; }
-
         .day-active { font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer !important; }
-
         .day-active:hover { transform: scale(1.1); z-index: 10; }
-
         .day-dimmed { color: rgba(0,0,0,0.1) !important; font-weight: normal !important; background-color: transparent !important; border-color: transparent !important; }
 
-
-
         .check-day-cell { position: relative; height: 46px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 4px; font-size: 0.85rem; border-radius: 6px; font-weight: bold; cursor: help; border: 1px solid transparent; transition: all 0.2s; }
-
         .check-day-cell:hover { transform: scale(1.08); z-index: 5; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
-
         
-
         .day-0-checks { background-color: #f1f3f5; color: #adb5bd; }
-
         .day-partial-checks { background-color: #8ad19c; color: white; box-shadow: 0 2px 4px rgba(138,209,156,0.3); } 
-
         .day-full-checks { background-color: #28a745; color: white; box-shadow: 0 2px 4px rgba(40,167,69,0.4); } 
 
-
-
         .tiny-checks-container { position: absolute; bottom: 3px; width: 100%; display: flex; justify-content: space-evenly; padding: 0 4px; }
-
         .tiny-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
-
         .tiny-dot-active { background-color: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-
         .tiny-dot-inactive { background-color: rgba(0,0,0,0.1); }
-
         .day-0-checks .tiny-dot-inactive { background-color: #dee2e6; }
-
-
 
         .tooltip-inner { text-align: left; max-width: 200px; padding: 8px 12px; font-size: 0.8rem; border-radius: 6px; background-color: #343a40; }
 
-
-
         .ribbon-container { display: flex; flex-direction: column; gap: 12px; padding-right: 5px; }
-
         .ribbon-item { position: relative; background: #fff; padding: 12px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.3s ease; }
-
         .ribbon-item:hover { transform: translateX(3px); box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
-
         .ribbon-hidden { display: none; }
-
         .ribbon-title { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; line-height: 1.1; text-shadow: 0 1px 2px rgba(255,255,255,0.3); }
-
         .ribbon-duration { font-size: 1.4rem; font-weight: 800; margin-bottom: 2px; line-height: 1; }
-
         .ribbon-period { font-size: 0.7rem; opacity: 0.8; font-weight: 600; border-top: 1px solid rgba(0,0,0,0.1); margin-top: 6px; padding-top: 4px; display: inline-block; width: 100%; }
 
-
-
         /* --- NUEVO SISTEMA DE MODALES (CENTRADO Y ESCALABLE) --- */
-
         .custom-modal-size {
-
             max-width: 90vw !important; /* Mantiene la ventana siempre al 90% del ancho */
-
             margin: 1.75rem auto;
-
         }
-
         
-
         .custom-modal-size .modal-content {
-
             height: 85vh; /* Mantiene la ventana siempre al 85% de alto */
-
             overflow: hidden; /* Oculta lo que se desborde al hacer zoom */
-
             border-radius: 12px;
-
             border: none;
-
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-
             transition: background-color 0.3s ease;
-
             position: relative; /* <-- NUEVO: Necesario para que el absolute interno funcione bien */
-
         }
-
-
 
         /* Este es el contenedor mágico que se va a encoger/agrandar manteniendo la caja exterior quieta */
-
         .modal-zoom-target {
-
             position: absolute; /* <-- NUEVO: Lo saca de las reglas Flexbox de Bootstrap */
-
             top: 0;
-
             left: 0;
-
             display: flex;
-
             flex-direction: column;
-
             transform-origin: top left;
-
             transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease; /* <-- NUEVO: Suaviza la animación del zoom */
-
         }
-
-
 
         .sticky-header-panel { flex: 0 0 auto; padding: 12px 25px 8px 25px; z-index: 1050; border-bottom: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: background-color 0.3s ease; }
-
         .split-columns-wrapper { flex: 1; overflow: hidden; display: flex; padding: 0 15px; }
-
         .split-row { width: 100%; height: 100%; display: flex; gap: 20px; }
-
         .scrollable-column { height: 100%; overflow-y: auto; padding-right: 10px; padding-bottom: 40px; }
-
         
-
         .logo-large-container { background-color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; height: 100%; min-height: 85px; border: 1px solid rgba(0,0,0,0.1); padding: 5px; overflow: hidden; }
-
         .info-card-box { background-color: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; padding: 4px 8px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
-
         .info-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #6c757d; letter-spacing: 0.5px; margin-bottom: 2px; }
-
         .column-sticky-title { position: sticky; top: 0; z-index: 100; margin-bottom: 15px; margin-top: 10px; }
 
-
-
     </style>
-
 </head>
-
 <body>
 
-
-
 <div id="startup-overlay">
-
     <div id="startup-content" class="text-center d-flex flex-column align-items-center justify-content-center">
-
         <img src="Inversiones Yar-Yur.png" alt="Logo Yar-Yur" style="height: 160px; margin-bottom: 70px;">
-
         <h4 class="fw-bold text-dark m-0" style="letter-spacing: 1px; font-size: 1.5rem;">Actualizando...</h4>
-
         <div class="bouncing-dots" style="margin-top: 50px;">
-
             <span></span>
-
             <span></span>
-
             <span></span>
-
         </div>
-
     </div>
-
     <div id="enter-btn-container">
-
         <button class="btn-workflows" onclick="enterApp()">WORKFLOWS<br>YAR-YUR</button>
-
     </div>
-
 </div>
-
-
 
 <div id="orientation-overlay">
-
     <div class="phone-icon mb-4"></div>
-
     <h3 class="fw-bold text-dark">Gira tu dispositivo</h3>
-
     <p class="text-muted">Para acceder a los Workflows de Yar-Yur, pon tu pantalla en modo horizontal.</p>
-
 </div>
-
-
 
 <div id="app-wrapper">
-
     <div class="container-fluid p-0">
-
         
-
         <div class="top-bar-container">
-
             <div class="logo-box">
-
                 <img src="Inversiones Yar-Yur.png" alt="Yar-Yur">
-
             </div>
-
-
 
             <ul class="nav chrome-tabs" id="mainDashboardTabs" role="tablist">
-
                 <li class="nav-item" role="presentation"><button class="chrome-link main-tab-btn" id="tab-produccion" data-bs-toggle="tab" data-bs-target="#view-produccion" type="button" role="tab">PRODUCCIÓN</button></li>
-
                 <li class="nav-item" role="presentation"><button class="chrome-link active main-tab-btn" id="tab-diseno" data-bs-toggle="tab" data-bs-target="#view-diseno" type="button" role="tab">DISEÑO</button></li>
-
                 
-
                 <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-compras" data-bs-toggle="tab" data-bs-target="#view-compras" type="button" role="tab">COMPRAS</button></li>
-
                 <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-instaladores" data-bs-toggle="tab" data-bs-target="#view-instaladores" type="button" role="tab">INSTALADORES</button></li>
-
                 <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-despacho" data-bs-toggle="tab" data-bs-target="#view-despacho" type="button" role="tab">DESPACHO</button></li>
-
                 <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-asignar" data-bs-toggle="tab" data-bs-target="#view-asignar" type="button" role="tab">POR ASIGNAR</button></li>
-
                 <li class="nav-item extra-tab-item" style="display:none;" role="presentation"><button class="chrome-link extra-tab-btn" id="tab-otros" data-bs-toggle="tab" data-bs-target="#view-otros" type="button" role="tab">TERMINADOS</button></li>
 
-
-
                 <li class="nav-item" role="presentation"><button class="chrome-link btn-tab-plus" id="btn-cycle-tabs" type="button"><i class="bi bi-plus-lg fw-bold"></i></button></li>
-
             </ul>
 
-
-
             <div class="d-flex align-items-center ms-auto ms-lg-3 gap-2 zoom-controls">
-
                 <button class="btn-zoom" id="btn-zoom-out" title="Alejar"><i class="bi bi-zoom-out"></i></button>
-
                 <span id="zoom-level-text" class="fw-bold text-secondary" style="font-size: 0.9rem; min-width: 40px; text-align: center;">100%</span>
-
                 <button class="btn-zoom" id="btn-zoom-in" title="Acercar"><i class="bi bi-zoom-in"></i></button>
-
             </div>
-
         </div>
-
         
-
         <div class="tab-content main-content-wrapper" id="mainDashboardContent">
-
             
-
             <div class="tab-pane fade" id="view-produccion" role="tabpanel">
-
                 <div class="fixed-grid-container">
-
                     <div class="row g-4">
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PRODUCCIÓN <span class="header-counter" id="count-production">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th class="text-center">Cant.</th><th>Diseñador</th><th>Vendedor</th><th class="text-center" title="Días en Producción">D</th></tr></thead><tbody id="tbody-production"></tbody></table></div></div></div>
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">MUESTRAS <span class="header-counter" id="count-samples">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center" title="Días en Muestras">D</th></tr></thead><tbody id="tbody-samples"></tbody></table></div></div></div>
-
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PRODUCCIÓN <span class="header-counter" id="count-production">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th class="text-center">Cant.</th><th>Diseñador</th><th>Vendedor</th><th class="text-center" title="Días Restantes">D</th></tr></thead><tbody id="tbody-production"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">MUESTRAS <span class="header-counter" id="count-samples">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center" title="Días Restantes">D</th></tr></thead><tbody id="tbody-samples"></tbody></table></div></div></div>
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <div class="tab-pane fade show active" id="view-diseno" role="tabpanel">
-
                 <div class="fixed-grid-container">
-
                     <div class="row g-3 mb-3">
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS CON O.C. <span class="header-counter" id="count-active-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-oc"></tbody></table></div></div></div>
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS SIN O.C. <span class="header-counter" id="count-active-no-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-active-no-oc"></tbody></table></div></div></div>
-
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS CON O.C. <span class="header-counter" id="count-active-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días Restantes">D</th></tr></thead><tbody id="tbody-active-oc"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ACTIVOS SIN O.C. <span class="header-counter" id="count-active-no-oc">0</span></div><div class="table-quadrant-height table-limit-15"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días Restantes">D</th></tr></thead><tbody id="tbody-active-no-oc"></tbody></table></div></div></div>
                     </div>
-
                     <div class="row g-3">
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ESPERA CON O.C. <span class="header-counter" id="count-wait-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-wait-oc"></tbody></table></div></div></div>
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ESPERA SIN O.C. <span class="header-counter" id="count-wait-no-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-wait-no-oc"></tbody></table></div></div></div>
-
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ESPERA CON O.C. <span class="header-counter" id="count-wait-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días Restantes">D</th></tr></thead><tbody id="tbody-wait-oc"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">ESPERA SIN O.C. <span class="header-counter" id="count-wait-no-oc">0</span></div><div class="table-quadrant-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días Restantes">D</th></tr></thead><tbody id="tbody-wait-no-oc"></tbody></table></div></div></div>
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <div class="tab-pane fade" id="view-compras" role="tabpanel">
-
                 <div class="fixed-grid-container">
-
                     <div class="row g-4">
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">COMPRAS <span class="header-counter" id="count-compras">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-compras"></tbody></table></div></div></div>
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">MUESTRAS POR RETIRAR <span class="header-counter" id="count-retirar">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-retirar"></tbody></table></div></div></div>
-
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">COMPRAS <span class="header-counter" id="count-compras">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos">D</th></tr></thead><tbody id="tbody-compras"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">MUESTRAS POR RETIRAR <span class="header-counter" id="count-retirar">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos">D</th></tr></thead><tbody id="tbody-retirar"></tbody></table></div></div></div>
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <div class="tab-pane fade" id="view-instaladores" role="tabpanel">
-
                 <div class="fixed-grid-container">
-
                     <div class="row g-4">
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">RECTIFICACIONES <span class="header-counter" id="count-rectificaciones">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-rectificaciones"></tbody></table></div></div></div>
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">INSTALACIONES <span class="header-counter" id="count-instalaciones">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-instalaciones"></tbody></table></div></div></div>
-
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">RECTIFICACIONES <span class="header-counter" id="count-rectificaciones">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos">D</th></tr></thead><tbody id="tbody-rectificaciones"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">INSTALACIONES <span class="header-counter" id="count-instalaciones">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos">D</th></tr></thead><tbody id="tbody-instalaciones"></tbody></table></div></div></div>
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <div class="tab-pane fade" id="view-despacho" role="tabpanel">
-
                 <div class="fixed-grid-container">
-
                     <div class="row g-4">
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">DESPACHO / ENTREGAS <span class="header-counter" id="count-despacho">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-despacho"></tbody></table></div></div></div>
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PENDIENTE POR FACTURAR <span class="header-counter" id="count-facturar">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-facturar"></tbody></table></div></div></div>
-
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">DESPACHO / ENTREGAS <span class="header-counter" id="count-despacho">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos">D</th></tr></thead><tbody id="tbody-despacho"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PENDIENTE POR FACTURAR <span class="header-counter" id="count-facturar">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos">D</th></tr></thead><tbody id="tbody-facturar"></tbody></table></div></div></div>
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <div class="tab-pane fade" id="view-asignar" role="tabpanel">
-
                 <div class="fixed-grid-container">
-
                     <div class="row g-4">
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">VENTAS <span class="header-counter" id="count-ventas">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-ventas"></tbody></table></div></div></div>
-
-                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PROVEEDORES EXTERNOS <span class="header-counter" id="count-externos">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th></tr></thead><tbody id="tbody-externos"></tbody></table></div></div></div>
-
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">VENTAS <span class="header-counter" id="count-ventas">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos">D</th></tr></thead><tbody id="tbody-ventas"></tbody></table></div></div></div>
+                        <div class="col-6"><div class="dashboard-card"><div class="card-header-large">PROVEEDORES EXTERNOS <span class="header-counter" id="count-externos">0</span></div><div class="table-full-height"><table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos">D</th></tr></thead><tbody id="tbody-externos"></tbody></table></div></div></div>
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <div class="tab-pane fade" id="view-otros" role="tabpanel">
-
                 <div class="fixed-grid-container">
-
                     <div class="row">
-
                         <div class="col-12">
-
                             <div class="dashboard-card">
-
                                 <div class="card-header-large">TERMINADOS <span class="header-counter" id="count-others">0</span></div>
-
                                 <div style="min-height: calc(100vh - 200px); height: auto; background: white;"> 
-
-                                    <table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Inicio</th><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos con los 3 checks">D</th><th>Estado</th><th>Fase</th></tr></thead><tbody id="tbody-others"></tbody></table>
-
+                                    <table class="table table-sm table-bordered mb-0 table-sticky-header"><thead><tr><th>Inicio</th><th>Trello</th><th>Cliente</th><th>Descripción</th><th>Diseñador</th><th>Vendedor</th><th class="text-center">O.C.</th><th class="text-center">M</th><th class="text-center">A</th><th class="text-center" title="Días consecutivos">D</th><th>Estado</th><th>Fase</th></tr></thead><tbody id="tbody-others"></tbody></table>
                                 </div>
-
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
-
 
         </div> 
-
     </div>
-
-
 
     <div class="bottom-filter-bar">
-
         <input type="text" id="globalSearchClient" class="search-client-input" placeholder="Buscar Cliente...">
-
         
-
         <div class="dropdown">
-
             <button class="dropdown-filter-btn dropdown-toggle" type="button" id="btnFilterDesigner" data-bs-toggle="dropdown" aria-expanded="false">
-
                 <span class="text-muted">Diseñador: Todos</span>
-
             </button>
-
             <ul class="dropdown-menu dropdown-menu-filter" id="menuFilterDesigner">
-
                 </ul>
-
         </div>
-
-
 
         <div class="dropdown">
-
             <button class="dropdown-filter-btn dropdown-toggle" type="button" id="btnFilterSeller" data-bs-toggle="dropdown" aria-expanded="false">
-
                 <span class="text-muted">Vendedor: Todos</span>
-
             </button>
-
             <ul class="dropdown-menu dropdown-menu-filter" id="menuFilterSeller">
-
                 </ul>
-
         </div>
-
-
 
         <div class="update-info-bottom">
-
             Actualizado:<br><span id="lastUpdateDate" class="fw-bold text-dark">-</span>
-
         </div>
-
     </div>
-
 </div> 
 
-
-
 <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
-
     <div class="modal-dialog modal-dialog-centered custom-modal-size"> 
-
         <div class="modal-content">
-
             <div class="modal-zoom-target">
-
                 <div id="stickyHeaderPanel" class="sticky-header-panel">
-
                     <div class="d-flex justify-content-between align-items-center mb-3">
-
                         <h6 class="modal-title fw-bold text-dark m-0"><i class="bi bi-clock-history me-2"></i>LÍNEA DE TIEMPO DEL PROYECTO</h6>
-
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-
                     </div>
-
                     <div id="modalHeaderContent" class="header-info-box"></div>
-
                 </div>
-
-
 
                 <div class="split-columns-wrapper">
-
                     <div class="split-row">
-
                         <div class="col-4 scrollable-column border-end border-secondary-subtle">
-
                             <div class="column-sticky-title">
-
                                  <h6 class="fw-bold text-dark small text-uppercase text-center mb-0 p-2 bg-white rounded shadow-sm border">Historial de Fases</h6>
-
                             </div>
-
                             <div id="timelineRibbons" class="ribbon-container"></div>
-
                         </div>
-
                         <div class="col-8 scrollable-column ps-3">
-
                             <div class="column-sticky-title">
-
                                 <h6 class="fw-bold text-dark small text-uppercase text-center mb-0 p-2 bg-white rounded shadow-sm border">Calendario de Actividad</h6>
-
                             </div>
-
                             <div id="modalCalendarBody" class="calendar-container"></div>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
-
-
 
 <div class="modal fade" id="checkHistoryModal" tabindex="-1" aria-hidden="true">
-
     <div class="modal-dialog modal-dialog-centered custom-modal-size">
-
         <div class="modal-content">
-
             <div class="modal-zoom-target">
-
                 <div class="modal-header bg-dark text-white py-3 px-4 border-0">
-
                     <h5 class="modal-title fw-bold" id="checkModalTitle">Historial de Requisitos</h5>
-
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-
                 </div>
-
                 <div class="modal-body p-4" style="background-color: #f0f2f5; overflow-y: auto;">
-
                     <div id="checkCalendarBody" class="calendar-container"></div>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
-
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-
     const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbw63BAl3HVUE7GwWfn6Ir2R8zB1Leir6xPst7hTeNJq6ZBAzzir8NbhRLOUQXZKzLlQzw/exec";
 
-
-
     const THEME_CONFIG = {
-
         sellers: [
-
             { id: "andrea", name: "Andrea", bg: "#fff5f9", tx: "#c41d7f" },
-
             { id: "enmary", name: "Enmary", bg: "#f9f0ff", tx: "#531dab" },
-
             { id: "jose", name: "Jose", bg: "#b5d5ff", tx: "#003a8c" },
-
             { id: "lorena", name: "Lorena", bg: "#e6fffb", tx: "#006d75" },
-
             { id: "mario", name: "Mario", bg: "#f6ffed", tx: "#389e0d" },
-
             { id: "milka", name: "Milka", bg: "#fff1f0", tx: "#cf1322" },
-
             { id: "richard", name: "Richard", bg: "#feffe6", tx: "#ad8b00" },
-
             { id: "veronica", name: "Veronica", bg: "#e6f7ff", tx: "#096dd9" },
-
             { id: "zaida", name: "Zaida", bg: "#fff7e6", tx: "#d46b08" }
-
         ],
-
         designers: [
-
             { id: "aleska", name: "Aleska", bg: "#fff9db", tx: "#997b00" },
-
             { id: "andreat", name: "Andrea T", bg: "#d0ebff", tx: "#084298" },
-
             { id: "angel", name: "Angel", bg: "#f8d7da", tx: "#800020" },
-
             { id: "carelis", name: "Carelis", bg: "#ffe8f0", tx: "#d6336c" },
-
             { id: "david", name: "David", bg: "#d4edda", tx: "#28a745" },
-
             { id: "eider", name: "Eider", bg: "#ffe5d0", tx: "#fd7e14" },
-
             { id: "guillermo", name: "Guillermo", bg: "#f3e5f5", tx: "#6f42c1" },
-
             { id: "virley", name: "Virley", bg: "#fff3cd", tx: "#d4ac0d" },
-
             { id: "yarelly", name: "Yarelly", bg: "#fcc2d7", tx: "#e83e8c" }
-
         ],
-
         phases: [
-
             { id: "produccion", name: "PRODUCCIÓN", bg: "#cf4500", tx: "#ffffff" },
-
             { id: "muestras", name: "MUESTRAS", bg: "#fd7e14", tx: "#ffffff" },
-
             { id: "diseno", name: "DISEÑO / ACTIVO", bg: "#0d6efd", tx: "#ffffff" },
-
             { id: "espera", name: "ESPERA", bg: "#d0bfff", tx: "#ffffff" },
-
             { id: "compras", name: "COMPRAS", bg: "#20c997", tx: "#ffffff" },
-
             { id: "retirar", name: "POR RETIRAR", bg: "#d9a406", tx: "#ffffff" },
-
             { id: "rectificaciones", name: "RECTIFICACIONES", bg: "#495057", tx: "#ffffff" },
-
             { id: "instalaciones", name: "INSTALACIONES", bg: "#d63384", tx: "#ffffff" },
-
             { id: "despacho", name: "DESPACHO", bg: "#6f42c1", tx: "#ffffff" },
-
             { id: "facturar", name: "FACTURAR", bg: "#6610f2", tx: "#ffffff" },
-
             { id: "ventas", name: "VENTAS", bg: "#198754", tx: "#ffffff" },
-
             { id: "externos", name: "EXTERNOS", bg: "#adb5bd", tx: "#ffffff" },
-
             { id: "terminado", name: "TERMINADO", bg: "#212529", tx: "#ffffff" },
-
             { id: "anulado", name: "ANULADO", bg: "#e9ecef", tx: "#333333" }
-
         ]
-
     };
-
-
 
     const MAP_SELLERS = {
-
         "ANDREA": "Andrea", "ENMARY": "Enmary", "JOSE": "Jose", "LORENA": "Lorena", "MARIO": "Mario",
-
         "MILKA": "Milka", "RICHARD": "Richard", "VERONICA": "Veronica", "ZAIDA": "Zaida"
-
     };
-
-
 
     const MAP_DESIGNERS = {
-
         "ALESKA": "Aleska", "ANDREA T": "Andrea T", "ANDREAT": "Andrea T", "ANGEL": "Angel", 
-
         "CARELIS": "Carelis", "DAVID": "David", "EIDER": "Eider", "GUILLERMO": "Guillermo",
-
         "VIRLEY": "Virley", "YARELLY": "Yarelly"
-
     };
-
-
 
     const DESIGN_LIST_NAMES = ["ALESKA", "ANDREA", "ANDREA T", "ANGEL", "CARELIS", "DAVID", "EIDER", "GUILLERMO", "VIRLEY", "YARELLY"];
-
     const SELLER_IDS = { "Andrea": "andrea", "Milka": "milka", "Zaida": "zaida", "Lorena": "lorena", "Enmary": "enmary", "Richard": "richard", "Mario": "mario", "Veronica": "veronica", "Jose": "jose" };
-
     const DESIGNER_IDS = { "Guillermo": "guillermo", "David": "david", "Angel": "angel", "Yarelly": "yarelly", "Virley": "virley", "Eider": "eider", "Aleska": "aleska", "Andrea T": "andreat", "Carelis": "carelis" };
-
     const DESIGNER_IDS_FROM_NAME = { "GUILLERMO": "guillermo", "DAVID": "david", "ANGEL": "angel", "YARELLY": "yarelly", "VIRLEY": "virley", "EIDER": "eider", "ALESKA": "aleska", "ANDREA T": "andreat", "CARELIS": "carelis" };
 
-
-
     const TAG_OC = "ORDEN DE COMPRA";
-
     const TAG_SAMPLE = "MUESTRA APROBADA";
-
     const TAG_ARTS = "ARTES";
 
-
-
     let projectDatabase = []; 
-
     let projectHistoryMap = {}; 
-
     let liveProductionData = [];
-
     let liveSamplesData = [];
-
     let activePhaseBlockId = null; 
-
     let activeTooltips = [];
-
     
-
     // VARIABLES PARA FILTROS
-
     let currentFilterDesigner = 'all';
-
     let currentFilterSeller = 'all';
-
     
-
     // CONTROL DE PANTALLA Y ORIENTACIÓN
-
     let dataLoaded = false;
-
     let appStarted = false;
-
     let loadedInPortrait = false;
-
     let mobileZoomApplied = false;
-
     let firstLandscapeCheck = true; // Controla la aplicación del 80% al iniciar
 
-
-
     function unifyName(nameStr, mapObj) {
-
         if (!nameStr) return "";
-
         let clean = nameStr.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
-
         if (mapObj && mapObj[clean]) return mapObj[clean];
-
         return clean.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
-
     }
-
-
 
     function applyTheme() {
-
         const root = document.documentElement;
-
         THEME_CONFIG.sellers.forEach(s => { root.style.setProperty(`--bg-${s.id}`, s.bg); root.style.setProperty(`--tx-${s.id}`, s.tx); });
-
         THEME_CONFIG.designers.forEach(d => { root.style.setProperty(`--bg-${d.id}`, d.bg); root.style.setProperty(`--tx-${d.id}`, d.tx); });
-
         THEME_CONFIG.phases.forEach(p => { root.style.setProperty(`--bg-${p.id}`, p.bg); });
-
     }
-
-
 
     // --- LOGICA DE TABS CICLICOS (+) ---
-
     const extraTabs = ['tab-compras', 'tab-instaladores', 'tab-despacho', 'tab-asignar', 'tab-otros'];
-
     let currentExtraIndex = -1;
 
-
-
     document.getElementById('btn-cycle-tabs').addEventListener('click', (e) => {
-
         e.preventDefault();
-
         currentExtraIndex = (currentExtraIndex + 1) % extraTabs.length;
-
         document.querySelectorAll('.extra-tab-item').forEach(el => el.style.display = 'none');
-
         const targetTabId = extraTabs[currentExtraIndex];
-
         const targetBtn = document.getElementById(targetTabId);
-
         targetBtn.parentElement.style.display = 'block';
-
         const bsTab = new bootstrap.Tab(targetBtn);
-
         bsTab.show();
-
     });
-
-
 
     document.querySelectorAll('.main-tab-btn').forEach(btn => {
-
         btn.addEventListener('click', () => {
-
             document.querySelectorAll('.extra-tab-item').forEach(el => el.style.display = 'none');
-
             currentExtraIndex = -1;
-
         });
-
     });
-
-
 
     // --- LOGICA DE ZOOM CORREGIDA Y EXCLUSIVA ---
-
     let currentZoom = 1.0;
-
     const zoomLevelText = document.getElementById('zoom-level-text');
 
-
-
     function updateZoom(newZoom) {
-
         currentZoom = Math.round(newZoom * 10) / 10;
-
         
-
         // 1. Zoom al contenedor principal de la app
-
         document.getElementById('app-wrapper').style.zoom = currentZoom;
-
         zoomLevelText.textContent = Math.round(currentZoom * 100) + '%';
 
-
-
         // 2. Zoom a los contenidos internos de los modales
-
         const modalTargets = document.querySelectorAll('.modal-zoom-target');
-
         modalTargets.forEach(target => {
-
             // Usamos transform en lugar de zoom para un comportamiento 100% exacto
-
             target.style.transform = `scale(${currentZoom})`;
-
             
-
             // Matemáticamente ampliamos el "lienzo" interno
-
             target.style.width = `${100 / currentZoom}%`;
-
             target.style.height = `${100 / currentZoom}%`;
-
         });
-
     }
-
-
 
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
-
         if (currentZoom < 1.5) updateZoom(currentZoom + 0.1);
-
     });
-
-
 
     document.getElementById('btn-zoom-out').addEventListener('click', () => {
-
         if (currentZoom > 0.5) updateZoom(currentZoom - 0.1);
-
     });
 
-
-
     // --- LOGICA DEL CARGADOR, FULLSCREEN Y ORIENTACIÓN ---
-
     function checkOrientation() {
-
         if (!dataLoaded) return; 
-
         
-
         if (window.innerHeight > window.innerWidth) {
-
             document.getElementById('orientation-overlay').style.display = 'flex';
-
             if (!appStarted) {
-
                 document.getElementById('enter-btn-container').style.display = 'none';
-
             }
-
             loadedInPortrait = true; 
-
         } else {
-
             document.getElementById('orientation-overlay').style.display = 'none';
-
             
-
             // --- CÓDIGO DE ZOOM AL CARGAR EN HORIZONTAL ---
-
             if (firstLandscapeCheck) {
-
                 updateZoom(0.8);
-
                 firstLandscapeCheck = false;
-
                 mobileZoomApplied = true;
-
             } else if (loadedInPortrait && !mobileZoomApplied) {
-
                 updateZoom(0.8);
-
                 mobileZoomApplied = true;
-
             }
-
-
 
             if (!appStarted) {
-
                 document.getElementById('enter-btn-container').style.display = 'block';
-
             }
-
         }
-
     }
-
-
 
     window.addEventListener('resize', checkOrientation);
-
     window.addEventListener('orientationchange', checkOrientation);
 
-
-
     function enterApp() {
-
         const elem = document.documentElement;
-
         if (elem.requestFullscreen) {
-
             elem.requestFullscreen().catch(err => console.log("Fullscreen no soportado automáticamente.", err));
-
         }
-
         document.getElementById('startup-overlay').style.opacity = '0';
-
         setTimeout(() => {
-
             document.getElementById('startup-overlay').style.display = 'none';
-
             appStarted = true;
-
             checkOrientation(); 
-
         }, 500);
-
     }
-
-
 
     window.onload = function() { 
-
         applyTheme(); 
-
         loadAllHistory(); 
 
-
-
         setInterval(() => {
-
             document.querySelectorAll('tr.row-blinking').forEach(row => {
-
                 row.classList.toggle('bg-blink-active');
-
             });
-
         }, 1000);
-
     };
 
-
-
     async function loadAllHistory() {
-
         try {
-
             const [trelloRes, sheetsRes] = await Promise.allSettled([
-
                 fetch('history_all.json'),
-
                 fetch(GOOGLE_SHEETS_API_URL)
-
             ]);
 
-
-
             if (trelloRes.status === 'fulfilled' && trelloRes.value.ok) {
-
                 const rawHistoryData = await trelloRes.value.json();
-
                 if (rawHistoryData && rawHistoryData.length > 0) {
-
                     processHistoryData(rawHistoryData);
-
                     document.getElementById('lastUpdateDate').textContent = rawHistoryData[rawHistoryData.length-1].fecha;
-
                 }
-
             }
-
-
 
             if (sheetsRes.status === 'fulfilled' && sheetsRes.value.ok) {
-
                 const sheetsData = await sheetsRes.value.json();
-
                 if (sheetsData) {
-
                     liveProductionData = sheetsData.produccion || [];
-
                     liveSamplesData = sheetsData.muestras || [];
-
                     
-
                     const cleanLiveRecord = (p) => {
-
                         if(p.trello) {
-
                             let tStr = String(p.trello).trim();
-
                             if(tStr !== "" && !isNaN(tStr)) {
-
                                 p.trello = String(parseInt(tStr, 10)).padStart(3, '0');
-
                             }
-
                         }
-
                         if(p.disenador) p.disenador = unifyName(p.disenador, MAP_DESIGNERS);
-
                         if(p.vendedor) p.vendedor = unifyName(p.vendedor, MAP_SELLERS);
-
                     };
-
                     liveProductionData.forEach(cleanLiveRecord);
-
                     liveSamplesData.forEach(cleanLiveRecord);
-
                 }
-
             }
-
             
-
             initializeFilters(); 
-
             applyFiltersAndRender();
-
             
-
             const startupContent = document.getElementById('startup-content');
-
             startupContent.classList.remove('d-flex'); 
-
             startupContent.classList.add('d-none'); 
-
             
-
             dataLoaded = true;
-
             checkOrientation();
 
-
-
         } catch (error) { 
-
             console.error(error); 
-
             document.getElementById('startup-content').innerHTML = "<h4 class='text-danger'>Error al cargar datos. Actualice la página.</h4>";
-
         }
-
     }
-
-
 
     // --- MANEJO DE LOS MENÚS DESPLEGABLES CON PÍLDORAS ---
-
     function buildBadgeHtml(name, type) {
-
         if (name === 'all') {
-
             return type === 'seller' ? '<span class="text-muted">Vendedor: Todos</span>' : '<span class="text-muted">Diseñador: Todos</span>';
-
         }
-
         if (type === 'seller') {
-
             let cls = SELLER_IDS[name] ? "badge-"+SELLER_IDS[name] : "badge-default";
-
             return `<span class="badge rounded-pill ${cls} badge-pill badge-seller-base">${name}</span>`;
-
         } else {
-
             let desCls = DESIGNER_IDS[name] ? "badge-des-" + DESIGNER_IDS[name] : "badge-des-default";
-
             return `<span class="badge rounded-pill ${desCls} badge-pill badge-designer-base">${name}</span>`;
-
         }
-
     }
-
-
 
     function selectFilter(type, value, htmlStr) {
-
         if (type === 'seller') {
-
             currentFilterSeller = value;
-
             document.getElementById('btnFilterSeller').innerHTML = htmlStr;
-
         } else {
-
             currentFilterDesigner = value;
-
             document.getElementById('btnFilterDesigner').innerHTML = htmlStr;
-
         }
-
         applyFiltersAndRender();
-
     }
-
-
 
     function populateCustomDropdown(containerId, items, type) {
-
         const container = document.getElementById(containerId);
-
         container.innerHTML = '';
-
         
-
         const liAll = document.createElement('li');
-
         const aAll = document.createElement('div');
-
         aAll.className = 'dropdown-item-filter';
-
         aAll.innerHTML = buildBadgeHtml('all', type);
-
         aAll.onclick = (e) => { e.preventDefault(); selectFilter(type, 'all', aAll.innerHTML); };
-
         liAll.appendChild(aAll);
-
         container.appendChild(liAll);
 
-
-
         items.forEach(i => {
-
             if (i !== "Varios / Otro") {
-
                 const li = document.createElement('li');
-
                 const a = document.createElement('div');
-
                 a.className = 'dropdown-item-filter';
-
                 a.innerHTML = buildBadgeHtml(i, type);
-
                 a.onclick = (e) => { e.preventDefault(); selectFilter(type, i, a.innerHTML); };
-
                 li.appendChild(a);
-
                 container.appendChild(li);
-
             }
-
         });
-
     }
-
-
 
     function initializeFilters() {
-
         let allDesigners = new Set();
-
         let allSellers = new Set();
-
         
-
         projectDatabase.forEach(p => { p.designers.forEach(v => allDesigners.add(v)); p.sellers.forEach(v => allSellers.add(v)); });
-
         
-
         const processLive = (p) => {
-
             if (p.estado === "1") return; 
-
             if (p.disenador && p.disenador !== "-") allDesigners.add(p.disenador);
-
             if (p.vendedor && p.vendedor !== "-") allSellers.add(p.vendedor);
-
         };
-
         liveProductionData.forEach(processLive);
-
         liveSamplesData.forEach(processLive);
 
-
-
         populateCustomDropdown('menuFilterDesigner', [...allDesigners].sort(), 'designer'); 
-
         populateCustomDropdown('menuFilterSeller', [...allSellers].sort(), 'seller');
-
     }
-
-
 
     function normalizeTrelloData(rawData) { let data = { ...rawData }; if (!data.lists) data.lists = []; if (!data.labels || !Array.isArray(data.labels)) data.labels = []; if (!data.cards) data.cards = []; return data; }
 
-
-
     function resolvePhaseName(listName, designState) { const ln = listName.toUpperCase(); for (const designer of DESIGN_LIST_NAMES) { if (ln.includes(designer)) { if (designState === "ESPERA") return `${designer} (EN ESPERA)`; return designer; } } return listName; }
-
-
 
     function hexToRgba(hex, alpha) { let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return `rgba(${r}, ${g}, ${b}, ${alpha})`; }
 
-
-
     function getPhaseStyle(displayName) {
-
         const upper = displayName.toUpperCase(); let isEspera = upper.includes("ESPERA");
-
         for (const [name, id] of Object.entries(DESIGNER_IDS_FROM_NAME)) {
-
             if (upper.includes(name)) {
-
                 const timelinePastels = { guillermo: "#e0c3fc", david: "#b2f2bb", angel: "#ffc9c9", yarelly: "#fcc2d7", virley: "#ffec99", eider: "#ffd8a8", aleska: "#eebefa", andreat: "#d0ebff", carelis: "#ffe8f0" };
-
                 let baseHex = timelinePastels[id] || "#e9ecef";
-
                 if (isEspera) { return { bg: hexToRgba(baseHex, 0.2), tx: "#495057", border: `1px solid ${baseHex}` }; } else { return { bg: baseHex, tx: "#212529", border: `1px solid ${baseHex}` }; }
-
             }
-
         }
-
         let phaseId = "externos";
-
         if (upper.includes("RETIRAR")) phaseId = "retirar"; else if (upper.includes("MUESTRAS")) phaseId = "muestras"; else if (upper.includes("PRODUCCIÓN")) phaseId = "produccion";
-
         else if (upper.includes("DISEÑO") || MAP_DESIGNERS[upper]) phaseId = "diseno";
-
         else if (upper.includes("TERMINADO") || upper.includes("ENTREGADO")) phaseId = "terminado"; else if (upper.includes("ANULADO")) phaseId = "anulado"; else if (upper.includes("RECTIFICACIONES")) phaseId = "rectificaciones";
-
         else if (upper.includes("EXTERNOS") || upper.includes("PROVEEDORES")) phaseId = "externos"; else if (upper.includes("VENTAS") || upper.includes("PRESUPUESTO")) phaseId = "ventas";
-
         else if (upper.includes("DESPACHO") || upper.includes("ENTREGAS")) phaseId = "despacho"; else if (upper.includes("INSTALACIONES")) phaseId = "instalaciones";
-
         else if (upper.includes("COMPRAS")) phaseId = "compras"; else if (upper.includes("FACTURAR")) phaseId = "facturar";
-
         const pConf = THEME_CONFIG.phases.find(p => p.id === phaseId) || THEME_CONFIG.phases[0];
-
         return { bg: pConf.bg, tx: pConf.tx || "#ffffff", border: `1px solid ${pConf.bg}` };
-
     }
 
-
-
+    // FUNCIÓN MODIFICADA: Calcula días laborables, descartando fines de semana
     function calculateDays(dateStr) { 
-
         if (!dateStr || dateStr === '-') return '-'; let year, month, day;
-
         if (dateStr.includes('T')) { const d = new Date(dateStr); year = d.getFullYear(); month = d.getMonth() + 1; day = d.getDate(); } 
-
         else if (dateStr.includes('-') || dateStr.includes('/')) { const sep = dateStr.includes('-') ? '-' : '/'; const parts = dateStr.split(sep); if (parts.length === 3) { if (parts[0].length === 4) { year = parts[0]; month = parts[1]; day = parts[2]; } else { day = parts[0]; month = parts[1]; year = parts[2]; } } }
-
-        if (year && month && day) { const start = new Date(year, month - 1, day); const now = new Date(); start.setHours(0,0,0,0); now.setHours(0,0,0,0); return Math.floor((now - start) / (1000 * 60 * 60 * 24)); }
-
+        if (year && month && day) { 
+            const start = new Date(year, month - 1, day); 
+            const now = new Date(); 
+            start.setHours(0,0,0,0); now.setHours(0,0,0,0); 
+            if (start > now) return 0;
+            let count = 0;
+            let curDate = new Date(start);
+            while (curDate < now) {
+                curDate.setDate(curDate.getDate() + 1);
+                let dayOfWeek = curDate.getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    count++;
+                }
+            }
+            return count;
+        }
         return '-';
-
     }
 
-
-
-    function calculateConsecutiveAllChecks(history) { if (!history || history.length === 0) return 0; let count = 0; for (let i = history.length - 1; i >= 0; i--) { let h = history[i]; if (h.hasOC && h.hasSample && h.hasArts) { count++; } else { break; } } return count; }
-
-
+    // FUNCIÓN MODIFICADA: Evita que los fines de semana cuenten o rompan la racha consecutiva de comprobaciones
+    function calculateConsecutiveAllChecks(history) { 
+        if (!history || history.length === 0) return 0; 
+        let count = 0; 
+        for (let i = history.length - 1; i >= 0; i--) { 
+            let h = history[i]; 
+            const d = parseDateCustom(h.date);
+            const dayOfWeek = d.getDay();
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                continue; // Saltar fin de semana
+            }
+            if (h.hasOC && h.hasSample && h.hasArts) { 
+                count++; 
+            } else { 
+                break; 
+            } 
+        } 
+        return count; 
+    }
 
     function parseDateCustom(dateStr) { const parts = dateStr.split('-'); return new Date(parts[0], parts[1] - 1, parts[2]); }
 
-
-
     function processHistoryBlocks(item) {
-
         const rawMap = {}; item.history.forEach(h => { rawMap[h.date] = h; }); let dates = Object.keys(rawMap).sort();
-
         if (dates.length === 0) return { blocks: [], events: {}, minDate: new Date(), maxDate: new Date() };
-
         let minDateObj = parseDateCustom(dates[0]); const now = new Date(); let maxDateObj = new Date(now.getFullYear(), now.getMonth(), now.getDate()); 
-
         const filledEvents = {}; let lastKnownState = null; let sortedDates = [];
-
         for (let d = new Date(minDateObj); d <= maxDateObj; d.setDate(d.getDate() + 1)) {
-
             const yr = d.getFullYear(); const mo = String(d.getMonth() + 1).padStart(2, '0'); const da = String(d.getDate()).padStart(2, '0'); const dateStr = `${yr}-${mo}-${da}`;
-
             if (rawMap[dateStr]) lastKnownState = rawMap[dateStr];
-
             if (lastKnownState) {
-
                 const displayName = resolvePhaseName(lastKnownState.listName, lastKnownState.designState);
-
                 if (displayName.toUpperCase().includes("VENTAS") || displayName.toUpperCase().includes("PRESUPUESTO")) { continue; }
-
                 const styleObj = getPhaseStyle(displayName); filledEvents[dateStr] = { name: displayName, style: styleObj, rawDate: dateStr }; sortedDates.push(dateStr);
-
             }
-
         }
-
         if (sortedDates.length === 0) return { blocks: [], events: {}, minDate: new Date(), maxDate: new Date() };
-
         const visualMinDate = parseDateCustom(sortedDates[0]); const visualMaxDate = parseDateCustom(sortedDates[sortedDates.length - 1]);
-
         let blocks = []; let currentStreakPhase = ""; let currentStreakStart = "";
-
         sortedDates.forEach((dateStr, index) => {
-
             const ev = filledEvents[dateStr];
-
             if (ev.name !== currentStreakPhase) {
-
                 if (currentStreakPhase !== "") { blocks.push({ phase: currentStreakPhase, start: currentStreakStart, end: sortedDates[index-1], count: calculateDays(currentStreakStart) - calculateDays(sortedDates[index-1]) + 1, style: getPhaseStyle(currentStreakPhase), id: `block-${blocks.length}` }); }
-
                 currentStreakPhase = ev.name; currentStreakStart = dateStr;
-
             }
-
             if (index === sortedDates.length - 1) { blocks.push({ phase: currentStreakPhase, start: currentStreakStart, end: dateStr, count: calculateDays(currentStreakStart) - calculateDays(dateStr) + 1, style: getPhaseStyle(currentStreakPhase), id: `block-${blocks.length}` }); }
-
         });
-
         sortedDates.forEach(dateStr => { const ev = filledEvents[dateStr]; const block = blocks.find(b => b.phase === ev.name && dateStr >= b.start && dateStr <= b.end); if (block) ev.blockId = block.id; });
-
         return { blocks, events: filledEvents, minDate: visualMinDate, maxDate: visualMaxDate };
-
     }
-
-
 
     function processHistoryData(dailyDataArray) {
-
         let tempMap = {}; 
-
         dailyDataArray.forEach(dayRecord => {
-
             const date = dayRecord.fecha; const trelloData = normalizeTrelloData(dayRecord.data);
-
             let listsMap = {}; let labelsMap = {};
-
             if(trelloData.lists) trelloData.lists.forEach(l => { if (!l.closed) listsMap[l.id] = l.name; });
-
             if(trelloData.labels) trelloData.labels.forEach(l => labelsMap[l.id] = l.name || ("Color " + l.color));
-
             let sortedCards = []; if(trelloData.cards) sortedCards = trelloData.cards.filter(c => !c.closed).sort((a, b) => a.pos - b.pos);
-
             let cardsByList = {}; sortedCards.forEach(c => { const ln = listsMap[c.idList] || "Desconocido"; if (!cardsByList[ln]) cardsByList[ln] = []; cardsByList[ln].push(c); });
-
             Object.keys(cardsByList).forEach(listName => {
-
                 const isDesignList = DESIGN_LIST_NAMES.some(name => listName.toUpperCase().includes(name)); let currentDesignState = "ACTIVO";
-
                 cardsByList[listName].forEach(card => {
-
                     const isDivider = card.name.toUpperCase().includes("ESPERA") && !card.name.match(/^(\d+)/);
-
                     if (isDivider && isDesignList) { currentDesignState = "ESPERA"; return; }
-
                     const match = card.name.match(/^(\d+)\s*\/\s*(\d+)\s*-\s*(.*?)\s*-\s*(.*)/);
-
                     let base = match ? { code: String(parseInt(match[1], 10)).padStart(3, '0'), year: match[2], client: match[3].trim(), desc: match[4].trim() } : { code: "N/A", year: "-", client: "Varios / Otro", desc: card.name };
-
                     let designers = [], sellers = [], hasOC = false, hasSample = false, hasArts = false; 
-
                     if (card.idLabels && Array.isArray(card.idLabels)) {
-
                         card.idLabels.forEach(id => {
-
                             const rawName = labelsMap[id];
-
                             if(rawName) {
-
                                 const upper = rawName.toUpperCase().trim(); const cleanLabel = rawName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
-
                                 if(MAP_DESIGNERS[cleanLabel]) designers.push(MAP_DESIGNERS[cleanLabel]); else if(MAP_SELLERS[cleanLabel]) sellers.push(MAP_SELLERS[cleanLabel]);
-
                                 if(upper.includes(TAG_OC)) hasOC = true; else if(upper.includes(TAG_SAMPLE)) hasSample = true; else if(upper.includes(TAG_ARTS)) hasArts = true;
-
                             }
-
                         });
-
                     }
-
                     const cardId = card.id; if (!tempMap[cardId]) tempMap[cardId] = { metadata: base, startDate: null, history: [] }; tempMap[cardId].metadata = base;
-
                     if (tempMap[cardId].startDate === null && base.client !== "Varios / Otro" && base.code !== "N/A") tempMap[cardId].startDate = date;
-
                     tempMap[cardId].history.push({ date: date, listName: listName, designState: (isDesignList ? currentDesignState : "N/A"), designers: designers, sellers: sellers, hasOC: hasOC, hasSample: hasSample, hasArts: hasArts });
-
                 });
-
             });
-
         });
-
         projectHistoryMap = tempMap; projectDatabase = [];
-
         Object.keys(tempMap).forEach(id => {
-
             const item = tempMap[id]; const latest = item.history[item.history.length - 1]; const finalStartDate = item.startDate ? item.startDate : "-"; const consecutiveD = calculateConsecutiveAllChecks(item.history);
-
             if (item.metadata.year !== '-' && item.metadata.code !== 'N/A') { projectDatabase.push({ id: id, ...item.metadata, startDate: finalStartDate, listName: latest.listName, designState: latest.designState, designers: latest.designers, sellers: latest.sellers, hasOC: latest.hasOC, hasSample: latest.hasSample, hasArts: latest.hasArts, consecutiveD: consecutiveD }); }
-
         });
-
     }
-
-
 
     function limitWords(str, n) { const words = str.split(' '); if (words.length <= n) return str; return words.slice(0, n).join(' ') + '...'; }
 
-
-
     const sortByChecks = (list) => list.sort((a, b) => { const checksA = (a.hasOC?1:0) + (a.hasSample?1:0) + (a.hasArts?1:0); const checksB = (b.hasOC?1:0) + (b.hasSample?1:0) + (b.hasArts?1:0); if (checksA !== checksB) return checksB - checksA; return b.consecutiveD - a.consecutiveD; });
 
-
-
     function applyFiltersAndRender() {
-
         const sClient = document.getElementById('globalSearchClient').value.toLowerCase(); 
-
         const sDesigner = currentFilterDesigner; 
-
         const sSeller = currentFilterSeller;
-
         
-
         const filtered = projectDatabase.filter(p => {
-
             const mClient = !sClient || p.client.toLowerCase().includes(sClient);
-
             const mDes = sDesigner === 'all' || p.designers.includes(sDesigner); 
-
             const mSel = sSeller === 'all' || p.sellers.includes(sSeller); 
-
             return mClient && mDes && mSel;
-
         });
-
         
-
         const buckets = { activeOC: [], activeNoOC: [], waitOC: [], waitNoOC: [], compras: [], retirar: [], rectificaciones: [], instalaciones: [], despacho: [], facturar: [], ventas: [], externos: [], others: [] };
-
         
-
         filtered.forEach(p => {
-
             const ln = p.listName.toUpperCase();
-
             if (p.designState === 'ACTIVO') { if (p.hasOC) buckets.activeOC.push(p); else buckets.activeNoOC.push(p); } 
-
             else if (p.designState === 'ESPERA') { if (p.hasOC) buckets.waitOC.push(p); else buckets.waitNoOC.push(p); }
-
             else if (["COMPRAS"].includes(ln)) buckets.compras.push(p); else if (["MUESTRAS FÍSICAS POR RETIRAR"].includes(ln)) buckets.retirar.push(p);
-
             else if (["RECTIFICACIONES DE MEDIDAS"].includes(ln)) buckets.rectificaciones.push(p); else if (["INSTALACIONES", "CARLOS JULIO INSTALACIONES"].includes(ln)) buckets.instalaciones.push(p);
-
             else if (["DESPACHO/ENTREGAS", "DESPACHO Y PROYECTOS UNILEVER LISELLOT"].includes(ln)) buckets.despacho.push(p); else if (["PENDIENTE POR FACTURAR"].includes(ln)) buckets.facturar.push(p);
-
             else if (["VENTAS"].includes(ln)) buckets.ventas.push(p); else if (["PROVEEDORES EXTERNOS"].includes(ln)) buckets.externos.push(p); else buckets.others.push(p);
-
         });
-
         
-
         Object.keys(buckets).forEach(key => sortByChecks(buckets[key]));
 
-
-
         const filterLive = (arr) => arr.filter(p => {
-
             if (p.estado === "1") return false;
-
             const mClient = !sClient || (p.cliente && p.cliente.toLowerCase().includes(sClient));
-
             const mDes = sDesigner === 'all' || (p.disenador === sDesigner); 
-
             const mSel = sSeller === 'all' || (p.vendedor === sSeller); 
-
             return mClient && mDes && mSel;
-
         });
-
-
 
         const prodFiltered = filterLive(liveProductionData);
-
         const sampFiltered = filterLive(liveSamplesData);
 
-
-
         document.getElementById('count-production').textContent = prodFiltered.length; document.getElementById('count-samples').textContent = sampFiltered.length;
-
         document.getElementById('count-active-oc').textContent = buckets.activeOC.length; document.getElementById('count-active-no-oc').textContent = buckets.activeNoOC.length;
-
         document.getElementById('count-wait-oc').textContent = buckets.waitOC.length; document.getElementById('count-wait-no-oc').textContent = buckets.waitNoOC.length;
-
         document.getElementById('count-compras').textContent = buckets.compras.length; document.getElementById('count-retirar').textContent = buckets.retirar.length;
-
         document.getElementById('count-rectificaciones').textContent = buckets.rectificaciones.length; document.getElementById('count-instalaciones').textContent = buckets.instalaciones.length;
-
         document.getElementById('count-despacho').textContent = buckets.despacho.length; document.getElementById('count-facturar').textContent = buckets.facturar.length;
-
         document.getElementById('count-ventas').textContent = buckets.ventas.length; document.getElementById('count-externos').textContent = buckets.externos.length;
-
         document.getElementById('count-others').textContent = buckets.others.length;
-
         
-
         renderLiveTableRows('tbody-production', prodFiltered, true); renderLiveTableRows('tbody-samples', sampFiltered, false);
-
         renderTableRows('tbody-active-oc', buckets.activeOC, false); renderTableRows('tbody-active-no-oc', buckets.activeNoOC, false);
-
         renderTableRows('tbody-wait-oc', buckets.waitOC, false); renderTableRows('tbody-wait-no-oc', buckets.waitNoOC, false);
-
         renderTableRows('tbody-compras', buckets.compras, false); renderTableRows('tbody-retirar', buckets.retirar, false);
-
         renderTableRows('tbody-rectificaciones', buckets.rectificaciones, false); renderTableRows('tbody-instalaciones', buckets.instalaciones, false);
-
         renderTableRows('tbody-despacho', buckets.despacho, false); renderTableRows('tbody-facturar', buckets.facturar, false);
-
         renderTableRows('tbody-ventas', buckets.ventas, false); renderTableRows('tbody-externos', buckets.externos, false); renderTableRows('tbody-others', buckets.others, true);
-
     }
-
-
 
     function renderLiveTableRows(tbodyId, projects, isProduccion = false) {
-
         const tbody = document.getElementById(tbodyId); tbody.innerHTML = ''; if (projects.length === 0) return;
-
         function getNumericDays(dateStr) { let d = calculateDays(dateStr); return (typeof d === 'number' && !isNaN(d)) ? d : -1; }
-
         const groupedMap = {}; const renderList = [];
-
         projects.forEach(p => { if (p.trello && p.trello !== "-" && p.trello !== "") { if (!groupedMap[p.trello]) groupedMap[p.trello] = []; groupedMap[p.trello].push(p); } else { renderList.push({ isGroup: false, effectiveD: getNumericDays(p.fecha), items: [p] }); } });
-
         Object.keys(groupedMap).forEach(trelloId => { const group = groupedMap[trelloId]; if (group.length === 1) { renderList.push({ isGroup: false, effectiveD: getNumericDays(group[0].fecha), items: group }); } else { let validDays = group.map(g => getNumericDays(g.fecha)).filter(d => d >= 0); let minD = validDays.length > 0 ? Math.min(...validDays) : -1; renderList.push({ isGroup: true, effectiveD: minD, items: group, trelloId: trelloId }); } });
-
         renderList.sort((a, b) => b.effectiveD - a.effectiveD);
 
-
-
         const renderSingleRow = (p, isChild = false, parentGroupId = null, overrideTrello = null, overrideDesc = null, overrideCant = null, overrideD = null) => {
-
             const tr = document.createElement('tr'); const trelloIdMatch = projectDatabase.find(proj => proj.code === p.trello);
-
             if (!isChild && parentGroupId) { tr.style.cursor = 'pointer'; tr.title = "Clic para expandir/colapsar detalles"; } else { if (trelloIdMatch) { tr.className = "project-row"; tr.onclick = (e) => { e.stopPropagation(); showProjectHistory(trelloIdMatch.id); }; } else { tr.className = "project-row"; tr.title = "Aún no hay historial de Trello sincronizado para este proyecto"; } }
-
             if (isChild) { tr.classList.add(`child-of-${parentGroupId}`); tr.style.display = 'none'; }
-
+            
+            // --- NUEVA LOGICA DE CUENTA REGRESIVA Y PARPADEO PARA PRODUCCIÓN / MUESTRAS ---
             let dCount; if (overrideD !== null) { dCount = overrideD; } else { dCount = calculateDays(p.fecha); }
-
-            if (dCount === -1 || isNaN(dCount) || dCount < 0) dCount = "-";
-
-            if (dCount !== "-" && dCount > 15) { tr.classList.add('row-blinking'); }
-
-            let rowClass = "row-default"; const vName = p.vendedor || ""; if (SELLER_IDS[vName]) rowClass = "row-" + SELLER_IDS[vName]; tr.classList.add(rowClass);
-
-            let sellHtml = ''; if (p.vendedor) { let cls = SELLER_IDS[vName] ? "badge-"+SELLER_IDS[vName] : "badge-default"; sellHtml = `<span class="badge rounded-pill ${cls} badge-pill badge-seller-base">${p.vendedor}</span>`; }
-
-            let desHtml = ''; const dName = p.disenador || ""; if (p.disenador) { let desCls = DESIGNER_IDS[dName] ? "badge-des-" + DESIGNER_IDS[dName] : "badge-des-default"; desHtml = `<span class="badge rounded-pill ${desCls} badge-pill badge-designer-base">${p.disenador}</span>`; }
-
-            const descToUse = overrideDesc !== null ? overrideDesc : p.desc; const descShort = limitWords(descToUse, overrideDesc !== null ? 15 : 5); 
-
-            const cantToUse = overrideCant !== null ? overrideCant : p.cant; let cantHtml = isProduccion ? `<td class="text-center fw-bold" style="color: #495057;">${cantToUse || '-'}</td>` : '';
-
-            const trelloDisplay = overrideTrello !== null ? overrideTrello : p.trello;
-
-            tr.innerHTML = `<td class="fw-bold">${isChild ? '&nbsp;&nbsp;↳ ' : ''}${trelloDisplay}</td><td class="fw-bold text-dark">${p.cliente}</td><td class="small text-truncate col-desc" title="${descToUse}">${descShort}</td>${cantHtml}<td>${desHtml}</td><td>${sellHtml}</td><td class="text-center fw-bold text-dark bg-white border-start">${dCount}</td>`;
-
-            return tr;
-
-        };
-
-
-
-        renderList.forEach(item => {
-
-            if (!item.isGroup) { tbody.appendChild(renderSingleRow(item.items[0])); } else {
-
-                const groupId = `group-${item.trelloId}`; let totalCant = 0; let hasCant = false; let descrList = [];
-
-                item.items.sort((a, b) => getNumericDays(b.fecha) - getNumericDays(a.fecha));
-
-                item.items.forEach(g => { let c = parseInt(g.cant); if (!isNaN(c)) { totalCant += c; hasCant = true; } if (g.desc) descrList.push(g.desc); });
-
-                let cantPadre = hasCant ? totalCant : '-'; let descPadre = ""; if (descrList.length > 2) { descPadre = `${descrList[0]}, ${descrList[1]}, ...`; } else { descPadre = descrList.join(", "); }
-
-                const trelloPadre = `${item.trelloId} (${item.items.length})`;
-
-                const trPadre = renderSingleRow(item.items[0], false, groupId, trelloPadre, descPadre, cantPadre, item.effectiveD); trPadre.style.boxShadow = 'inset 0 0 0 9999px rgba(0,0,0,0.03)';
-
-                const childRows = []; item.items.forEach(p => { childRows.push(renderSingleRow(p, true, groupId)); });
-
-                trPadre.onclick = () => { childRows.forEach(c => { c.style.display = c.style.display === 'none' ? 'table-row' : 'none'; }); };
-
-                tbody.appendChild(trPadre); childRows.forEach(cr => tbody.appendChild(cr));
-
+            let displayD = dCount;
+            if (dCount !== "-" && !isNaN(dCount)) {
+                let baseValue = tbodyId === 'tbody-production' ? 15 : (tbodyId === 'tbody-samples' ? 7 : null);
+                if (baseValue !== null) {
+                    displayD = baseValue - dCount;
+                    if (displayD < 0) { tr.classList.add('row-blinking'); }
+                }
             }
 
+            let rowClass = "row-default"; const vName = p.vendedor || ""; if (SELLER_IDS[vName]) rowClass = "row-" + SELLER_IDS[vName]; tr.classList.add(rowClass);
+            let sellHtml = ''; if (p.vendedor) { let cls = SELLER_IDS[vName] ? "badge-"+SELLER_IDS[vName] : "badge-default"; sellHtml = `<span class="badge rounded-pill ${cls} badge-pill badge-seller-base">${p.vendedor}</span>`; }
+            let desHtml = ''; const dName = p.disenador || ""; if (p.disenador) { let desCls = DESIGNER_IDS[dName] ? "badge-des-" + DESIGNER_IDS[dName] : "badge-des-default"; desHtml = `<span class="badge rounded-pill ${desCls} badge-pill badge-designer-base">${p.disenador}</span>`; }
+            const descToUse = overrideDesc !== null ? overrideDesc : p.desc; const descShort = limitWords(descToUse, overrideDesc !== null ? 15 : 5); 
+            const cantToUse = overrideCant !== null ? overrideCant : p.cant; let cantHtml = isProduccion ? `<td class="text-center fw-bold" style="color: #495057;">${cantToUse || '-'}</td>` : '';
+            const trelloDisplay = overrideTrello !== null ? overrideTrello : p.trello;
+            tr.innerHTML = `<td class="fw-bold">${isChild ? '&nbsp;&nbsp;↳ ' : ''}${trelloDisplay}</td><td class="fw-bold text-dark">${p.cliente}</td><td class="small text-truncate col-desc" title="${descToUse}">${descShort}</td>${cantHtml}<td>${desHtml}</td><td>${sellHtml}</td><td class="text-center fw-bold text-dark bg-white border-start">${displayD}</td>`;
+            return tr;
+        };
+
+        renderList.forEach(item => {
+            if (!item.isGroup) { tbody.appendChild(renderSingleRow(item.items[0])); } else {
+                const groupId = `group-${item.trelloId}`; let totalCant = 0; let hasCant = false; let descrList = [];
+                item.items.sort((a, b) => getNumericDays(b.fecha) - getNumericDays(a.fecha));
+                item.items.forEach(g => { let c = parseInt(g.cant); if (!isNaN(c)) { totalCant += c; hasCant = true; } if (g.desc) descrList.push(g.desc); });
+                let cantPadre = hasCant ? totalCant : '-'; let descPadre = ""; if (descrList.length > 2) { descPadre = `${descrList[0]}, ${descrList[1]}, ...`; } else { descPadre = descrList.join(", "); }
+                const trelloPadre = `${item.trelloId} (${item.items.length})`;
+                const trPadre = renderSingleRow(item.items[0], false, groupId, trelloPadre, descPadre, cantPadre, item.effectiveD); trPadre.style.boxShadow = 'inset 0 0 0 9999px rgba(0,0,0,0.03)';
+                const childRows = []; item.items.forEach(p => { childRows.push(renderSingleRow(p, true, groupId)); });
+                trPadre.onclick = () => { childRows.forEach(c => { c.style.display = c.style.display === 'none' ? 'table-row' : 'none'; }); };
+                tbody.appendChild(trPadre); childRows.forEach(cr => tbody.appendChild(cr));
+            }
         });
-
     }
-
-
 
     function renderTableRows(tbodyId, projects, showPhase) {
-
         const tbody = document.getElementById(tbodyId); tbody.innerHTML = ''; if (projects.length === 0) return;
-
         const disenoTables = ['tbody-active-oc', 'tbody-active-no-oc', 'tbody-wait-oc', 'tbody-wait-no-oc'];
-
         projects.forEach(p => {
-
             const tr = document.createElement('tr'); tr.className = "project-row"; tr.onclick = () => showProjectHistory(p.id);
-
-            if (disenoTables.includes(tbodyId) && p.consecutiveD > 3) { tr.classList.add('row-blinking'); }
+            
+            // --- NUEVA LOGICA DE CUENTA REGRESIVA Y PARPADEO PARA TABLAS DE DISEÑO ---
+            let displayD = p.consecutiveD;
+            if (disenoTables.includes(tbodyId)) {
+                displayD = 3 - p.consecutiveD;
+                if (displayD < 0) { tr.classList.add('row-blinking'); }
+            }
 
             let rowClass = "row-default"; if (p.sellers.length > 0) { const sName = p.sellers[0]; if (SELLER_IDS[sName]) rowClass = "row-" + SELLER_IDS[sName]; } tr.classList.add(rowClass);
-
             let sellHtml = ''; if (p.sellers.length > 0) { const s = p.sellers[0]; let cls = SELLER_IDS[s] ? "badge-"+SELLER_IDS[s] : "badge-default"; sellHtml = `<span class="badge rounded-pill ${cls} badge-pill badge-seller-base">${s}</span>`; }
-
             let desHtml = ''; if (p.designers.length > 0) { const d = p.designers[0]; let desCls = DESIGNER_IDS[d] ? "badge-des-" + DESIGNER_IDS[d] : "badge-des-default"; desHtml = `<span class="badge rounded-pill ${desCls} badge-pill badge-designer-base">${d}</span>`; }
-
             const iOC = p.hasOC ? '<i class="bi bi-check-lg check-icon"></i>' : ''; const iM = p.hasSample ? '<i class="bi bi-check-lg check-icon"></i>' : ''; const iA = p.hasArts ? '<i class="bi bi-check-lg check-icon"></i>' : '';
-
             const bgOC = p.hasOC ? 'check-cell-active' : 'check-cell-inactive'; const bgM = p.hasSample ? 'check-cell-active' : 'check-cell-inactive'; const bgA = p.hasArts ? 'check-cell-active' : 'check-cell-inactive';
-
             const cellOC = `<td class="text-center ${bgOC}" onclick="showUnifiedCheckHistory(event, '${p.id}')">${iOC}</td>`; const cellM = `<td class="text-center ${bgM}" onclick="showUnifiedCheckHistory(event, '${p.id}')">${iM}</td>`; const cellA = `<td class="text-center ${bgA}" onclick="showUnifiedCheckHistory(event, '${p.id}')">${iA}</td>`;
-
-            let htmlD = `<td class="text-center fw-bold text-dark bg-white border-start">${p.consecutiveD}</td>`;
-
+            let htmlD = `<td class="text-center fw-bold text-dark bg-white border-start">${displayD}</td>`;
             const descShort = limitWords(p.desc, 3); let commonCols = `<td class="fw-bold">${p.code}</td><td class="fw-bold text-dark">${p.client}</td><td class="small text-truncate col-desc" title="${p.desc}">${descShort}</td><td>${desHtml}</td><td>${sellHtml}</td>`;
-
             if (showPhase) { let statusBadge = p.designState !== 'N/A' ? `<span class="badge bg-secondary badge-pill">${p.designState}</span>` : '-'; tr.innerHTML = `<td class="small text-secondary">${p.startDate}</td>${commonCols}${cellOC}${cellM}${cellA}${htmlD}<td class="text-center small">${statusBadge}</td><td class="small fw-bold text-secondary">${p.listName}</td>`; } else { tr.innerHTML = `${commonCols}${cellOC}${cellM}${cellA}${htmlD}`; }
-
             tbody.appendChild(tr);
-
         });
-
     }
-
-
 
     const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
-
     
-
     function toggleFocus(blockId) {
-
         if (activePhaseBlockId === blockId) { activePhaseBlockId = null; } else { activePhaseBlockId = blockId; }
-
         const allRibbons = document.querySelectorAll('.ribbon-item'); allRibbons.forEach(r => { if (activePhaseBlockId === null) { r.classList.remove('ribbon-hidden'); } else { if (r.dataset.blockId === activePhaseBlockId) { r.classList.remove('ribbon-hidden'); } else { r.classList.add('ribbon-hidden'); } } });
-
         const allDays = document.querySelectorAll('.day-cell'); allDays.forEach(d => { if (!d.dataset.blockId) return; if (activePhaseBlockId === null) { d.classList.remove('day-dimmed'); d.style.backgroundColor = d.dataset.color; d.style.borderColor = d.dataset.border; } else { if (d.dataset.blockId === activePhaseBlockId) { d.classList.remove('day-dimmed'); d.style.backgroundColor = d.dataset.color; d.style.borderColor = d.dataset.border; } else { d.classList.add('day-dimmed'); } } });
-
     }
-
-
 
     function showProjectHistory(projectId) {
-
         activePhaseBlockId = null; const fullData = projectHistoryMap[projectId]; if (!fullData) return;
-
         const latest = fullData.history[fullData.history.length - 1];
-
         let sellerBg = "#ffffff"; let sellerNameHtml = `<span class="text-muted small">SIN ASIGNAR</span>`;
-
         if (latest.sellers.length > 0) { const s = latest.sellers[0]; const sellerId = SELLER_IDS[s]; const config = THEME_CONFIG.sellers.find(sel => sel.id === sellerId); if(config) sellerBg = config.bg; let cls = SELLER_IDS[s] ? "badge-"+SELLER_IDS[s] : "badge-default"; sellerNameHtml = `<span class="badge rounded-pill ${cls} badge-seller-base fs-5 px-3 py-1">${s}</span>`; }
-
         let designerHtml = '<span class="text-muted small">PENDIENTE</span>';
-
         if (latest.designers.length > 0) { designerHtml = latest.designers.map(d => { let desCls = DESIGNER_IDS[d] ? "badge-des-" + DESIGNER_IDS[d] : "badge-des-default"; return `<span class="badge rounded-pill ${desCls} badge-designer-base fs-5 px-3 py-1 me-1">${d}</span>`; }).join(""); }
-
         const modalContent = document.querySelector('#historyModal .modal-content'); if(modalContent) modalContent.style.backgroundColor = sellerBg;
-
         const stickyHeader = document.getElementById('stickyHeaderPanel'); if(stickyHeader) stickyHeader.style.backgroundColor = sellerBg;
-
         const days = calculateDays(fullData.startDate); const clientNameSafe = fullData.metadata.client;
-
         
-
         const clientHtml = `<h3 class="text-dark text-center fw-bolder m-0 text-uppercase w-100" style="word-break: break-word; font-size: 1.25rem; letter-spacing: 0.5px;">${clientNameSafe}</h3>`;
-
         const headerHtml = `<div class="row align-items-stretch" style="min-height: 85px;"><div class="col-lg-4 mb-2 mb-lg-0"><div class="logo-large-container shadow-sm p-2">${clientHtml}</div></div><div class="col-lg-8 d-flex flex-column justify-content-between"><div class="d-flex justify-content-between align-items-start mb-2 bg-white p-2 rounded shadow-sm border border-light"><div class="pe-2"><h5 class="fw-bold m-0 text-dark lh-sm mb-1">${fullData.metadata.desc}</h5></div><div class="text-end ps-3"><div class="badge bg-primary fs-6 mb-1">${fullData.metadata.code}</div><div class="small fw-bold text-muted" style="font-size:0.7rem;">Días Activo: ${days}</div></div></div><div class="row g-2 h-100"><div class="col-6"><div class="info-card-box shadow-sm text-center"><div class="info-label">VENDEDOR</div><div>${sellerNameHtml}</div></div></div><div class="col-6"><div class="info-card-box shadow-sm text-center"><div class="info-label">DISEÑADOR</div><div>${designerHtml}</div></div></div></div></div></div>`;
-
         document.getElementById('modalHeaderContent').innerHTML = headerHtml;
-
         const { blocks, events, minDate, maxDate } = processHistoryBlocks(fullData);
-
         const ribbonContainer = document.getElementById('timelineRibbons'); ribbonContainer.innerHTML = '';
-
         if (blocks.length === 0) { ribbonContainer.innerHTML = '<p class="text-muted text-center small mt-3">Sin actividad registrada.</p>'; } else { blocks.forEach(block => { const ribbon = document.createElement('div'); ribbon.className = 'ribbon-item'; ribbon.style.backgroundColor = block.style.bg; ribbon.style.color = block.style.tx; ribbon.style.borderLeft = `5px solid ${block.style.tx}`; ribbon.dataset.blockId = block.id; ribbon.innerHTML = `<div class="ribbon-title">${block.phase}</div><div class="ribbon-duration">${block.count} días</div><div class="ribbon-period" style="border-top-color: ${hexToRgba(block.style.tx, 0.2)}">Del ${block.start} al ${block.end}</div>`; ribbon.onclick = () => toggleFocus(block.id); ribbonContainer.appendChild(ribbon); }); }
-
         const calendarBody = document.getElementById('modalCalendarBody'); calendarBody.innerHTML = ''; const startYear = minDate.getFullYear(); const endYear = maxDate.getFullYear();
-
         for (let y = startYear; y <= endYear; y++) { for (let m = 0; m < 12; m++) { calendarBody.appendChild(createMonthCalendar(y, m, events)); } }
-
         historyModal.show();
-
     }
 
-
-
+    // FUNCIÓN MODIFICADA: Validar fines de semana para mostrarlos en color gris en el Modal Histórico
     function createMonthCalendar(year, month, events) {
-
         const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]; const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDayIndex = new Date(year, month, 1).getDay(); const wrapper = document.createElement('div'); wrapper.className = 'calendar-month'; const header = document.createElement('div'); header.className = 'calendar-header'; header.textContent = `${monthNames[month]} ${year}`; wrapper.appendChild(header); const daysName = document.createElement('div'); daysName.className = 'calendar-days-name'; ["D","L","M","M","J","V","S"].forEach(d => { const sp = document.createElement('div'); sp.textContent = d; daysName.appendChild(sp); }); wrapper.appendChild(daysName); const grid = document.createElement('div'); grid.className = 'calendar-grid';
-
         for (let i = 0; i < firstDayIndex; i++) grid.appendChild(document.createElement('div'));
-
         for (let day = 1; day <= daysInMonth; day++) {
+            const dayCell = document.createElement('div'); 
+            const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            const isWeekend = new Date(year, month, day).getDay() === 0 || new Date(year, month, day).getDay() === 6;
 
-            const dayCell = document.createElement('div'); dayCell.className = 'day-cell'; dayCell.textContent = day; const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-
-            if (events[dateKey]) { dayCell.style.backgroundColor = events[dateKey].style.bg; dayCell.style.color = events[dateKey].style.tx; dayCell.style.border = events[dateKey].style.border; dayCell.classList.add('day-active'); dayCell.dataset.blockId = events[dateKey].blockId; dayCell.dataset.color = events[dateKey].style.bg; dayCell.dataset.border = events[dateKey].style.border; if (events[dateKey].blockId !== 'chk') { dayCell.onclick = () => toggleFocus(events[dateKey].blockId); } } else { dayCell.classList.add('day-dimmed'); }
-
+            if (isWeekend) {
+                dayCell.className = 'day-cell day-dimmed';
+                dayCell.textContent = day;
+                dayCell.style.backgroundColor = '#e9ecef';
+                dayCell.style.color = '#adb5bd';
+                dayCell.style.cursor = 'not-allowed';
+            } else if (events[dateKey]) { 
+                dayCell.className = 'day-cell day-active';
+                dayCell.textContent = day;
+                dayCell.style.backgroundColor = events[dateKey].style.bg; 
+                dayCell.style.color = events[dateKey].style.tx; 
+                dayCell.style.border = events[dateKey].style.border; 
+                dayCell.dataset.blockId = events[dateKey].blockId; 
+                dayCell.dataset.color = events[dateKey].style.bg; 
+                dayCell.dataset.border = events[dateKey].style.border; 
+                if (events[dateKey].blockId !== 'chk') { dayCell.onclick = () => toggleFocus(events[dateKey].blockId); } 
+            } else { 
+                dayCell.className = 'day-cell day-dimmed';
+                dayCell.textContent = day;
+            }
             grid.appendChild(dayCell);
-
         }
-
         wrapper.appendChild(grid); return wrapper;
-
     }
-
-
 
     const checkHistoryModal = new bootstrap.Modal(document.getElementById('checkHistoryModal'));
-
     function destroyOldTooltips() { activeTooltips.forEach(t => t.dispose()); activeTooltips = []; }
 
-
-
     function showUnifiedCheckHistory(event, projectId) {
-
         event.stopPropagation(); const fullData = projectHistoryMap[projectId]; if (!fullData || fullData.history.length === 0) return;
-
         destroyOldTooltips();
-
         document.getElementById('checkModalTitle').innerHTML = `<i class="bi bi-calendar-check me-2"></i>Historial de Requisitos (O.C. / M / A)<br><small class="text-white-50 fs-6 fw-normal">${fullData.metadata.client} - ${fullData.metadata.desc}</small>`;
-
         const events = {}; const minDateStr = fullData.history[0].date; const maxDateStr = fullData.history[fullData.history.length-1].date; const minDate = parseDateCustom(minDateStr); const maxDate = parseDateCustom(maxDateStr);
-
         const historyMap = {}; fullData.history.forEach(h => { historyMap[h.date] = h; }); let lastState = { hasOC: false, hasSample: false, hasArts: false };
-
         for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) { const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); const dStr = `${y}-${m}-${day}`; if (historyMap[dStr]) { lastState = { hasOC: historyMap[dStr].hasOC, hasSample: historyMap[dStr].hasSample, hasArts: historyMap[dStr].hasArts }; } events[dStr] = { ...lastState }; }
-
         const calendarBody = document.getElementById('checkCalendarBody'); calendarBody.innerHTML = '';
-
         const startYear = minDate.getFullYear(); const endYear = maxDate.getFullYear(); const startMonth = minDate.getMonth(); const endMonth = maxDate.getMonth();
-
         for (let y = startYear; y <= endYear; y++) { let mStart = (y === startYear) ? startMonth : 0; let mEnd = (y === endYear) ? endMonth : 11; for (let m = mStart; m <= mEnd; m++) { calendarBody.appendChild(createUnifiedCheckMonthCalendar(y, m, events)); } }
-
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]'); tooltipTriggerList.forEach(el => { activeTooltips.push(new bootstrap.Tooltip(el)); });
-
         checkHistoryModal.show();
-
     }
 
-
-
+    // FUNCIÓN MODIFICADA: Validar fines de semana para mostrarlos en color gris en el Modal Historial de Requisitos
     function createUnifiedCheckMonthCalendar(year, month, events) {
-
         const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]; const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDayIndex = new Date(year, month, 1).getDay(); const wrapper = document.createElement('div'); wrapper.className = 'calendar-month'; const header = document.createElement('div'); header.className = 'calendar-header'; header.textContent = `${monthNames[month]} ${year}`; wrapper.appendChild(header); const daysName = document.createElement('div'); daysName.className = 'calendar-days-name'; ["D","L","M","M","J","V","S"].forEach(d => { const sp = document.createElement('div'); sp.textContent = d; daysName.appendChild(sp); }); wrapper.appendChild(daysName);
-
         const grid = document.createElement('div'); grid.className = 'calendar-grid';
-
         for (let i = 0; i < firstDayIndex; i++) grid.appendChild(document.createElement('div'));
-
         for (let day = 1; day <= daysInMonth; day++) {
+            const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`; 
+            const dayCell = document.createElement('div'); 
+            const isWeekend = new Date(year, month, day).getDay() === 0 || new Date(year, month, day).getDay() === 6;
 
-            const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`; const dayCell = document.createElement('div'); 
-
-            if (events[dateKey]) {
-
+            if (isWeekend) {
+                dayCell.className = 'day-cell day-dimmed';
+                dayCell.textContent = day;
+                dayCell.style.backgroundColor = '#e9ecef';
+                dayCell.style.color = '#adb5bd';
+                dayCell.style.cursor = 'not-allowed';
+            } else if (events[dateKey]) {
                 const ev = events[dateKey]; const activeCount = (ev.hasOC ? 1 : 0) + (ev.hasSample ? 1 : 0) + (ev.hasArts ? 1 : 0);
-
                 let bgClass = "day-0-checks"; if (activeCount === 3) { bgClass = "day-full-checks"; } else if (activeCount > 0) { bgClass = "day-partial-checks"; }
-
                 dayCell.className = `check-day-cell ${bgClass}`; const ttText = `<div class="mb-1">Orden de Compra: <strong class="${ev.hasOC?'text-success':'text-danger'}">${ev.hasOC?'SÍ':'NO'}</strong></div><div class="mb-1">Muestra: <strong class="${ev.hasSample?'text-success':'text-danger'}">${ev.hasSample?'SÍ':'NO'}</strong></div><div>Artes: <strong class="${ev.hasArts?'text-success':'text-danger'}">${ev.hasArts?'SÍ':'NO'}</strong></div>`;
-
                 dayCell.setAttribute('data-bs-toggle', 'tooltip'); dayCell.setAttribute('data-bs-html', 'true'); dayCell.setAttribute('title', ttText);
-
                 const dotOC = ev.hasOC ? 'tiny-dot-active' : 'tiny-dot-inactive'; const dotM = ev.hasSample ? 'tiny-dot-active' : 'tiny-dot-inactive'; const dotA = ev.hasArts ? 'tiny-dot-active' : 'tiny-dot-inactive';
-
                 dayCell.innerHTML = `<span>${day}</span><div class="tiny-checks-container"><span class="tiny-dot ${dotOC}"></span><span class="tiny-dot ${dotM}"></span><span class="tiny-dot ${dotA}"></span></div>`;
-
-            } else { dayCell.className = 'day-cell day-dimmed'; dayCell.textContent = day; }
-
+            } else { 
+                dayCell.className = 'day-cell day-dimmed'; 
+                dayCell.textContent = day; 
+            }
             grid.appendChild(dayCell);
-
         }
-
         wrapper.appendChild(grid); return wrapper;
-
     }
-
-
 
     document.getElementById('globalSearchClient').addEventListener('input', applyFiltersAndRender);
-
 </script>
-
 </body>
-
-</html> 
+</html>
