@@ -811,7 +811,6 @@
         return { bg: pConf.bg, tx: pConf.tx || "#ffffff", border: `1px solid ${pConf.bg}` };
     }
 
-    // FUNCIÓN MODIFICADA: Calcula días laborables, descartando fines de semana
     function calculateDays(dateStr) { 
         if (!dateStr || dateStr === '-') return '-'; let year, month, day;
         if (dateStr.includes('T')) { const d = new Date(dateStr); year = d.getFullYear(); month = d.getMonth() + 1; day = d.getDate(); } 
@@ -835,8 +834,8 @@
         return '-';
     }
 
-    // FUNCIÓN MODIFICADA: Evita que los fines de semana cuenten o rompan la racha consecutiva de comprobaciones
-    function calculateConsecutiveAllChecks(history) { 
+    // FUNCIÓN MODIFICADA: Evalúa que la fase de diseño (ACTIVO/ESPERA) coincida para mantener la racha
+    function calculateConsecutiveAllChecks(history, currentState) { 
         if (!history || history.length === 0) return 0; 
         let count = 0; 
         for (let i = history.length - 1; i >= 0; i--) { 
@@ -846,7 +845,14 @@
             if (dayOfWeek === 0 || dayOfWeek === 6) {
                 continue; // Saltar fin de semana
             }
-            if (h.hasOC && h.hasSample && h.hasArts) { 
+            
+            let stateMatches = true;
+            // Solo exigimos coincidencia de estado si la tabla/estado actual es uno de Diseño (ACTIVO o ESPERA)
+            if (currentState === 'ACTIVO' || currentState === 'ESPERA') {
+                stateMatches = (h.designState === currentState);
+            }
+            
+            if (h.hasOC && h.hasSample && h.hasArts && stateMatches) { 
                 count++; 
             } else { 
                 break; 
@@ -921,7 +927,12 @@
         });
         projectHistoryMap = tempMap; projectDatabase = [];
         Object.keys(tempMap).forEach(id => {
-            const item = tempMap[id]; const latest = item.history[item.history.length - 1]; const finalStartDate = item.startDate ? item.startDate : "-"; const consecutiveD = calculateConsecutiveAllChecks(item.history);
+            const item = tempMap[id]; const latest = item.history[item.history.length - 1]; 
+            const finalStartDate = item.startDate ? item.startDate : "-"; 
+            
+            // --- NUEVO COMPORTAMIENTO: Mandar latest.designState para reiniciar si cambia de fase ---
+            const consecutiveD = calculateConsecutiveAllChecks(item.history, latest.designState); 
+            
             if (item.metadata.year !== '-' && item.metadata.code !== 'N/A') { projectDatabase.push({ id: id, ...item.metadata, startDate: finalStartDate, listName: latest.listName, designState: latest.designState, designers: latest.designers, sellers: latest.sellers, hasOC: latest.hasOC, hasSample: latest.hasSample, hasArts: latest.hasArts, consecutiveD: consecutiveD }); }
         });
     }
@@ -998,7 +1009,6 @@
             if (!isChild && parentGroupId) { tr.style.cursor = 'pointer'; tr.title = "Clic para expandir/colapsar detalles"; } else { if (trelloIdMatch) { tr.className = "project-row"; tr.onclick = (e) => { e.stopPropagation(); showProjectHistory(trelloIdMatch.id); }; } else { tr.className = "project-row"; tr.title = "Aún no hay historial de Trello sincronizado para este proyecto"; } }
             if (isChild) { tr.classList.add(`child-of-${parentGroupId}`); tr.style.display = 'none'; }
             
-            // --- NUEVA LOGICA DE CUENTA REGRESIVA Y PARPADEO PARA PRODUCCIÓN / MUESTRAS ---
             let dCount; if (overrideD !== null) { dCount = overrideD; } else { dCount = calculateDays(p.fecha); }
             let displayD = dCount;
             if (dCount !== "-" && !isNaN(dCount)) {
@@ -1040,11 +1050,18 @@
         projects.forEach(p => {
             const tr = document.createElement('tr'); tr.className = "project-row"; tr.onclick = () => showProjectHistory(p.id);
             
-            // --- NUEVA LOGICA DE CUENTA REGRESIVA Y PARPADEO PARA TABLAS DE DISEÑO ---
+            // --- NUEVA LÓGICA DE VISIBILIDAD DE SLA PARA DISEÑO ---
             let displayD = p.consecutiveD;
             if (disenoTables.includes(tbodyId)) {
-                displayD = 3 - p.consecutiveD;
-                if (displayD < 0) { tr.classList.add('row-blinking'); }
+                // Condicional: Solo muestra el número si todos los checks están listos (OC, M, A)
+                if (p.hasOC && p.hasSample && p.hasArts) {
+                    let activeDays = p.consecutiveD > 0 ? p.consecutiveD - 1 : 0;
+                    displayD = 3 - activeDays;
+                    if (displayD < 0) { tr.classList.add('row-blinking'); }
+                } else {
+                    // Ocultar completamente si faltan checks (no mostramos ni 3, ni vacío)
+                    displayD = '';
+                }
             }
 
             let rowClass = "row-default"; if (p.sellers.length > 0) { const sName = p.sellers[0]; if (SELLER_IDS[sName]) rowClass = "row-" + SELLER_IDS[sName]; } tr.classList.add(rowClass);
@@ -1090,7 +1107,6 @@
         historyModal.show();
     }
 
-    // FUNCIÓN MODIFICADA: Validar fines de semana para mostrarlos en color gris en el Modal Histórico
     function createMonthCalendar(year, month, events) {
         const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]; const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDayIndex = new Date(year, month, 1).getDay(); const wrapper = document.createElement('div'); wrapper.className = 'calendar-month'; const header = document.createElement('div'); header.className = 'calendar-header'; header.textContent = `${monthNames[month]} ${year}`; wrapper.appendChild(header); const daysName = document.createElement('div'); daysName.className = 'calendar-days-name'; ["D","L","M","M","J","V","S"].forEach(d => { const sp = document.createElement('div'); sp.textContent = d; daysName.appendChild(sp); }); wrapper.appendChild(daysName); const grid = document.createElement('div'); grid.className = 'calendar-grid';
         for (let i = 0; i < firstDayIndex; i++) grid.appendChild(document.createElement('div'));
@@ -1141,7 +1157,6 @@
         checkHistoryModal.show();
     }
 
-    // FUNCIÓN MODIFICADA: Validar fines de semana para mostrarlos en color gris en el Modal Historial de Requisitos
     function createUnifiedCheckMonthCalendar(year, month, events) {
         const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]; const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDayIndex = new Date(year, month, 1).getDay(); const wrapper = document.createElement('div'); wrapper.className = 'calendar-month'; const header = document.createElement('div'); header.className = 'calendar-header'; header.textContent = `${monthNames[month]} ${year}`; wrapper.appendChild(header); const daysName = document.createElement('div'); daysName.className = 'calendar-days-name'; ["D","L","M","M","J","V","S"].forEach(d => { const sp = document.createElement('div'); sp.textContent = d; daysName.appendChild(sp); }); wrapper.appendChild(daysName);
         const grid = document.createElement('div'); grid.className = 'calendar-grid';
